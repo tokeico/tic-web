@@ -130,9 +130,6 @@ export function LandingPage() {
 				{/* hero --------------------------------------------------------- */}
 				<section className="lp-shell relative flex flex-col items-center gap-10 pt-8 pb-20">
 					<div className="lp-hero-copy flex flex-col items-center gap-6 text-center">
-						<span className="lab" style={{ color: "var(--color-volt)" }}>
-							Cross-border payments
-						</span>
 						<h1
 							className="display-hero m-0"
 							style={{ fontSize: "clamp(38px, 4.5vw, 60px)", lineHeight: 1.04 }}
