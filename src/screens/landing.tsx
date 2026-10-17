@@ -64,12 +64,6 @@ const STEPS = [
 		title: "We build your payment plan",
 		body: "Corredor maps a customized route for your invoice—rails, local rules, and tradeoffs, as of today’s date.",
 	},
-	{
-		n: "04",
-		icon: CheckCircle,
-		title: "You review and pay",
-		body: "See every rule cited and linked, approve when you’re ready, then execute the payment on the recommended stablecoin rail.",
-	},
 ];
 
 export function LandingPage() {
