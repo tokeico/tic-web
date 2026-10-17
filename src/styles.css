@@ -764,8 +764,8 @@
 
 /* ===========================================================================
    Landing page
-   The hero coin and the coverage globe are live Three.js scenes. The canvases
-   are transparent so the page ground shows through.
+   The coverage globe is a live Three.js scene. The hero coin is still the
+   composited PNG so the rails and chips stay sharp.
    ========================================================================= */
 .lp-glow {
   position: absolute;
@@ -780,35 +780,21 @@
   filter: blur(10px);
 }
 
-.hero-wrap {
-  position: relative;
-  width: 100%;
-}
-
-.lp-glow-hero {
-  position: absolute;
-  inset: 2% 0 10%;
-  pointer-events: none;
-  z-index: 0;
-  background: radial-gradient(
-    62% 58% at 52% 44%,
-    color-mix(in oklab, var(--color-volt) 20%, transparent) 0%,
-    transparent 72%
-  );
-  filter: blur(12px);
-}
-
-.hero-stage {
-  position: relative;
-  z-index: 1;
+/* Hero artwork. The crop is rectangular, so its edges are feathered into the
+   page ground rather than stopping on a hard line. */
+.hero-art {
   display: block;
   width: 100%;
-  aspect-ratio: 888 / 580;
-}
-.hero-stage canvas {
-  display: block;
-  width: 100%;
-  height: 100%;
+  height: auto;
+  mix-blend-mode: screen;
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 6%, #000 92%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 6%, #000 92%, transparent 100%);
+  mask-composite: intersect;
 }
 
 .lp-flag {
