@@ -19,6 +19,7 @@ import { Route as AppAgentRouteImport } from './routes/_app/agent'
 import { Route as AppAppRouteImport } from './routes/_app/app'
 import { Route as AppAuditRouteImport } from './routes/_app/audit'
 import { Route as AppCustomizeRouteImport } from './routes/_app/customize'
+import { Route as AppDashboardRouteImport } from './routes/_app/dashboard'
 import { Route as AppInboxRouteImport } from './routes/_app/inbox'
 import { Route as AppLedgerRouteImport } from './routes/_app/ledger'
 import { Route as AppOverviewRouteImport } from './routes/_app/overview'
@@ -74,6 +75,11 @@ const AppCustomizeRoute = AppCustomizeRouteImport.update({
   path: '/customize',
   getParentRoute: () => AppRoute,
 } as any)
+const AppDashboardRoute = AppDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppInboxRoute = AppInboxRouteImport.update({
   id: '/inbox',
   path: '/inbox',
@@ -110,6 +116,7 @@ export interface FileRoutesByFullPath {
   '/app': typeof AppAppRoute
   '/audit': typeof AppAuditRoute
   '/customize': typeof AppCustomizeRoute
+  '/dashboard': typeof AppDashboardRoute
   '/inbox': typeof AppInboxRoute
   '/ledger': typeof AppLedgerRoute
   '/overview': typeof AppOverviewRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/app': typeof AppAppRoute
   '/audit': typeof AppAuditRoute
   '/customize': typeof AppCustomizeRoute
+  '/dashboard': typeof AppDashboardRoute
   '/inbox': typeof AppInboxRoute
   '/ledger': typeof AppLedgerRoute
   '/overview': typeof AppOverviewRoute
@@ -144,6 +152,7 @@ export interface FileRoutesById {
   '/_app/app': typeof AppAppRoute
   '/_app/audit': typeof AppAuditRoute
   '/_app/customize': typeof AppCustomizeRoute
+  '/_app/dashboard': typeof AppDashboardRoute
   '/_app/inbox': typeof AppInboxRoute
   '/_app/ledger': typeof AppLedgerRoute
   '/_app/overview': typeof AppOverviewRoute
@@ -162,6 +171,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/audit'
     | '/customize'
+    | '/dashboard'
     | '/inbox'
     | '/ledger'
     | '/overview'
@@ -178,6 +188,7 @@ export interface FileRouteTypes {
     | '/app'
     | '/audit'
     | '/customize'
+    | '/dashboard'
     | '/inbox'
     | '/ledger'
     | '/overview'
@@ -195,6 +206,7 @@ export interface FileRouteTypes {
     | '/_app/app'
     | '/_app/audit'
     | '/_app/customize'
+    | '/_app/dashboard'
     | '/_app/inbox'
     | '/_app/ledger'
     | '/_app/overview'
@@ -283,6 +295,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppCustomizeRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/dashboard': {
+      id: '/_app/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AppDashboardRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/inbox': {
       id: '/_app/inbox'
       path: '/inbox'
@@ -327,6 +346,7 @@ interface AppRouteChildren {
   AppAppRoute: typeof AppAppRoute
   AppAuditRoute: typeof AppAuditRoute
   AppCustomizeRoute: typeof AppCustomizeRoute
+  AppDashboardRoute: typeof AppDashboardRoute
   AppInboxRoute: typeof AppInboxRoute
   AppLedgerRoute: typeof AppLedgerRoute
   AppOverviewRoute: typeof AppOverviewRoute
@@ -339,6 +359,7 @@ const AppRouteChildren: AppRouteChildren = {
   AppAppRoute: AppAppRoute,
   AppAuditRoute: AppAuditRoute,
   AppCustomizeRoute: AppCustomizeRoute,
+  AppDashboardRoute: AppDashboardRoute,
   AppInboxRoute: AppInboxRoute,
   AppLedgerRoute: AppLedgerRoute,
   AppOverviewRoute: AppOverviewRoute,
