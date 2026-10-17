@@ -29,12 +29,15 @@ export function HeroCoin() {
 	}, []);
 
 	return (
-		<div
-			ref={host}
-			className="hero-stage"
-			role="img"
-			aria-label="The Corredor token, a gold coin struck with a running horse."
-		/>
+		<div className="hero-wrap">
+			<div className="lp-glow-hero" aria-hidden="true" />
+			<div
+				ref={host}
+				className="hero-stage"
+				role="img"
+				aria-label="The Corredor token, a gold coin struck with a running horse."
+			/>
+		</div>
 	);
 }
 
@@ -117,19 +120,15 @@ async function mountHeroCoin(
 	const size = box.getSize(new THREE.Vector3());
 	const center = box.getCenter(new THREE.Vector3());
 	coin.position.sub(center);
-	// The export faces +Z. Tip it so the reeded edge catches the key light
-	// without rolling around to the open back.
-	// Leave margin for the idle sway so the rim never clips the stage.
+	// The export faces +Z — keep the face square to the camera; sway stays on Y only.
 	coin.scale.setScalar(1.42 / Math.max(size.x, size.y));
 
 	const rig = new THREE.Group();
 	rig.add(coin);
-	rig.rotation.x = 0.38;
-	rig.rotation.z = -0.1;
 	scene.add(rig);
 
-	camera.position.set(0.02, -0.06, 3.05);
-	camera.lookAt(0, -0.06, 0);
+	camera.position.set(0, 0, 3.05);
+	camera.lookAt(0, 0, 0);
 
 	const pointer = { x: 0, y: 0 };
 	const onPointer = (event: PointerEvent) => {
@@ -170,9 +169,8 @@ async function mountHeroCoin(
 		if (!visible && !reduce) return;
 		const t = clock.getElapsedTime();
 		const sway = reduce ? 0 : Math.sin(t * 0.45) * 0.12;
-		const nod = reduce ? 0 : Math.sin(t * 0.28) * 0.025;
 		rig.rotation.y = sway + pointer.x * 0.1;
-		rig.rotation.x = 0.38 + nod - pointer.y * 0.06;
+		rig.rotation.x = -pointer.y * 0.04;
 		renderer.render(scene, camera);
 	};
 	draw();

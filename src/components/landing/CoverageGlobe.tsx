@@ -29,12 +29,15 @@ export function CoverageGlobe() {
 	}, []);
 
 	return (
-		<div
-			ref={host}
-			className="coverage-stage"
-			role="img"
-			aria-label="Dotted globe of the Americas with payment corridors arcing from the United States to Mexico, Colombia, Brazil and Argentina."
-		/>
+		<div className="coverage-wrap">
+			<div className="lp-glow-coverage" aria-hidden="true" />
+			<div
+				ref={host}
+				className="coverage-stage"
+				role="img"
+				aria-label="Dotted globe of the Americas with payment corridors arcing from the United States to Mexico, Colombia, Brazil and Argentina."
+			/>
+		</div>
 	);
 }
 
@@ -91,12 +94,20 @@ async function mountGlobe(
 
 	const scene = new THREE.Scene();
 	const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 20);
-	camera.position.set(0.05, 0.42, 4.25);
-	camera.lookAt(0, 0, 0);
+	// Below the equator, looking up so South America sits in the middle of the frame.
+	camera.position.set(0.08, -0.82, 4.05);
+	camera.lookAt(-0.18, 0.14, 0);
 
 	const globe = new THREE.Group();
 	globe.scale.setScalar(0.9);
 	scene.add(globe);
+
+	// At rotation.y = 0, lon -90 faces +Z. Swing around the Americas centroid.
+	// West of the Mississippi so South America isn’t shoved to the right edge.
+	const americasLon = -100;
+	const americasBaseY = (americasLon + 90) * DEG;
+	const swingAmp = 0.22;
+	const swingSpeed = 0.4;
 
 	const land: number[] = [];
 	for (let lat = -56; lat <= 72; lat += 1.7) {
@@ -245,7 +256,9 @@ async function mountGlobe(
 		if (!reduce) frame = requestAnimationFrame(draw);
 		if (!visible && !reduce) return;
 		const t = clock.getElapsedTime();
-		globe.rotation.y = reduce ? 0.15 : 0.15 + t * 0.42;
+		globe.rotation.y = reduce
+			? americasBaseY
+			: americasBaseY + Math.sin(t * swingSpeed) * swingAmp;
 		curves.forEach((entry, index) => {
 			const along = reduce ? 0.45 : (t * 0.13 + index * 0.23) % 1;
 			entry.pulse.position.copy(entry.curve.getPoint(along));
