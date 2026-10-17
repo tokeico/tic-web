@@ -1,5 +1,6 @@
 import { type FormEvent, useEffect, useState } from "react";
 import type { z } from "zod";
+import { ConnectAgent } from "@/components/ConnectAgent";
 import {
 	type ApiKey,
 	createApiKey,
@@ -20,7 +21,6 @@ export function AccountPage() {
 	const [keys, setKeys] = useState<z.infer<typeof ApiKey>[]>([]);
 	const [workspaces, setWorkspaces] = useState<z.infer<typeof Workspace>[]>([]);
 	const [workspaceId, setWorkspaceId] = useState(user.workspace.id);
-	const [notice, setNotice] = useState("");
 	const [error, setError] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [secret, setSecret] = useState("");
@@ -127,11 +127,6 @@ export function AccountPage() {
 					</button>
 				</form>
 			)}
-			{notice && (
-				<p role="status" className="m-0 text-sm text-ash xl:col-span-2">
-					{notice}
-				</p>
-			)}
 			{error && (
 				<p role="alert" className="m-0 text-coral xl:col-span-2">
 					{error}
@@ -220,29 +215,6 @@ export function AccountPage() {
 					cannot approve payments, move money, or clear compliance holds. Keys
 					expire after 90 days.
 				</p>
-				<p className="m-0 max-w-[70ch] text-sm text-ash">
-					Connect an HTTP MCP client to <code className="mono">/mcp</code> on
-					this site, using your key in the{" "}
-					<code className="mono">Authorization: Bearer</code> header.
-				</p>
-				<button
-					type="button"
-					className="btn btn-sm self-start max-sm:min-h-10"
-					onClick={async () => {
-						try {
-							await navigator.clipboard.writeText(
-								`${window.location.origin}/mcp`,
-							);
-							setNotice("MCP endpoint copied.");
-						} catch {
-							setError(
-								"Could not copy. Use this site’s address followed by /mcp.",
-							);
-						}
-					}}
-				>
-					Copy MCP endpoint
-				</button>
 				<form
 					className={`${row} mt-1`}
 					onSubmit={(event) => {
@@ -299,6 +271,7 @@ export function AccountPage() {
 						</div>
 					</div>
 				)}
+				<ConnectAgent secret={secret} />
 				{keys.length > 0 && (
 					<ul className="m-0 list-none divide-y divide-edge p-0">
 						{keys.map((key) => (

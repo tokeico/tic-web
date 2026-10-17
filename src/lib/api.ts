@@ -45,7 +45,11 @@ export class ApiRequestError extends Error {
 export async function request<S extends z.ZodType>(
 	schema: S,
 	path: string,
-	init: { method?: string; body?: unknown } = {},
+	init: {
+		method?: string;
+		body?: unknown;
+		headers?: Record<string, string>;
+	} = {},
 ): Promise<z.infer<S>> {
 	let res: Response;
 	const form = init.body instanceof FormData;
@@ -53,10 +57,12 @@ export async function request<S extends z.ZodType>(
 		res = await fetch(`${API_URL}${path}`, {
 			credentials: "same-origin",
 			method: init.method ?? "GET",
-			headers:
-				init.body === undefined || form
-					? undefined
-					: { "content-type": "application/json" },
+			headers: {
+				...(init.body === undefined || form
+					? {}
+					: { "content-type": "application/json" }),
+				...init.headers,
+			},
 			body:
 				init.body === undefined
 					? undefined

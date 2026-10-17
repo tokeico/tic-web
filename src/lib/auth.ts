@@ -106,6 +106,20 @@ export const createApiKey = (label: string) =>
 		"/api/auth/keys",
 		{ method: "POST", body: { label } },
 	);
+export const McpTool = z.object({
+	name: z.string(),
+	description: z.string().optional(),
+});
+/** The tools an agent sees on /mcp, read live so this list can't drift from the server. */
+export const listMcpTools = () =>
+	request(z.object({ result: z.object({ tools: z.array(McpTool) }) }), "/mcp", {
+		method: "POST",
+		body: { jsonrpc: "2.0", id: 1, method: "tools/list" },
+		headers: {
+			accept: "application/json, text/event-stream",
+			"mcp-protocol-version": "2025-11-25",
+		},
+	}).then((reply) => reply.result.tools);
 export const revokeApiKey = (id: string) =>
 	request(
 		z.object({ ok: z.boolean() }),
