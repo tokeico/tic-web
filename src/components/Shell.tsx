@@ -12,6 +12,7 @@ import { HelpHint } from "./HelpHint";
 import { Close, More, Swap } from "./icons";
 
 const TABS: [ViewId, string][] = [
+	["dashboard", "Dashboard"],
 	["agent", "Agent"],
 	["inbox", "Inbox"],
 	["ledger", "Books"],
@@ -23,6 +24,9 @@ const MORE: [ViewId, string][] = [
 	["trust", "Trust & compliance"],
 	["customize", "Customize"],
 ];
+
+/** Screens whose numbers are planned as of the demo date; the timeline shows only there. */
+const TIMELINE_PATHS = ["/agent", "/inbox", "/overview", "/trust"];
 
 /** The milestones the pitch drags between. */
 const JUMPS: [number, string][] = [
@@ -184,7 +188,7 @@ export function Shell({ children }: { children: ReactNode }) {
 					</div>
 				</div>
 
-				{isDemoAdmin(user) && <AsOfBar />}
+				{isDemoAdmin(user) && TIMELINE_PATHS.includes(pathname) && <AsOfBar />}
 			</header>
 
 			<TourBar key={state.tour ?? "off"} />
@@ -208,7 +212,6 @@ function AsOfBar() {
 			<div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-5 py-3">
 				<div className="flex flex-wrap items-center justify-between gap-2">
 					<div className="flex min-w-[170px] items-center gap-2.5">
-						<span className="pill p-warn">DEMO</span>
 						<span className="lab">As-of date</span>
 						<span
 							className="mono"

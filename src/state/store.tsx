@@ -61,6 +61,7 @@ export const COMPLIANCE = "Daniel Ortiz";
 export const APPROVERS = [ACTOR, COMPLIANCE];
 
 export type ViewId =
+	| "dashboard"
 	| "overview"
 	| "inbox"
 	| "agent"
@@ -70,6 +71,7 @@ export type ViewId =
 	| "customize";
 
 export const VIEW_PATH: Record<ViewId, string> = {
+	dashboard: "/dashboard",
 	overview: "/overview",
 	inbox: "/inbox",
 	agent: "/agent",

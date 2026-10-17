@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { OverviewPage } from "@/screens/overview";
+import { DashboardPage } from "@/screens/dashboard";
 
-/** Where "Get Started" lands: the overview, under the URL people expect. */
+/** Where "Get Started" lands: the CEO view. The payer's home is /overview. */
 export const Route = createFileRoute("/_app/dashboard")({
-	component: OverviewPage,
+	component: DashboardPage,
 });

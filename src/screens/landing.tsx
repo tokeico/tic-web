@@ -2,15 +2,10 @@ import { Link } from "@tanstack/react-router";
 import Lenis from "lenis";
 import { useEffect } from "react";
 import "lenis/dist/lenis.css";
-import {
-	Chat,
-	Check,
-	CheckCircle,
-	Clock,
-	ShieldCheck,
-	WarnTriangle,
-} from "@/components/icons";
+import { Check, CheckCircle, ShieldCheck } from "@/components/icons";
 import { CoverageGlobe } from "@/components/landing/CoverageGlobe";
+import { HeroCoinStage } from "@/components/landing/HeroCoinStage";
+import { LandingDualCarousel } from "@/components/landing/LandingDualCarousel";
 import { payoutById } from "@/domain/data";
 import { type EngineState, plan, rname } from "@/domain/engine";
 import { iso, mins, usd } from "@/domain/format";
@@ -77,12 +72,12 @@ export function LandingPage() {
 		return () => lenis.destroy();
 	}, []);
 	return (
-		<div className="min-h-screen text-bone">
-			<div className="relative overflow-hidden">
+		<div className="lp-page min-h-screen text-bone">
+			<div className="lp-hero-band relative">
 				<div className="lp-glow" aria-hidden="true" />
 
 				{/* masthead ----------------------------------------------------- */}
-				<header className="relative mx-auto flex max-w-[1320px] flex-wrap items-center justify-between gap-4 px-6 py-6">
+				<header className="lp-shell relative flex flex-wrap items-center justify-between gap-4 py-6">
 					<div className="flex items-center gap-3">
 						<span className="corredor-mark" role="img" aria-label="Corredor" />
 						<div className="flex flex-col">
@@ -133,8 +128,8 @@ export function LandingPage() {
 				</header>
 
 				{/* hero --------------------------------------------------------- */}
-				<section className="relative mx-auto grid max-w-[1320px] items-center gap-6 px-6 pt-8 pb-20 lg:grid-cols-[1.08fr_1fr]">
-					<div className="flex flex-col gap-6">
+				<section className="lp-shell relative flex flex-col items-center gap-10 pt-8 pb-20">
+					<div className="lp-hero-copy flex flex-col items-center gap-6 text-center">
 						<span className="lab" style={{ color: "var(--color-volt)" }}>
 							Cross-border payments
 						</span>
@@ -145,14 +140,14 @@ export function LandingPage() {
 							The Compliance Brain for Latin America
 						</h1>
 						<p
-							className="m-0 text-ash"
-							style={{ fontSize: 17, maxWidth: "54ch" }}
+							className="m-0 mx-auto max-w-[54ch] text-ash"
+							style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.35vw, 1.0625rem)" }}
 						>
 							Corredor helps US businesses pay suppliers in Latin America with
 							stablecoins. It checks each country’s rules, finds a compliant
 							route, explains every step, and waits for your approval.
 						</p>
-						<div className="flex flex-wrap gap-3">
+						<div className="flex flex-wrap justify-center gap-3">
 							<Link
 								to="/dashboard"
 								className="btn btn-primary lp-pill-cta no-underline"
@@ -164,7 +159,7 @@ export function LandingPage() {
 							</a>
 						</div>
 
-						<ul className="m-0 flex list-none flex-wrap gap-x-9 gap-y-4 p-0 pt-2">
+						<ul className="m-0 flex list-none flex-wrap justify-center gap-x-9 gap-y-4 p-0 pt-2">
 							{[
 								[ShieldCheck, "Compliant", "by design"],
 								[Check, "Faster", "payments"],
@@ -172,9 +167,12 @@ export function LandingPage() {
 							].map(([Icon, a, b]) => {
 								const I = Icon as typeof Check;
 								return (
-									<li key={a as string} className="flex items-center gap-3">
+									<li
+										key={a as string}
+										className="flex flex-col items-center gap-2 text-center"
+									>
 										<span
-											className="grid place-items-center rounded-full"
+											className="grid shrink-0 place-items-center rounded-full"
 											style={{
 												width: 44,
 												height: 44,
@@ -195,73 +193,13 @@ export function LandingPage() {
 						</ul>
 					</div>
 
-					<CoinStage />
+					<HeroCoinStage />
 				</section>
 			</div>
 
-			{/* how it works --------------------------------------------------- */}
-			<section id="how-it-works" className="lp-section">
-				<div className="mx-auto flex max-w-[1320px] flex-col gap-8 px-6 py-16">
-					<div className="grid items-end gap-6 lg:grid-cols-[1.1fr_1fr]">
-						<div className="flex flex-col gap-3">
-							<span className="lab" style={{ color: "var(--color-volt)" }}>
-								How it works
-							</span>
-							<h2
-								className="display m-0"
-								style={{
-									fontSize: "clamp(28px, 3.4vw, 42px)",
-									lineHeight: 1.1,
-									maxWidth: "16ch",
-								}}
-							>
-								A safer, smarter way to move money across borders.
-							</h2>
-						</div>
-						<p
-							className="m-0 text-ash"
-							style={{ fontSize: 16, maxWidth: "62ch" }}
-						>
-							Every country has different regulations, banks and payment rails.
-							Corredor applies the rules in force on the day you pay, picks the
-							best compliant route, and shows the logic behind every decision —
-							so you stay in control.
-						</p>
-					</div>
-
-					<ol className="m-0 grid list-none gap-4 p-0 md:grid-cols-2 xl:grid-cols-4">
-						{STEPS.map((s) => (
-							<li key={s.n} className="lp-step">
-								<div className="flex items-center justify-between">
-									<span
-										className="mono"
-										style={{
-											fontSize: 26,
-											fontWeight: 600,
-											color: "var(--color-volt)",
-										}}
-									>
-										{s.n}
-									</span>
-									<span className="text-ash-dim">
-										<s.icon size={20} />
-									</span>
-								</div>
-								<span className="font-semibold" style={{ fontSize: 16 }}>
-									{s.title}
-								</span>
-								<span className="text-ash-dim" style={{ fontSize: 14 }}>
-									{s.body}
-								</span>
-							</li>
-						))}
-					</ol>
-				</div>
-			</section>
-
-			{/* coverage ------------------------------------------------------- */}
+			{/* coverage — second beat after the hero -------------------------- */}
 			<section id="coverage" className="lp-section">
-				<div className="mx-auto grid max-w-[1320px] items-center gap-10 px-6 py-16 lg:grid-cols-[1fr_1fr]">
+				<div className="lp-shell grid items-center gap-10 py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
 					<div className="flex flex-col gap-4">
 						<span className="lab" style={{ color: "var(--color-volt)" }}>
 							Coverage
@@ -327,67 +265,18 @@ export function LandingPage() {
 					<CoverageGlobe />
 				</div>
 
-				<div className="mx-auto max-w-[1320px] px-6 pb-16">
+				<div className="lp-shell pb-16">
 					<LiveCorridors />
 				</div>
 			</section>
 
-			{/* security ------------------------------------------------------- */}
-			<section id="security" className="lp-section">
-				<div className="mx-auto flex max-w-[1320px] flex-col gap-8 px-6 py-16">
-					<div className="flex flex-col gap-3">
-						<span className="lab" style={{ color: "var(--color-volt)" }}>
-							Security
-						</span>
-						<h2
-							className="display m-0"
-							style={{ fontSize: "clamp(28px, 3.4vw, 42px)", lineHeight: 1.1 }}
-						>
-							AI reads and explains.
-							<br />
-							Code decides. A person approves.
-						</h2>
-					</div>
-					<div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-						{[
-							[
-								"Deterministic engine",
-								"The same invoice and date always produce the same plan — replayable, with a fingerprint.",
-							],
-							[
-								"Every claim cited",
-								"Each decision names the rule, its effective date, and links the source.",
-							],
-							[
-								"No money-moving AI",
-								"The agent can read and propose. Approving and paying exist only for people.",
-							],
-							[
-								"Hash-chained audit",
-								"Every AI step, engine step and human decision is chained; editing one breaks the chain.",
-							],
-						].map(([t, b]) => (
-							<div key={t} className="lp-step">
-								<span style={{ color: "var(--color-volt)" }}>
-									<ShieldCheck size={20} />
-								</span>
-								<span className="font-semibold" style={{ fontSize: 15.5 }}>
-									{t}
-								</span>
-								<span className="text-ash-dim" style={{ fontSize: 14 }}>
-									{b}
-								</span>
-							</div>
-						))}
-					</div>
-				</div>
-			</section>
+			<LandingDualCarousel />
 
-			{/* closing band --------------------------------------------------- */}
+			{/* closing band — last beat before the footer ------------------- */}
 			<section className="lp-section">
-				<div className="mx-auto max-w-[1320px] px-6 py-16">
+				<div className="lp-shell py-16">
 					<div
-						className="flex flex-wrap items-center justify-between gap-6 rounded-2xl px-8 py-10"
+						className="flex flex-wrap items-center justify-between gap-6 rounded-2xl px-[clamp(1.25rem,4vw,2rem)] py-[clamp(1.75rem,4vw,2.5rem)]"
 						style={{
 							border: "1px solid var(--color-edge)",
 							background:
@@ -425,7 +314,7 @@ export function LandingPage() {
 			</section>
 
 			<footer className="lp-section">
-				<div className="mx-auto flex max-w-[1320px] flex-wrap items-center justify-between gap-4 px-6 py-8">
+				<div className="lp-shell flex flex-wrap items-center justify-between gap-4 py-8">
 					<div className="flex items-center gap-3">
 						<span
 							className="corredor-mark"
@@ -449,21 +338,6 @@ export function LandingPage() {
 					</span>
 				</div>
 			</footer>
-		</div>
-	);
-}
-
-/** The hero artwork: the Corredor token with the rails wired into it. */
-function CoinStage() {
-	return (
-		<div className="relative origin-left lg:scale-[1.12]">
-			<img
-				className="hero-art"
-				src="/hero-coin.png"
-				width={888}
-				height={460}
-				alt="The Corredor token, a gold coin struck with a running horse, wired to USD, USDC and MXN on one side and BRL, COP and ARS on the other."
-			/>
 		</div>
 	);
 }
@@ -511,8 +385,7 @@ function LiveCorridors() {
 			{rows.map((r) => (
 				<div
 					key={r.id}
-					className="grid items-center gap-3 border-t border-edge-soft pt-3"
-					style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}
+					className="lp-corridor-row border-t border-edge-soft pt-3"
 				>
 					<div className="flex min-w-0 flex-col gap-1">
 						<span className="flex items-center gap-2" style={{ fontSize: 15 }}>
@@ -526,23 +399,17 @@ function LiveCorridors() {
 							{r.asset} · {r.rail}
 						</span>
 					</div>
-					<div className="flex items-center gap-4 text-right">
+					<div className="lp-corridor-metrics">
 						<span
 							className="mono"
 							style={{ fontSize: 14, color: "var(--color-volt)" }}
 						>
 							{r.fee}
 						</span>
-						<span
-							className="mono text-ash"
-							style={{ fontSize: 13, minWidth: 56 }}
-						>
+						<span className="mono text-ash" style={{ fontSize: 13 }}>
 							{r.time}
 						</span>
-						<span
-							className="mono text-ash-dim"
-							style={{ fontSize: 13, minWidth: 92 }}
-						>
+						<span className="mono text-ash-dim" style={{ fontSize: 13 }}>
 							saves {r.saved}
 						</span>
 					</div>
