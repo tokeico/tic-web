@@ -16,7 +16,7 @@ import "./presentation.css";
  * Demo numbers on slide 4 are the rules engine's own Oct 1 plan for the
  * Estúdio Paulista payout (src/fixtures/payouts.json).
  *
- * Keys: → / Space next · ← back · R replay slide · F fullscreen · 1–8 jump.
+ * Keys: → / Space next · ← back · R replay slide · F fullscreen · 1–7 jump.
  */
 
 const W = 1920;
@@ -167,20 +167,6 @@ function Kicker({ children, delay = 0 }: { children: string; delay?: number }) {
 	);
 }
 
-function Sources({
-	children,
-	delay = 1.6,
-}: {
-	children: ReactNode;
-	delay?: number;
-}) {
-	return (
-		<div className="pz-sources a-fade" style={d(delay)}>
-			{children}
-		</div>
-	);
-}
-
 function Mark({ size = 34 }: { size?: number }) {
 	return (
 		<svg width={size} height={size} viewBox="0 0 48 48" aria-hidden="true">
@@ -230,20 +216,6 @@ function S1Title() {
 					))}
 				</div>
 			</div>
-			<div className="s1-hud a-fade" style={d(2.2)}>
-				<div className="s1-hud-row">
-					<span>corridors</span>
-					<b>US → MX · CO · BR · AR</b>
-				</div>
-				<div className="s1-hud-row">
-					<span>rules pack</span>
-					<b>v1 · 9 rules</b>
-				</div>
-				<div className="s1-hud-row">
-					<span>mode</span>
-					<b className="t-volt">prepare · human approves</b>
-				</div>
-			</div>
 		</div>
 	);
 }
@@ -269,9 +241,6 @@ function S2Problem() {
 						a year lost to bank wire fees and exchange-rate markups.
 					</p>
 					<LeakBar />
-					<p className="s2-ex a-fade" style={d(2.4)}>
-						Example: 8 contractors and 4 suppliers, $76,000 a month.
-					</p>
 				</div>
 				<div className="s2-rows">
 					<div className="s2-row" style={d(1.2)}>
@@ -282,7 +251,6 @@ function S2Problem() {
 								{[0, 1, 2, 3, 4].map((i) => (
 									<span key={i} style={d(i * 0.5)} />
 								))}
-								<em>waiting…</em>
 							</div>
 						</div>
 					</div>
@@ -307,18 +275,10 @@ function S2Problem() {
 						</div>
 						<div className="s2-v">
 							for the compliance officer she can't afford
-							<div className="s2-hire">
-								<span className="s2-hire-tag">HIRE · COMPLIANCE OFFICER</span>
-								<span className="s2-hire-x">NOT IN BUDGET</span>
-							</div>
 						</div>
 					</div>
 				</div>
 			</div>
-			<Sources>
-				Sources: NerdWallet (2026) · Polygon (2026) · LexisNexis Risk Solutions
-				(Oct 2026) · BLS (May 2025) · Ramp help center
-			</Sources>
 		</div>
 	);
 }
@@ -328,10 +288,6 @@ function LeakBar() {
 	const fees = ["$45 wire", "$15–50 middleman", "$10–20 receiving", "2–5% FX"];
 	return (
 		<div className="s2-leak a-fade" style={d(1.6)}>
-			<div className="s2-leak-head">
-				<span>$76,000 / month out</span>
-				<span className="t-coral">− fees, every payment</span>
-			</div>
 			<div className="s2-leak-track">
 				<div className="s2-leak-fill" />
 				{Array.from({ length: 14 }, (_, i) => (
@@ -438,10 +394,6 @@ function S3WhyNow() {
 					</p>
 				</div>
 			</div>
-			<Sources>
-				Sources: Ledger Insights, Res. 561 and 521 (2026) · Ramp help center ·
-				Stripe newsroom (July 2026)
-			</Sources>
 		</div>
 	);
 }
@@ -626,8 +578,6 @@ function S4Demo() {
 								className={`dm-check-row ${verdictAt(i) ? "seen" : ""} ${s >= 9 && r.verdict === "pick" ? "is-pick" : ""} ${s >= 9 && r.verdict !== "pick" ? "is-dim" : ""}`}
 							>
 								<span className="dm-cr-name">{r.name}</span>
-								<span className="dm-cr-kind">{r.kind}</span>
-								<span className="dm-cr-num">{r.pct}</span>
 								<span className="dm-cr-num">{r.fee}</span>
 								<span className="dm-cr-num">{r.time}</span>
 								<span className="dm-cr-v">
@@ -655,8 +605,8 @@ function S4Demo() {
 					<div className={`dm-memo-act ${s >= 11 ? "on" : ""}`}>
 						{s >= 14 ? (
 							<div className="dm-memo-ok">
-								<span className="act-tag act-human">HUMAN</span> Approved by
-								owner · reason logged · audit #A-0419
+								<span className="act-tag act-human">HUMAN</span> Approved ·
+								reason logged
 							</div>
 						) : (
 							<button
@@ -667,9 +617,6 @@ function S4Demo() {
 								{s >= 13 && <span className="dm-memo-ripple" />}
 							</button>
 						)}
-						<span className="dm-memo-note">
-							Over $50,000 needs a second approver
-						</span>
 					</div>
 					<svg
 						className={`dm-cursor ${s >= 12 ? "on" : ""} ${s >= 13 ? "click" : ""}`}
@@ -892,72 +839,6 @@ function S6Close() {
 
 /* backups ------------------------------------------------------------------- */
 
-const TABLE = [
-	[
-		"How fast?",
-		"1–5 business days",
-		"About 30 min in BRL, MXN, COP",
-		"Minutes",
-	],
-	[
-		"What does it cost?",
-		"$45 wire, middlemen, 2–5% FX",
-		"“Market-competitive” FX",
-		"Target 1% all-in, shown first",
-	],
-	[
-		"Is it allowed there today?",
-		"Up to you",
-		"Not on its payments page",
-		"Checked for that date",
-	],
-	[
-		"Why this route?",
-		"No answer",
-		"Not on its payments page",
-		"Written reason with source",
-	],
-	["Need a compliance person?", "Yes", "Yes, for country rules", "No"],
-];
-
-function S7Table() {
-	return (
-		<div className="pz-pad">
-			<Kicker>BACKUP · IF ASKED ABOUT RAMP</Kicker>
-			<h2 className="pz-h2">
-				<Words text="Bank vs Ramp vs *Corredor*" start={0.2} step={0.08} />
-			</h2>
-			<div className="s7-tbl">
-				<div className="s7-tbl-hl" />
-				<div className="s7-tbl-row s7-tbl-head a-fade" style={d(0.6)}>
-					<span>What the owner asks</span>
-					<span>Their bank</span>
-					<span>Ramp</span>
-					<span className="t-volt">
-						<Mark size={20} /> Corredor
-					</span>
-				</div>
-				{TABLE.map((r, i) => (
-					<div key={r[0]} className="s7-tbl-row" style={d(0.9 + i * 0.22)}>
-						<span>{r[0]}</span>
-						<span className="t-dim">{r[1]}</span>
-						<span>{r[2]}</span>
-						<span className="s7-tbl-c">
-							<i className="s7-tbl-tick" style={d(1.3 + i * 0.22)} />
-							{r[3]}
-						</span>
-					</div>
-				))}
-			</div>
-			<Sources delay={2.4}>
-				Sources: Ramp help center · Stripe newsroom (July 2026) · NerdWallet
-				(2026) · Polygon (2026). “Not on its payments page” means Ramp's public
-				help page doesn't mention it.
-			</Sources>
-		</div>
-	);
-}
-
 function S8Math() {
 	const bars = [
 		{
@@ -1020,7 +901,6 @@ function S8Math() {
 								<small>/ yr</small>
 							</div>
 						</div>
-						<div className="s8-bar-note">{b.note}</div>
 					</div>
 				))}
 				<div className="s8-bar-save a-fade" style={d(2.8)}>
@@ -1028,10 +908,6 @@ function S8Math() {
 					<b>$19,200 – $53,040 / yr</b>
 				</div>
 			</div>
-			<Sources delay={2.6}>
-				Per year. Sources: NerdWallet wire fee median (2026) · Polygon fee and
-				FX ranges (March 2026) · BLS compliance officer pay (May 2025)
-			</Sources>
 		</div>
 	);
 }
@@ -1116,15 +992,6 @@ const SLIDES: Array<{
 			{ t: "allowed to move · checked for that date", tone: "volt" },
 			{ t: "cheapest allowed route · fee shown first" },
 			{ t: "ready when you are." },
-		],
-	},
-	{
-		id: "vs-ramp",
-		label: "Backup · Ramp",
-		C: S7Table,
-		log: [
-			{ t: "compare: bank · ramp · corredor" },
-			{ t: "source: ramp public help center" },
 		],
 	},
 	{
@@ -1258,7 +1125,7 @@ export function PresentationPage() {
 			} else if (k === "f" || k === "F") {
 				if (document.fullscreenElement) void document.exitFullscreen();
 				else void document.documentElement.requestFullscreen?.();
-			} else if (/^[1-8]$/.test(k)) go(Number(k) - 1);
+			} else if (/^[1-9]$/.test(k) && Number(k) <= N) go(Number(k) - 1);
 		};
 		window.addEventListener("keydown", onKey);
 		return () => window.removeEventListener("keydown", onKey);

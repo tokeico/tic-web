@@ -14,12 +14,18 @@ import { AMERICAS } from "@/components/landing/americas";
 
 export type BrazilState = "ok" | "blocked" | "rerouted";
 
-export const world = {
-	shot: 0,
-	brazil: "ok" as BrazilState,
+type WorldState = {
+	shot: number;
+	brazil: BrazilState;
 	/** 0..1, bumps the dust and packet speed for a beat on slide change */
-	surge: 0,
+	surge: number;
 };
+
+// Kept on globalThis so a hot reload of this module and the deck's import
+// still share one object; otherwise the scene stops following the slides.
+const g = globalThis as { __pitchWorld?: WorldState };
+g.__pitchWorld ??= { shot: 0, brazil: "ok", surge: 0 };
+export const world: WorldState = g.__pitchWorld;
 
 type Shot = {
 	cam: [number, number, number];
@@ -45,7 +51,7 @@ const SHOTS: Shot[] = [
 		coin: { pos: [3.0, 0.3, 0], scale: 1.85 },
 		globe: { pos: [3.4, -0.4, -7], scale: 3.4, lon: -78, lat: 8, alpha: 0.35 },
 		ring: 1,
-		bloom: 1.0,
+		bloom: 0.7,
 	},
 	// 1 · problem: Miami → Colombia, low on the right, behind the stats
 	{
@@ -57,19 +63,19 @@ const SHOTS: Shot[] = [
 			scale: 2.6,
 			lon: -76,
 			lat: 14,
-			alpha: 0.42,
+			alpha: 0.28,
 		},
 		ring: 0,
-		bloom: 0.9,
+		bloom: 0.63,
 	},
 	// 2 · why now: Brazil front and centre-right, the corridor that breaks
 	{
 		cam: [0, 0, 9],
 		look: [0, 0, 0],
 		coin: { pos: [7.5, 4.5, -4], scale: 0.0001 },
-		globe: { pos: [3.0, -0.2, -1], scale: 2.7, lon: -62, lat: -6, alpha: 0.6 },
+		globe: { pos: [3.0, -0.2, -1], scale: 2.7, lon: -62, lat: -6, alpha: 0.45 },
 		ring: 0,
-		bloom: 1.0,
+		bloom: 0.7,
 	},
 	// 3 · live demo: globe pulled back so the product UI reads
 	{
@@ -78,7 +84,7 @@ const SHOTS: Shot[] = [
 		coin: { pos: [-7, -4, -6], scale: 0.0001 },
 		globe: { pos: [0, -3.4, -5], scale: 3.6, lon: -62, lat: -8, alpha: 0.22 },
 		ring: 0,
-		bloom: 0.85,
+		bloom: 0.59,
 	},
 	// 4 · how it works: the globe rises behind the cards as a horizon
 	{
@@ -87,7 +93,7 @@ const SHOTS: Shot[] = [
 		coin: { pos: [-7, -4, -6], scale: 0.0001 },
 		globe: { pos: [0, -6.4, -3], scale: 5.2, lon: -70, lat: -2, alpha: 0.3 },
 		ring: 0,
-		bloom: 0.9,
+		bloom: 0.63,
 	},
 	// 5 · close: the coin comes back, ring and all
 	{
@@ -96,18 +102,9 @@ const SHOTS: Shot[] = [
 		coin: { pos: [3.6, -0.6, -0.5], scale: 1.75 },
 		globe: { pos: [3.6, -0.6, -6], scale: 3.2, lon: -70, lat: 0, alpha: 0.3 },
 		ring: 1,
-		bloom: 1.05,
+		bloom: 0.73,
 	},
-	// 6 · backup table
-	{
-		cam: [0, 0, 9],
-		look: [0, 0, 0],
-		coin: { pos: [8, -5, -6], scale: 0.0001 },
-		globe: { pos: [5.2, 2.8, -6], scale: 3.2, lon: -80, lat: 10, alpha: 0.16 },
-		ring: 0,
-		bloom: 0.8,
-	},
-	// 7 · backup money math
+	// 6 · backup money math
 	{
 		cam: [0, 0, 9],
 		look: [0, 0, 0],
@@ -120,7 +117,7 @@ const SHOTS: Shot[] = [
 			alpha: 0.16,
 		},
 		ring: 0.6,
-		bloom: 0.85,
+		bloom: 0.59,
 	},
 ];
 
@@ -705,10 +702,10 @@ async function mount(el: HTMLDivElement) {
 			rp.setZ(i, Math.sin(a) * r);
 		}
 		rp.needsUpdate = true;
-		ringMat.opacity = 0.6 * cur.ring;
+		ringMat.opacity = 0.4 * cur.ring;
 		ring.visible = cur.ring > 0.02;
 
-		bloom.strength = cur.bloom * (1 + world.surge * 0.5);
+		bloom.strength = cur.bloom * (1 + world.surge * 0.3);
 		composer.render();
 	};
 	loop();
