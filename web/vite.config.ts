@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => ({
   resolve: {
     alias: { '@': fileURLToPath(new URL('./src', import.meta.url)) },
   },
-  server: { port: 5173 },
+  server: { port: 8080 },
 
   // `npm run smoke` bundles tools/smoke.tsx for node, but the app must still
   // get the *browser* builds of React and TanStack Router — resolved under the
