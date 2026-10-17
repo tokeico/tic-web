@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
+import {
+	useCallback,
+	useEffect,
+	useLayoutEffect,
+	useRef,
+	useState,
+} from "react";
 
 type HeroCurrency = {
 	code: string;
@@ -74,8 +80,7 @@ function rimOnCoin(
 ) {
 	const dx = coin.cx - chipX;
 	const dy = coin.cy - chipY;
-	const a =
-		(dx * dx) / (coin.rx * coin.rx) + (dy * dy) / (coin.ry * coin.ry);
+	const a = (dx * dx) / (coin.rx * coin.rx) + (dy * dy) / (coin.ry * coin.ry);
 	const s = (1 - 1 / Math.sqrt(a)) * overshoot;
 	return { x: chipX + dx * s, y: chipY + dy * s };
 }
@@ -105,17 +110,13 @@ function corridorPath(
 	return `M ${startX} ${startY} Q ${cx} ${cy} ${rimX} ${rimY}`;
 }
 
-function coinInStage(
-	frameRect: DOMRect,
-	stageRect: DOMRect,
-): CoinEllipse {
+function coinInStage(frameRect: DOMRect, stageRect: DOMRect): CoinEllipse {
 	const scale = Math.min(frameRect.width / 1024, frameRect.height / 682);
 	const imgW = 1024 * scale;
 	const imgH = 682 * scale;
 	const imgLeft =
 		frameRect.left - stageRect.left + (frameRect.width - imgW) / 2;
-	const imgTop =
-		frameRect.top - stageRect.top + (frameRect.height - imgH) / 2;
+	const imgTop = frameRect.top - stageRect.top + (frameRect.height - imgH) / 2;
 	return {
 		cx: imgLeft + (COIN_ART.cx / 1024) * imgW,
 		cy: imgTop + (COIN_ART.cy / 682) * imgH,
@@ -154,8 +155,7 @@ export function HeroCoinStage() {
 			if (!pathEl || !chip) continue;
 
 			const cr = chip.getBoundingClientRect();
-			const startX =
-				c.side === "left" ? cr.right - sr.left : cr.left - sr.left;
+			const startX = c.side === "left" ? cr.right - sr.left : cr.left - sr.left;
 			const startY = cr.top - sr.top + cr.height / 2;
 			const rim = rimOnCoin(startX, startY, coin);
 			pathEl.setAttribute(

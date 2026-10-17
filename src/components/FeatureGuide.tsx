@@ -1,5 +1,4 @@
 import { PAGE_GUIDES } from "@/domain/demo-guide";
-import { PAGE_MAX_W } from "./ui";
 import { HelpHint } from "./HelpHint";
 
 export function FeatureGuide({ pathname }: { pathname: string }) {

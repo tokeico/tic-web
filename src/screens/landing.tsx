@@ -125,7 +125,9 @@ export function LandingPage() {
 						</h1>
 						<p
 							className="m-0 mx-auto max-w-[54ch] text-ash"
-							style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.35vw, 1.0625rem)" }}
+							style={{
+								fontSize: "clamp(0.9375rem, 0.85rem + 0.35vw, 1.0625rem)",
+							}}
 						>
 							Corredor helps US businesses pay suppliers in Latin America with
 							stablecoins. It checks each country’s rules, finds a compliant
