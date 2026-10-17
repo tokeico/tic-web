@@ -19,7 +19,9 @@ import {
 	PlanAllResponse,
 	ReplayResult,
 	Rule,
+	type SanctionsReviewRequest,
 	type ScreeningReviewRequest,
+	type SecurityReviewRequest,
 	Settings,
 	type SettingsPatch,
 	SettingsUpdate,
@@ -170,6 +172,20 @@ export const editInvoice = (id: string, body: InvoicePatch & { by?: string }) =>
 
 export const reviewScreening = (id: string, body: ScreeningReviewRequest) =>
 	request(PayoutDetail, `/api/payouts/${enc(id)}/screening-review`, {
+		method: "POST",
+		body,
+	});
+
+/** A compliance person releases the sanctions policy hold (VE-OFAC) or confirms it. */
+export const reviewSanctions = (id: string, body: SanctionsReviewRequest) =>
+	request(PayoutDetail, `/api/payouts/${enc(id)}/sanctions-review`, {
+		method: "POST",
+		body,
+	});
+
+/** A person clears the security hold (flagged instruction-like text) or keeps the payout held. */
+export const reviewSecurityHold = (id: string, body: SecurityReviewRequest) =>
+	request(PayoutDetail, `/api/payouts/${enc(id)}/security-review`, {
 		method: "POST",
 		body,
 	});
