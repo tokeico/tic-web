@@ -16,7 +16,7 @@ bun run keys
 Paste all three generated `AUDIT_*` lines into the API's `.env`, replacing the empty entries. Keep the keys private and retain them between restarts so existing audit events remain verifiable.
 
 ```sh
-bun run db:up && bun run db:migrate && bun run db:seed
+bun run db:up && bun run db:migrate
 bun run dev
 ```
 
@@ -29,13 +29,15 @@ cp .env.example .env
 bun --bun run dev
 ```
 
-Before presenting, check http://localhost:3000/api/health for `"db": true`. Open http://localhost:8080, click **Open the live demo**, then go to Overview (under **More views**) and click **Start the 3-minute guided demo**. **Reset demo** (Inbox) restores the four draft invoices.
+Before presenting, check http://localhost:3000/api/health for `"db": true`. Open http://localhost:8080 and choose **Create account**, or **Sign in** for an existing account. Each new workspace receives fictional demo invoices; there are no default user credentials. Agent is the starting screen and includes **Start guided demo**. **Reset demo** (Inbox) restores only your workspace’s four draft invoices.
 
 The interactive tour compares Sep 30 → Oct 1 → **Oct 31**, then returns to Oct 17. Oct 30 is still a valid filing day; Corredor blocks providers that didn't file from Oct 31. Sol's authorization is hypothetical and all demo providers are fictional. Each screen explains what it does, why it matters and what to try. Steps remain open for inspection and use a separate **Next step** button. Fictional screening, staged invoice fraud, radar and audit exploration come first; manual approvals, simulated payment and the matched Ledger entry form the closing sequence.
 
 The fictional name-check sandbox in Trust uses `data/presentation/sdn.csv` and `data/presentation/alt.csv` in `tic-api` through `GET /api/demo/screen`. It is explicitly simulated and cannot clear a payout. Normal payout screening still uses the separate OFAC snapshot.
 
-The current API demo state is shared. Do not expose it as an independent multi-visitor sandbox until visitor isolation is implemented; **Reset demo** currently resets the shared dataset.
+Accounts use database-backed HTTP-only sessions, not browser-stored tokens. The API enforces workspace isolation; the dashboard route guard is not the security boundary. Open your name in the header for members, invitations, workspace switching, and read-only API/MCP keys. A second approver must sign in with a different account. Sign-up and sanctions screening are not completed KYC.
+
+The web server proxies `/api/*` and `/mcp` to its runtime `API_ORIGIN`. Use the API’s exact `WEB_ORIGIN` for browser-origin validation and HTTPS for a public deployment. Verification-provider integration, secure identity-document storage and deployment hardening remain required before real-world KYC use.
 
 ### Optional: live agent and invoice reading
 
