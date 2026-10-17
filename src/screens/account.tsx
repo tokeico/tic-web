@@ -72,11 +72,21 @@ export function AccountPage() {
 			setInvitation(url.toString());
 		});
 	}
+	// min-h-10 matches .btn (40px) so a field and its submit button share
+	// both edges when they sit on one row.
 	const field =
-		"min-w-0 rounded-md border border-edge-bright bg-panel px-3 py-2 text-bone";
+		"min-h-10 w-full min-w-0 rounded-md border border-edge-bright bg-panel px-3 py-2 text-bone";
+	// A form row: the main field keeps a usable basis and the rest wrap under
+	// it on phones (the submit button goes full width there).
+	const row = "flex flex-wrap items-end gap-3";
+	const grow = "flex min-w-0 grow basis-48 flex-col gap-2 text-sm";
+	const submit = "btn w-full sm:w-auto";
+	const section = "flex min-w-0 flex-col gap-4 border-t border-edge pt-6";
 	return (
-		<main className="mx-auto flex max-w-[1000px] flex-col gap-10 px-5 py-8">
-			<header>
+		// One 1040px column below xl; from xl the two sections sit side by side
+		// so the page uses the frame on wide monitors.
+		<main className="page grid grid-cols-1 content-start gap-10 py-8 *:max-w-[1040px] xl:grid-cols-2 xl:gap-x-12 xl:*:max-w-none">
+			<header className="xl:col-span-2">
 				<h1 className="display m-0 text-3xl">Your account & workspace</h1>
 				<p className="mb-0 text-ash">
 					{user.workspace.name} · {user.email}
@@ -84,7 +94,7 @@ export function AccountPage() {
 			</header>
 			{workspaces.length > 1 && (
 				<form
-					className="flex flex-wrap items-end gap-3"
+					className={`${row} xl:col-span-1 xl:col-start-1`}
 					onSubmit={(event) => {
 						event.preventDefault();
 						void run(async () => {
@@ -93,10 +103,7 @@ export function AccountPage() {
 						});
 					}}
 				>
-					<label
-						htmlFor="active-workspace"
-						className="flex min-w-0 flex-1 flex-col gap-2 text-sm"
-					>
+					<label htmlFor="active-workspace" className={grow}>
 						Active workspace
 						<select
 							id="active-workspace"
@@ -113,7 +120,7 @@ export function AccountPage() {
 					</label>
 					<button
 						type="submit"
-						className="btn"
+						className={submit}
 						disabled={busy || workspaceId === user.workspace.id}
 					>
 						Switch workspace
@@ -121,23 +128,23 @@ export function AccountPage() {
 				</form>
 			)}
 			{notice && (
-				<p role="status" className="m-0 text-sm text-ash">
+				<p role="status" className="m-0 text-sm text-ash xl:col-span-2">
 					{notice}
 				</p>
 			)}
 			{error && (
-				<p role="alert" className="m-0 text-coral">
+				<p role="alert" className="m-0 text-coral xl:col-span-2">
 					{error}
 				</p>
 			)}
 			<section
 				aria-labelledby="members-h"
-				className="border-t border-edge pt-6"
+				className={`${section} xl:col-start-1`}
 			>
-				<h2 id="members-h" className="display mt-0 text-xl">
+				<h2 id="members-h" className="display m-0 text-xl">
 					People who can decide
 				</h2>
-				<p className="max-w-[70ch] text-ash">
+				<p className="m-0 max-w-[70ch] text-ash">
 					Each decision is tied to a signed-in account. Payments above the
 					policy threshold need a second, different approver; you cannot switch
 					demo identities.
@@ -157,14 +164,8 @@ export function AccountPage() {
 					))}
 				</ul>
 				{user.workspace.owner && (
-					<form
-						onSubmit={invite}
-						className="mt-5 flex flex-wrap items-end gap-3"
-					>
-						<label
-							htmlFor="invite-email"
-							className="flex min-w-0 flex-1 flex-col gap-2 text-sm"
-						>
+					<form onSubmit={invite} className={`${row} mt-1`}>
+						<label htmlFor="invite-email" className={grow}>
 							Email
 							<input
 								className={field}
@@ -178,7 +179,7 @@ export function AccountPage() {
 						</label>
 						<label
 							htmlFor="invite-role"
-							className="flex flex-col gap-2 text-sm"
+							className="flex min-w-0 grow basis-40 flex-col gap-2 text-sm sm:grow-0"
 						>
 							Role
 							<select className={field} id="invite-role" name="role">
@@ -187,7 +188,7 @@ export function AccountPage() {
 								<option value="auditor">Auditor (read only)</option>
 							</select>
 						</label>
-						<button className="btn" type="submit" disabled={busy}>
+						<button className={submit} type="submit" disabled={busy}>
 							Create invitation
 						</button>
 					</form>
@@ -195,7 +196,7 @@ export function AccountPage() {
 				{invitation && (
 					<label
 						htmlFor="invite-link"
-						className="mt-4 flex flex-col gap-2 text-sm"
+						className="flex flex-col gap-2 text-sm"
 						role="status"
 					>
 						Share this single-use link with the invited person. It expires in 48
@@ -210,23 +211,23 @@ export function AccountPage() {
 					</label>
 				)}
 			</section>
-			<section aria-labelledby="keys-h" className="border-t border-edge pt-6">
-				<h2 id="keys-h" className="display mt-0 text-xl">
+			<section aria-labelledby="keys-h" className={section}>
+				<h2 id="keys-h" className="display m-0 text-xl">
 					API & MCP access
 				</h2>
-				<p className="max-w-[70ch] text-ash">
+				<p className="m-0 max-w-[70ch] text-ash">
 					Keys can read this workspace’s data and use read-only MCP tools. They
 					cannot approve payments, move money, or clear compliance holds. Keys
 					expire after 90 days.
 				</p>
-				<p className="text-sm text-ash">
+				<p className="m-0 max-w-[70ch] text-sm text-ash">
 					Connect an HTTP MCP client to <code className="mono">/mcp</code> on
 					this site, using your key in the{" "}
 					<code className="mono">Authorization: Bearer</code> header.
 				</p>
 				<button
 					type="button"
-					className="btn btn-sm mb-5"
+					className="btn btn-sm self-start max-sm:min-h-10"
 					onClick={async () => {
 						try {
 							await navigator.clipboard.writeText(
@@ -243,7 +244,7 @@ export function AccountPage() {
 					Copy MCP endpoint
 				</button>
 				<form
-					className="flex flex-wrap items-end gap-3"
+					className={`${row} mt-1`}
 					onSubmit={(event) => {
 						event.preventDefault();
 						const label = String(
@@ -256,10 +257,7 @@ export function AccountPage() {
 						});
 					}}
 				>
-					<label
-						className="flex min-w-0 flex-1 flex-col gap-2 text-sm"
-						htmlFor="key-label"
-					>
+					<label className={grow} htmlFor="key-label">
 						Key label
 						<input
 							id="key-label"
@@ -270,12 +268,12 @@ export function AccountPage() {
 							placeholder="Compliance integration"
 						/>
 					</label>
-					<button className="btn" type="submit" disabled={busy}>
+					<button className={submit} type="submit" disabled={busy}>
 						Create read-only key
 					</button>
 				</form>
 				{secret && (
-					<div className="mt-5 flex flex-col gap-3 border border-edge-bright p-4">
+					<div className="flex flex-col gap-3 rounded-md border border-edge-bright p-4">
 						<label
 							htmlFor="new-api-key"
 							className="flex flex-col gap-2 text-sm"
@@ -293,7 +291,7 @@ export function AccountPage() {
 						<div>
 							<button
 								type="button"
-								className="btn btn-sm"
+								className="btn btn-sm max-sm:min-h-10"
 								onClick={() => setSecret("")}
 							>
 								I’ve saved the key
@@ -301,39 +299,43 @@ export function AccountPage() {
 						</div>
 					</div>
 				)}
-				<ul className="mt-5 list-none divide-y divide-edge p-0">
-					{keys.map((key) => (
-						<li
-							key={key.id}
-							className="flex flex-wrap items-center justify-between gap-3 py-3"
-						>
-							<span>
-								{key.label}{" "}
-								<span className="mono ml-2 text-sm text-ash">{key.prefix}</span>
-								<span className="ml-2 text-sm text-ash">
-									{key.revokedAt
-										? "Revoked"
-										: `Expires ${new Date(key.expiresAt).toLocaleDateString()}`}
+				{keys.length > 0 && (
+					<ul className="m-0 list-none divide-y divide-edge p-0">
+						{keys.map((key) => (
+							<li
+								key={key.id}
+								className="flex flex-wrap items-center justify-between gap-3 py-3"
+							>
+								<span>
+									{key.label}{" "}
+									<span className="mono ml-2 text-sm text-ash">
+										{key.prefix}
+									</span>
+									<span className="ml-2 text-sm text-ash">
+										{key.revokedAt
+											? "Revoked"
+											: `Expires ${new Date(key.expiresAt).toLocaleDateString()}`}
+									</span>
 								</span>
-							</span>
-							{!key.revokedAt && (
-								<button
-									type="button"
-									className="btn btn-sm"
-									disabled={busy}
-									onClick={() =>
-										void run(async () => {
-											await revokeApiKey(key.id);
-											setKeys(await listApiKeys());
-										})
-									}
-								>
-									Revoke
-								</button>
-							)}
-						</li>
-					))}
-				</ul>
+								{!key.revokedAt && (
+									<button
+										type="button"
+										className="btn btn-sm max-sm:min-h-10"
+										disabled={busy}
+										onClick={() =>
+											void run(async () => {
+												await revokeApiKey(key.id);
+												setKeys(await listApiKeys());
+											})
+										}
+									>
+										Revoke
+									</button>
+								)}
+							</li>
+						))}
+					</ul>
+				)}
 			</section>
 		</main>
 	);

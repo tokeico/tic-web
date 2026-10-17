@@ -1,5 +1,6 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { Cc, Lab } from "@/components/ui";
+import { CorridorMap } from "@/components/CorridorMap";
+import { Lab } from "@/components/ui";
 import { actorOf } from "@/domain/audit";
 import {
 	type AgentKind,
@@ -13,9 +14,9 @@ import {
 	DEMO_TOTALS,
 	type FleetAgent,
 	type MonthRow,
+	paceOf,
 	type StreamTemplate,
 	type StreamTone,
-	paceOf,
 	savedOf,
 } from "@/domain/ceo-demo";
 import { WIRE_FEE_PCT } from "@/domain/data";
@@ -350,6 +351,7 @@ const ACT_CLS: Record<AgentKind | "Human", string> = {
 	Human: "act act-human",
 };
 
+/** Stretches to the room its tile has; the end dot stays round. */
 function Spark({ values, tone }: { values: number[]; tone?: Kpi["tone"] }) {
 	const w = 112;
 	const h = 30;
@@ -360,28 +362,35 @@ function Spark({ values, tone }: { values: number[]; tone?: Kpi["tone"] }) {
 	);
 	const last = pts[pts.length - 1];
 	return (
-		<svg
-			width={w}
-			height={h}
-			viewBox={`0 0 ${w} ${h}`}
-			aria-hidden="true"
-			className="overflow-visible"
-		>
-			<polyline
-				points={pts.map((p) => p.join(",")).join(" ")}
-				fill="none"
-				stroke="var(--color-ash-faint)"
-				strokeWidth={1.5}
-				strokeLinejoin="round"
-				strokeLinecap="round"
+		<span className="relative block h-[30px] w-full">
+			<svg
+				width="100%"
+				height={h}
+				viewBox={`0 0 ${w} ${h}`}
+				preserveAspectRatio="none"
+				aria-hidden="true"
+				className="block overflow-visible"
+			>
+				<polyline
+					points={pts.map((p) => p.join(",")).join(" ")}
+					fill="none"
+					stroke="var(--color-ash-faint)"
+					strokeWidth={1.5}
+					strokeLinejoin="round"
+					strokeLinecap="round"
+					vectorEffect="non-scaling-stroke"
+				/>
+			</svg>
+			<span
+				aria-hidden="true"
+				className="absolute size-1.5 rounded-full"
+				style={{
+					right: -3,
+					top: last[1] - 3,
+					background: tone ? `var(--color-${tone})` : "var(--color-bone)",
+				}}
 			/>
-			<circle
-				cx={last[0]}
-				cy={last[1]}
-				r={3}
-				fill={tone ? `var(--color-${tone})` : "var(--color-bone)"}
-			/>
-		</svg>
+		</span>
 	);
 }
 
@@ -390,12 +399,12 @@ function KpiTile({ kpi }: { kpi: Kpi }) {
 	return (
 		<div className="kpi ceo-kpi">
 			<Lab>{kpi.label}</Lab>
-			<div className="flex items-end justify-between gap-2">
+			<div className="kpi-val flex items-end justify-between gap-2">
 				<span
-					className="mono"
+					className="mono flex-none"
 					style={{
 						fontWeight: 600,
-						fontSize: 28,
+						fontSize: "clamp(18px, 14cqi, 34px)",
 						lineHeight: 1.05,
 						fontVariantNumeric: "tabular-nums",
 						color: kpi.tone === "volt" ? "var(--color-volt)" : undefined,
@@ -403,7 +412,11 @@ function KpiTile({ kpi }: { kpi: Kpi }) {
 				>
 					{kpi.format(shown)}
 				</span>
-				{kpi.spark && <Spark values={kpi.spark} tone={kpi.tone} />}
+				{kpi.spark && (
+					<span className="kpi-spark">
+						<Spark values={kpi.spark} tone={kpi.tone} />
+					</span>
+				)}
 			</div>
 			<span className="text-ash-dim" style={{ fontSize: 12.5 }}>
 				{kpi.sub}
@@ -415,8 +428,22 @@ function KpiTile({ kpi }: { kpi: Kpi }) {
 function VolumeChart({ months }: { months: MonthRow[] }) {
 	const [ref, width] = useWidth<HTMLDivElement>(720);
 	const [hover, setHover] = useState<number | null>(null);
-	const h = 240;
-	const pad = { l: 52, r: 18, t: 14, b: 28 };
+	// Height follows the width so the line keeps its slope, and the chart
+	// grows to fill its card when a taller neighbour (the map) stretches the
+	// row. Fewer month labels on narrow widths so they never run together.
+	const minH = Math.round(Math.min(320, Math.max(200, width * 0.42)));
+	const [fill, setFill] = useState(0);
+	useEffect(() => {
+		const el = ref.current;
+		if (!el) return;
+		const ro = new ResizeObserver(([entry]) =>
+			setFill(Math.round(entry.contentRect.height)),
+		);
+		ro.observe(el);
+		return () => ro.disconnect();
+	}, [ref]);
+	const h = Math.max(minH, fill);
+	const pad = { l: width < 480 ? 44 : 52, r: 18, t: 14, b: 28 };
 	const step = 500_000;
 	const top = Math.ceil(Math.max(...months.map(paceOf)) / step) * step;
 	const ticks = Array.from({ length: top / step + 1 }, (_, i) => i * step);
@@ -433,10 +460,18 @@ function VolumeChart({ months }: { months: MonthRow[] }) {
 			.join(" ");
 	const area = `${line(0, pts.length)} L${x(pts.length - 1)},${y(0)} L${x(0)},${y(0)} Z`;
 	const hv = hover == null ? null : months[hover];
+	const gap = (width - pad.l - pad.r) / Math.max(1, months.length - 1);
+	const every = Math.max(1, Math.ceil(34 / gap));
+	const showLabel = (i: number) => (months.length - 1 - i) % every === 0;
 
 	return (
-		<div ref={ref} className="relative min-w-0 overflow-hidden">
+		<div
+			ref={ref}
+			className="relative min-w-0 flex-1 overflow-hidden"
+			style={{ minHeight: minH }}
+		>
 			<svg
+				className="absolute inset-0"
 				width={width}
 				height={h}
 				role="img"
@@ -482,19 +517,23 @@ function VolumeChart({ months }: { months: MonthRow[] }) {
 						</text>
 					</g>
 				))}
-				{months.map((m, i) => (
-					<text
-						key={m.label}
-						x={x(i)}
-						y={h - 8}
-						textAnchor="middle"
-						className="mono"
-						fontSize={11}
-						fill={hover === i ? "var(--color-bone)" : "var(--color-ash-faint)"}
-					>
-						{m.label}
-					</text>
-				))}
+				{months.map((m, i) =>
+					!showLabel(i) && hover !== i ? null : (
+						<text
+							key={m.label}
+							x={x(i)}
+							y={h - 8}
+							textAnchor="middle"
+							className="mono"
+							fontSize={11}
+							fill={
+								hover === i ? "var(--color-bone)" : "var(--color-ash-faint)"
+							}
+						>
+							{m.label}
+						</text>
+					),
+				)}
 				<path d={area} fill="url(#vol-fill)" className="ceo-fade" />
 				<path
 					d={line(0, solidTo)}
@@ -569,50 +608,6 @@ function VolumeChart({ months }: { months: MonthRow[] }) {
 				</div>
 			)}
 		</div>
-	);
-}
-
-function Corridors({ rows }: { rows: CeoModel["corridors"] }) {
-	const max = Math.max(...rows.map((r) => r.usd), 1);
-	const total = rows.reduce((t, r) => t + r.usd, 0) || 1;
-	return (
-		<ul className="m-0 flex list-none flex-col gap-3 p-0">
-			{rows.map((r, i) => (
-				<li
-					key={r.c}
-					className="flex flex-col gap-1.5"
-					title={
-						r.blocked
-							? `${r.name}: ${usd0(r.blocked)} blocked (OFAC)`
-							: `${r.name}: ${usd0(r.usd)} · ${pct(r.usd / total)} of volume`
-					}
-				>
-					<div className="flex items-center justify-between gap-2">
-						<span className="flex items-center gap-2" style={{ fontSize: 14 }}>
-							<Cc code={r.c} label={r.name} />
-							{r.name}
-						</span>
-						{r.blocked ? (
-							<span className="pill p-bad">Blocked · OFAC</span>
-						) : (
-							<span className="mono text-ash" style={{ fontSize: 13 }}>
-								{compact(r.usd)}{" "}
-								<span className="text-ash-faint">{pct(r.usd / total)}</span>
-							</span>
-						)}
-					</div>
-					<div className="ceo-track">
-						<div
-							className={r.blocked ? "ceo-bar ceo-bar-blocked" : "ceo-bar"}
-							style={{
-								width: r.blocked ? "100%" : `${(r.usd / max) * 100}%`,
-								animationDelay: `${i * 90}ms`,
-							}}
-						/>
-					</div>
-				</li>
-			))}
-		</ul>
 	);
 }
 
@@ -812,7 +807,7 @@ export function DashboardPage() {
 	const online = model.fleet.length;
 
 	return (
-		<main className="mx-auto flex max-w-[1280px] flex-col gap-5 px-5 py-6">
+		<main className="page flex flex-col gap-5 py-6">
 			<section className="flex flex-wrap items-center gap-2">
 				<h1 className="sr-only">Dashboard</h1>
 				<span className="pill p-ok">
@@ -826,15 +821,14 @@ export function DashboardPage() {
 
 			<section
 				aria-label="Key numbers"
-				className="grid gap-3"
-				style={{ gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}
+				className="grid grid-cols-2 gap-3 max-sm:[&>:last-child:nth-child(odd)]:col-span-2 sm:grid-cols-5"
 			>
 				{model.kpis.map((k) => (
 					<KpiTile key={k.label} kpi={k} />
 				))}
 			</section>
 
-			<div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+			<div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_var(--rail)]">
 				<Briefing model={model} />
 				<Section
 					title="Waiting on people"
@@ -869,7 +863,7 @@ export function DashboardPage() {
 				</Section>
 			</div>
 
-			<div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+			<div className="grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-2">
 				<Section
 					title="Volume paid"
 					aside={
@@ -897,7 +891,7 @@ export function DashboardPage() {
 					}
 				>
 					{model.corridors.length ? (
-						<Corridors rows={model.corridors} />
+						<CorridorMap rows={model.corridors} />
 					) : (
 						<p className="m-0 text-ash-dim" style={{ fontSize: 14 }}>
 							No payouts yet.

@@ -50,7 +50,9 @@ export function DetailPane({ v }: { v: PayoutView }) {
 	return (
 		<aside
 			aria-labelledby="detail-h"
-			className="flex min-w-0 max-w-[680px] flex-[2_1_460px] flex-col gap-3.5"
+			// a size container: the routes table and field grids reflow on the
+			// pane's own width, which differs from the viewport's (rail vs full)
+			className="@container/detail flex w-full min-w-0 flex-col gap-3.5"
 		>
 			{/* header ---------------------------------------------------------- */}
 			<Card style={{ gap: 10 }}>
@@ -151,19 +153,26 @@ export function DetailPane({ v }: { v: PayoutView }) {
 			{status === "blocked" && <SanctionsCard v={v} />}
 			<MemoCard v={v} />
 
+			{/* Disclosure bodies get their own flex column: Chromium wraps
+			    <details> content in a block ::details-content box, so the
+			    .disc gap only reaches the first child. */}
 			<Disclosure
 				summary={`Why ${rname(plan.rec)} · ${plan.evals.length} routes · every rule cited`}
 			>
-				<RoutesCard v={v} locked={locked} objective={st.objective} />
-				<RulesChecklistCard v={v} />
+				<div className="flex flex-col gap-3.5">
+					<RoutesCard v={v} locked={locked} objective={st.objective} />
+					<RulesChecklistCard v={v} />
+				</div>
 			</Disclosure>
 
 			<Disclosure
 				summary={`Invoice ${pe.inv.number} · fields & security checks`}
 			>
-				{status !== "blocked" && <SanctionsCard v={v} />}
-				{!hold && <SecurityCard v={v} hold={hold} />}
-				<FieldsCard v={v} locked={locked} />
+				<div className="flex flex-col gap-3.5">
+					{status !== "blocked" && <SanctionsCard v={v} />}
+					{!hold && <SecurityCard v={v} hold={hold} />}
+					<FieldsCard v={v} locked={locked} />
+				</div>
 			</Disclosure>
 			<ApprovalCard v={v} />
 		</aside>
@@ -296,9 +305,14 @@ function SecurityCard({ v, hold }: { v: PayoutView; hold: boolean }) {
 	const { p, m } = v;
 	if (!p.security)
 		return (
-			<p className="m-0 text-ash-dim" style={{ fontSize: 14 }}>
-				Injection scan, bank details and duplicates — all passed.
-			</p>
+			<Card style={{ padding: "12px 16px" }}>
+				<div className="secrow text-ash">
+					<span className={SEC_CLS.ok}>
+						<SecurityIcon kind="ok" />
+					</span>
+					<span>Injection scan, bank details and duplicates — all passed.</span>
+				</div>
+			</Card>
 		);
 	const checks: { kind: "ok" | "warn" | "bad"; text: string }[] = p.security
 		? p.security.findings
@@ -649,10 +663,11 @@ function ApprovalCard({ v }: { v: PayoutView }) {
 					{refs.map((f) => (
 						<div
 							key={f.k}
-							className="grid items-center gap-2.5"
-							style={{ gridTemplateColumns: "120px minmax(0,1fr) auto" }}
+							className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-2.5 gap-y-1 @min-[420px]/detail:grid-cols-[120px_minmax(0,1fr)_auto]"
 						>
-							<Lab>{f.label}</Lab>
+							<Lab className="col-span-2 @min-[420px]/detail:col-span-1">
+								{f.label}
+							</Lab>
 							<span
 								className="mono"
 								style={{ fontSize: 12.5, overflowWrap: "anywhere" }}
@@ -743,7 +758,7 @@ function RoutesCard({
 					(isRec && s.flashId === p.id ? " flash" : "")
 				}
 			>
-				<div className="flex min-w-0 flex-col">
+				<div className="route-name flex min-w-0 flex-col">
 					<span className="font-semibold" style={{ fontSize: 14 }}>
 						{e.route.kind === "wire"
 							? "SWIFT wire"
@@ -765,17 +780,17 @@ function RoutesCard({
 					)}
 				</div>
 
-				<div className="mono flex flex-col text-right">
+				<div className="route-fee mono flex flex-col">
 					<span style={{ fontSize: 13.5 }}>{`${e.route.fee.toFixed(2)}%`}</span>
 					<span className="text-ash-dim" style={{ fontSize: 12 }}>
 						{usd((p.usd * e.route.fee) / 100)}
 					</span>
 				</div>
-				<span className="mono text-right" style={{ fontSize: 13 }}>
+				<span className="route-time mono" style={{ fontSize: 13 }}>
 					{mins(e.route.min)}
 				</span>
 
-				<div className="flex flex-wrap items-center justify-end gap-1.5">
+				<div className="route-act">
 					{block ? (
 						<a
 							className="ruleref"
@@ -848,11 +863,7 @@ function RoutesCard({
 				</p>
 			)}
 
-			<div className="overflow-x-auto">
-				<div className="flex flex-col gap-1.5" style={{ minWidth: 460 }}>
-					{plan.evals.map(routeRow)}
-				</div>
-			</div>
+			<div className="routes">{plan.evals.map(routeRow)}</div>
 
 			{od && (
 				<div
@@ -1014,47 +1025,52 @@ function MemoCard({ v }: { v: PayoutView }) {
 				<h3 className="m-0" style={{ fontSize: 16 }}>
 					Memo
 				</h3>
-				<span className="pill p-muted">
+				{/* may wrap in a phone-width pane: a rounded tag, not a capsule */}
+				<span className="pill p-muted whitespace-normal rounded-[10px] [text-wrap:balance]">
 					Template memo · the local model writes the live one
 				</span>
 			</div>
-			<p className="m-0 font-medium">{memo.summary}</p>
+			<p className="m-0 font-medium" style={{ maxWidth: "75ch" }}>
+				{memo.summary}
+			</p>
 
 			<Disclosure summary="Read the full memo — rationale, warnings, human checks">
-				<p className="m-0" style={{ fontSize: 14 }}>
-					{memo.rationale}
-				</p>
+				<div className="flex flex-col gap-3" style={{ maxWidth: "80ch" }}>
+					<p className="m-0" style={{ fontSize: 14 }}>
+						{memo.rationale}
+					</p>
 
-				{memo.warnings.length > 0 && (
+					{memo.warnings.length > 0 && (
+						<div className="flex flex-col gap-1">
+							<Lab>Warnings</Lab>
+							{memo.warnings.map((w) => (
+								<span
+									key={w}
+									style={{ fontSize: 14, color: "var(--color-amber)" }}
+								>
+									{w}
+								</span>
+							))}
+						</div>
+					)}
+
 					<div className="flex flex-col gap-1">
-						<Lab>Warnings</Lab>
-						{memo.warnings.map((w) => (
-							<span
-								key={w}
-								style={{ fontSize: 14, color: "var(--color-amber)" }}
-							>
-								{w}
+						<Lab>For a human to check</Lab>
+						{memo.checks.map((h) => (
+							<span key={h} style={{ fontSize: 14 }}>
+								{h}
 							</span>
 						))}
 					</div>
-				)}
 
-				<div className="flex flex-col gap-1">
-					<Lab>For a human to check</Lab>
-					{memo.checks.map((h) => (
-						<span key={h} style={{ fontSize: 14 }}>
-							{h}
-						</span>
-					))}
-				</div>
-
-				<div className="flex flex-wrap items-center gap-1.5">
-					<Lab className="mr-1">Cites</Lab>
-					{memo.cited.map((ci) => (
-						<a key={ci.id} className="ruleref" href={ci.href}>
-							{ci.id}
-						</a>
-					))}
+					<div className="flex flex-wrap items-center gap-1.5">
+						<Lab className="mr-1">Cites</Lab>
+						{memo.cited.map((ci) => (
+							<a key={ci.id} className="ruleref" href={ci.href}>
+								{ci.id}
+							</a>
+						))}
+					</div>
 				</div>
 			</Disclosure>
 
@@ -1106,10 +1122,7 @@ function FieldsCard({ v, locked }: { v: PayoutView; locked: boolean }) {
 			</div>
 
 			{!ed && (
-				<div
-					className="grid gap-2"
-					style={{ gridTemplateColumns: "repeat(2,minmax(0,1fr))" }}
-				>
+				<div className="grid grid-cols-1 gap-2 @min-[320px]/detail:grid-cols-2">
 					{FIELD_DEFS.map(([k, lbl]) => {
 						let val = pe.inv[k] as string | null;
 						if (k === "due" && val) val = fmtDate(val);
@@ -1139,10 +1152,7 @@ function FieldsCard({ v, locked }: { v: PayoutView; locked: boolean }) {
 
 			{ed && (
 				<>
-					<div
-						className="grid gap-2"
-						style={{ gridTemplateColumns: "repeat(2,minmax(0,1fr))" }}
-					>
+					<div className="grid grid-cols-1 gap-2 @min-[320px]/detail:grid-cols-2">
 						{FIELD_DEFS.map(([k, lbl]) => (
 							<label
 								key={k}

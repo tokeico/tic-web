@@ -1,5 +1,5 @@
 import { ToolArrow } from "@/components/icons";
-import { Card, Lab, PAGE_MAX_W, RuleRef } from "@/components/ui";
+import { Card, Lab, RuleRef } from "@/components/ui";
 import { SUGGESTIONS } from "@/domain/agent";
 import { cite } from "@/domain/data";
 import { approvedUsd, need, views } from "@/domain/engine";
@@ -28,12 +28,10 @@ export function AgentPage() {
 	const vs = views(s);
 
 	return (
-		<main
-			className={`mx-auto flex ${PAGE_MAX_W["/agent"]} flex-wrap items-start gap-5 p-5`}
-		>
+		<main className="page grid grid-cols-1 items-start gap-5 py-5 lg:grid-cols-[minmax(0,1fr)_var(--rail)]">
 			<section
 				aria-labelledby="agent-h"
-				className="flex min-w-0 flex-[999_1_560px] flex-col gap-3"
+				className="flex min-w-0 flex-col gap-3"
 			>
 				<div className="flex flex-wrap items-center justify-between gap-2.5">
 					<div className="flex flex-col gap-0.5">
@@ -88,7 +86,11 @@ export function AgentPage() {
 				<div className="flex flex-col rounded-lg border border-edge bg-panel">
 					<div
 						className="flex flex-col-reverse overflow-y-auto"
-						style={{ maxHeight: 560, minHeight: 360 }}
+						// the transcript grows with the viewport instead of a fixed 560px box
+						style={{
+							maxHeight: "max(360px, calc(100dvh - 420px))",
+							minHeight: 320,
+						}}
 					>
 						<div aria-live="polite" className="flex flex-col gap-3.5 p-4">
 							{s.chat.map((m) =>
@@ -97,7 +99,7 @@ export function AgentPage() {
 										key={`user:${m.text}`}
 										className="bg-raise text-bone self-end"
 										style={{
-											maxWidth: "78%",
+											maxWidth: "min(78%, 62ch)",
 											padding: "10px 14px",
 											borderRadius: "12px 12px 2px 12px",
 											fontSize: 14.5,
@@ -136,12 +138,13 @@ export function AgentPage() {
 					</div>
 
 					<div className="flex flex-col gap-2.5 border-t border-edge-soft px-4 py-3">
-						<div className="flex flex-wrap gap-1.5">
+						{/* phones: one sideways-scrolling row of chips instead of a ten-line stack */}
+						<div className="-mx-4 flex gap-1.5 overflow-x-auto px-4 pb-1 [scrollbar-width:thin] sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
 							{SUGGESTIONS.map((label) => (
 								<button
 									key={label}
 									type="button"
-									className="sugg"
+									className="sugg whitespace-nowrap sm:whitespace-normal"
 									disabled={!!s.busy}
 									onClick={() => ask(label)}
 								>
@@ -170,7 +173,7 @@ export function AgentPage() {
 							/>
 							<button
 								type="submit"
-								className="btn btn-primary"
+								className="btn btn-primary flex-none"
 								disabled={!!s.busy || !s.input.trim()}
 							>
 								Send
@@ -185,10 +188,7 @@ export function AgentPage() {
 				</div>
 			</section>
 
-			<aside
-				aria-labelledby="queue-h"
-				className="flex min-w-0 max-w-[520px] flex-[1_1_380px] flex-col gap-3"
-			>
+			<aside aria-labelledby="queue-h" className="flex min-w-0 flex-col gap-3">
 				<div className="flex items-baseline justify-between gap-2">
 					<h2
 						id="queue-h"
@@ -227,8 +227,10 @@ export function AgentPage() {
 								className="flex justify-between gap-2.5 border-t border-edge-soft py-1.5"
 								style={{ fontSize: 13.5 }}
 							>
-								<span>{h.title}</span>
-								<span className="text-ash-dim text-right">{h.result}</span>
+								<span className="min-w-0">{h.title}</span>
+								<span className="max-w-[55%] text-ash-dim text-right">
+									{h.result}
+								</span>
 							</div>
 						))}
 					</Card>
@@ -263,7 +265,10 @@ function AgentBubble({ m }: { m: AgentMessage }) {
 	const cites = uniq(m.cites).map(cite);
 
 	return (
-		<div className="flex items-start gap-2.5" style={{ maxWidth: "92%" }}>
+		<div
+			className="flex items-start gap-2.5"
+			style={{ maxWidth: "min(92%, 80ch)" }}
+		>
 			<Avatar />
 			<div
 				className="flex min-w-0 flex-col gap-2 border border-edge-soft"

@@ -52,7 +52,9 @@ export function HelpHint({
 				popoverTarget={id}
 				aria-label={label}
 				aria-describedby={id}
-				className="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-edge-bright bg-transparent text-ash hover:border-volt hover:text-volt"
+				// The ::before pad grows the touch target to 40px without moving
+				// the 28px icon or the text around it.
+				className="relative inline-flex h-7 w-7 shrink-0 items-center before:absolute before:-inset-1.5 before:content-[''] justify-center rounded-full border border-edge-bright bg-transparent text-ash hover:border-volt hover:text-volt"
 				onPointerEnter={(event) => {
 					if (event.pointerType === "mouse") show();
 				}}

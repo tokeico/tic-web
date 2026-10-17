@@ -1,5 +1,5 @@
 import { useLocation } from "@tanstack/react-router";
-import { Disclosure, PAGE_MAX_W } from "@/components/ui";
+import { Disclosure } from "@/components/ui";
 import { AuditSection } from "@/screens/audit";
 import { ExplorerSection } from "@/screens/explorer";
 import { LedgerSection } from "@/screens/ledger";
@@ -13,9 +13,7 @@ export function BooksPage() {
 	const { pathname } = useLocation();
 	const { state } = useStore();
 	return (
-		<main
-			className={`mx-auto flex ${PAGE_MAX_W["/ledger"]} flex-col gap-8 px-5 py-8`}
-		>
+		<main className="page flex flex-col gap-8 py-8">
 			<ExplorerSection />
 			<Disclosure
 				summary="Ledger · journal entries & CSV export"

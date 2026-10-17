@@ -1,7 +1,7 @@
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 import { DetailPane } from "@/components/DetailPane";
 import { FileUp, More } from "@/components/icons";
-import { Cc, Chip, PAGE_MAX_W, StatusPill } from "@/components/ui";
+import { Cc, StatusPill } from "@/components/ui";
 import { PAYOUTS } from "@/domain/data";
 import { eff, views } from "@/domain/engine";
 import { local, usd } from "@/domain/format";
@@ -24,6 +24,23 @@ export function InboxPage() {
 	const vs = s.loaded ? views(s) : [];
 	const sel = vs.find((v) => v.p.id === s.selected);
 	const pending = s.actions.filter((a) => a.status === "pending");
+	// Below lg the detail replaces the list: open it at the top, and return
+	// to where the reader was in the list when they go back.
+	const listY = useRef<number | null>(null);
+	const openRow = (id: string) => {
+		listY.current = window.scrollY;
+		open(id);
+	};
+	const selId = sel?.p.id;
+	useEffect(() => {
+		if (window.matchMedia("(min-width: 1024px)").matches) return;
+		const y = selId ? 0 : listY.current;
+		if (!selId) listY.current = null;
+		if (y == null) return;
+		// after the router's own scroll handling for go("inbox") has run
+		const raf = requestAnimationFrame(() => window.scrollTo({ top: y }));
+		return () => cancelAnimationFrame(raf);
+	}, [selId]);
 	const pick = (e: React.ChangeEvent<HTMLInputElement>) => {
 		if (e.target.files?.length) upload([...e.target.files]);
 		e.target.value = "";
@@ -31,7 +48,7 @@ export function InboxPage() {
 
 	return (
 		<main
-			className={`mx-auto grid max-w-[1440px] grid-cols-1 items-start gap-6 p-5 ${sel ? "lg:grid-cols-[minmax(0,1fr)_minmax(420px,560px)]" : ""}`}
+			className={`page grid grid-cols-1 items-start gap-6 py-5 ${sel ? "lg:grid-cols-[minmax(0,1fr)_minmax(400px,min(40%,720px))]" : ""}`}
 		>
 			<section
 				aria-labelledby="inbox-h"
@@ -79,7 +96,7 @@ export function InboxPage() {
 									<More size={16} />
 									Demo tools
 								</summary>
-								<div className="more-pop">
+								<div className="more-pop right-0 left-auto">
 									{!s.sus && (
 										<button
 											type="button"
@@ -224,7 +241,7 @@ export function InboxPage() {
 							<div role="table" aria-label="Payouts">
 								<div
 									role="row"
-									className="hidden @min-[680px]:grid grid-cols-[minmax(0,1fr)_160px_180px] gap-4 bg-head"
+									className="hidden @min-[680px]:grid grid-cols-[minmax(0,2fr)_minmax(160px,1fr)_minmax(180px,1fr)] gap-4 bg-head"
 									style={{ padding: "10px 16px" }}
 								>
 									<span role="columnheader" className="lab">
@@ -247,11 +264,11 @@ export function InboxPage() {
 											key={p.id}
 											role="row"
 											className={
-												"grid grid-cols-[minmax(0,1fr)_auto] @min-[680px]:grid-cols-[minmax(0,1fr)_160px_180px] items-center gap-x-4 gap-y-2 border-t border-edge-soft px-4 py-5 cursor-pointer hover:bg-raise" +
+												"grid grid-cols-[minmax(0,1fr)_auto] @min-[680px]:grid-cols-[minmax(0,2fr)_minmax(160px,1fr)_minmax(180px,1fr)] items-center gap-x-4 gap-y-2 border-t border-edge-soft px-4 py-5 cursor-pointer hover:bg-raise" +
 												(s.selected === p.id ? " bg-raise" : "") +
 												(s.flashId === p.id ? " flash" : "")
 											}
-											onClick={() => open(p.id)}
+											onClick={() => openRow(p.id)}
 										>
 											<div
 												role="cell"
@@ -263,7 +280,7 @@ export function InboxPage() {
 														type="button"
 														onClick={(e) => {
 															e.stopPropagation();
-															open(p.id);
+															openRow(p.id);
 														}}
 														className="border-0 bg-none p-0 text-left font-semibold text-bone"
 														style={{ background: "none", fontSize: 15 }}
@@ -339,14 +356,33 @@ export function InboxPage() {
 			</section>
 
 			{sel && (
-				<div className="min-w-0">
-					<button
-						type="button"
-						className="btn btn-sm mb-4 lg:hidden"
-						onClick={closeDetail}
+				// lg+: the pane stays in view beside a long list and scrolls on its own
+				<div className="min-w-0 lg:sticky lg:top-4 lg:max-h-[calc(100dvh-2rem)] lg:overflow-y-auto lg:overscroll-contain lg:rounded-[10px]">
+					{/* below lg the pane replaces the list: the way back stays pinned */}
+					<div
+						className="sticky top-0 z-10 mb-3 flex items-center gap-3 py-2 lg:hidden"
+						style={{
+							marginInline: "calc(-1 * var(--gutter))",
+							paddingInline: "var(--gutter)",
+							background:
+								"color-mix(in oklab, var(--color-void) 88%, transparent)",
+							backdropFilter: "blur(8px)",
+						}}
 					>
-						Back to payouts
-					</button>
+						<button
+							type="button"
+							className="btn btn-sm flex-none"
+							onClick={closeDetail}
+						>
+							<span aria-hidden="true">←</span> Back to payouts
+						</button>
+						<span
+							className="min-w-0 truncate text-ash-dim"
+							style={{ fontSize: 13.5 }}
+						>
+							{sel.p.payee}
+						</span>
+					</div>
 					<DetailPane v={sel} />
 				</div>
 			)}
