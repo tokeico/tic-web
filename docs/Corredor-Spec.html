@@ -60,6 +60,8 @@ h1{font-family:var(--display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:800
 .slider input{width:100%;accent-color:var(--accent)}
 .ticks{display:flex;gap:8px;flex-wrap:wrap}
 .ticks button{font:500 .78rem/1 var(--mono);padding:7px 10px;border:1px solid var(--rule);background:var(--bg);color:var(--ink);border-radius:4px;cursor:pointer}
+.jump{font:500 .78rem/1 var(--mono);padding:8px 11px;border:1px solid var(--rule);border-radius:4px;text-decoration:none;color:var(--ink);background:var(--surface)}
+.jump:hover{border-color:var(--accent);color:var(--accent)}
 .ticks button:hover,.ticks button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
 .routes{display:flex;flex-direction:column;gap:8px}
 .route{display:grid;grid-template-columns:minmax(0,1fr) 5rem 7.5rem;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--rule);border-radius:4px;background:var(--bg);transition:border-color .25s,background .25s}
@@ -113,36 +115,47 @@ h1{font-family:var(--display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:800
 <li><a href="#prd-9-screens">9. Screens</a></li>
 <li><a href="#prd-10-demo-script-3-minutes">10. Demo script (3 minutes)</a></li>
 <li><a href="#prd-11-risks-and-mitigations">11. Risks and mitigations</a></li>
-<li><a href="#prd-12-owners-4-people">12. Owners (4 people)</a></li>
+<li><a href="#prd-12-owners-3-frontend-3-backend">12. Owners (3 frontend + 3 backend)</a></li>
 <li><a href="#prd-13-timeline">13. Timeline</a></li></ol></div>
     <div><b><a href="#arch">Architecture</a></b><ol><li><a href="#arch-1-principles">1. Principles</a></li>
 <li><a href="#arch-2-system-overview">2. System overview</a></li>
 <li><a href="#arch-3-stack">3. Stack</a></li>
 <li><a href="#arch-4-repo-layout">4. Repo layout</a></li>
-<li><a href="#arch-5-core-types-libcorredortypests">5. Core types (lib/corredor/types.ts)</a></li>
-<li><a href="#arch-6-rules-pack-rulesrulesjson">6. Rules pack (rules/rules.json)</a></li>
+<li><a href="#arch-5-contracts-tic-apisrccontractsts-copied-to-tic-websrclibcontractsts">5. Contracts (tic-api/src/contracts.ts, copied to tic-web/src/lib/contracts.ts)</a></li>
+<li><a href="#arch-6-rules-pack-corredorrulesrulesjson">6. Rules pack (corredor/rules/rules.json)</a></li>
 <li><a href="#arch-7-demo-data">7. Demo data</a></li>
-<li><a href="#arch-8-pipeline-and-claude-usage">8. Pipeline and Claude usage</a></li>
-<li><a href="#arch-9-archie-integration-decide-in-the-first-30-minutes">9. Archie integration (decide in the first 30 minutes)</a></li>
-<li><a href="#arch-10-api-routes">10. API routes</a></li>
-<li><a href="#arch-11-data-model">11. Data model</a></li>
-<li><a href="#arch-12-rails-reconciliation-and-audit">12. Rails, reconciliation and audit</a></li>
-<li><a href="#arch-13-testing-it-doubles-as-a-demo-talking-point">13. Testing (it doubles as a demo talking point)</a></li>
-<li><a href="#arch-14-environment-and-deploy">14. Environment and deploy</a></li>
-<li><a href="#arch-15-demo-day-runbook">15. Demo-day runbook</a></li>
+<li><a href="#arch-8-local-llm-ollama-llama">8. Local LLM (Ollama + Llama)</a></li>
+<li><a href="#arch-9-api-hono-tic-apisrcroutes">9. API (Hono, tic-api/src/routes)</a></li>
+<li><a href="#arch-10-rules-engine-corredorrulesenginets">10. Rules engine (corredor/rules/engine.ts)</a></li>
+<li><a href="#arch-11-data-model-drizzle-srcdbschemats">11. Data model (Drizzle, src/db/schema.ts)</a></li>
+<li><a href="#arch-12-audit-trail-keyed-hash-chain-plus-signatures">12. Audit trail: keyed hash chain plus signatures</a></li>
+<li><a href="#arch-13-rails-and-reconciliation">13. Rails and reconciliation</a></li>
+<li><a href="#arch-14-testing-bun-test">14. Testing (bun test)</a></li>
+<li><a href="#arch-15-hosting-on-bitqate">15. Hosting on BitQate</a></li>
+<li><a href="#arch-16-notes-and-decisions">16. Notes and decisions</a></li>
+<li><a href="#arch-17-demo-day-runbook">17. Demo-day runbook</a></li>
 <li><a href="#arch-sources">Sources</a></li></ol></div>
+    <div><b><a href="#fe">Frontend &amp; team</a></b><ol><li><a href="#fe-1-what-the-frontend-must-make-obvious">1. What the frontend must make obvious</a></li>
+<li><a href="#fe-2-stack-repo-tic-web">2. Stack (repo: tic-web)</a></li>
+<li><a href="#fe-3-screens">3. Screens</a></li>
+<li><a href="#fe-4-shared-components-build-first-30-min-fe3">4. Shared components (build first, ~30 min): FE3</a></li>
+<li><a href="#fe-5-api-contract-frontend-view">5. API contract (frontend view)</a></li>
+<li><a href="#fe-6-fixtures-so-frontend-never-waits">6. Fixtures (so frontend never waits)</a></li>
+<li><a href="#fe-7-polish-list-in-priority-order-after-330">7. Polish list (in priority order, after 3:30)</a></li>
+<li><a href="#fe-8-team-assignments">8. Team assignments</a></li>
+<li><a href="#fe-9-integration-timeline">9. Integration timeline</a></li></ol></div>
   </nav>
 
   <main>
     <header class="top" id="top">
       <span class="eyebrow">eMerge AI Hackathon 2026 · Enterprise AI · Team spec</span>
+      <nav class="ticks" aria-label="Jump to part"><a class="jump" href="#prd">Part 1 · PRD</a><a class="jump" href="#arch">Part 2 · Architecture</a><a class="jump" href="#fe">Part 3 · Frontend &amp; team</a></nav>
       <h1>Corredor</h1>
       <p class="lede">The compliance brain for paying Latin America in stablecoins. It knows each country's rules as of today, picks a compliant route, explains every decision with sources, reroutes when a rule changes, and books the result. <b>AI reads and explains, code decides, a human approves.</b></p>
-      <p class="lede" style="background:var(--warn-soft);padding:10px 14px;border-radius:4px"><b>Stack note:</b> this file is an earlier combined spec (Archie, Next.js, Claude). The markdown in this folder — PRD.md, ARCHITECTURE.md, and FRONTEND.md — is the stack this repo implements (TanStack Start, Hono on Bun, local Llama). Where they differ, follow the markdown.</p>
       <div class="facts">
-        <div><span>Corridors</span><b>Brazil · Mexico · Argentina · Venezuela</b></div>
+        <div><span>Stack</span><b>TanStack · Hono · Bun · Postgres</b></div>
         <div><span>Rules pack</span><b>v1 · 9 rules, each sourced</b></div>
-        <div><span>Model</span><b>claude-opus-5-5</b></div>
+        <div><span>AI</span><b>Llama 3.1 8B · local (Ollama)</b></div>
         <div><span>Ship by</span><b>6:00 PM today</b></div>
       </div>
     </header>
@@ -210,6 +223,7 @@ h1{font-family:var(--display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:800
 <ul>
 <li><strong>The payment rails exist:</strong> Bitso Business, Bridge, BlindPay, Conduit. <strong>Stablecoin AP exists:</strong> Ramp (since Jul 2026), Request Finance, Bitwave.</li>
 <li><strong>What's missing:</strong> a compliance brain that works across every rail. It treats each country's rules as versioned data, checks every payment against today's rules, writes a cited memo, and reroutes on its own when a rule takes effect.</li>
+<li><strong>Private by design:</strong> the AI runs on our own machine (Llama via Ollama). Invoices and payee bank details never go to a third-party AI service.</li>
 <li><strong>Design principle:</strong> <em>AI reads and explains, code decides, a human approves.</em> This answers the most common CFO objection on Reddit, "AI never touches my GLs… probabilistic, not deterministic."</li>
 </ul>
 <h2 id="prd-4-users">4. Users</h2>
@@ -268,7 +282,7 @@ h1{font-family:var(--display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:800
 <p>Priority: <strong>P0</strong> must ship for the demo · <strong>P1</strong> strongly wanted · <strong>P2</strong> stretch.</p>
 <h3 id="prd-81-invoice-intake-and-extraction">8.1 Invoice intake and extraction</h3>
 <ul>
-<li><strong>P0</strong> Upload a PDF (or pick a seeded invoice). Claude extracts payee name, country, amount, currency, invoice number, due date, local bank identifier (Pix key / CLABE / CVU / account), payee tax ID (CNPJ / RFC / CUIT) and description.</li>
+<li><strong>P0</strong> Upload a PDF (or pick a seeded invoice). The local Llama model extracts payee name, country, amount, currency, invoice number, due date, local bank identifier (Pix key / CLABE / CVU / account), payee tax ID (CNPJ / RFC / CUIT) and description.</li>
 <li><strong>P0</strong> Extracted fields are editable before planning. Low-confidence fields are highlighted.</li>
 <li><strong>P1</strong> Field validation: CLABE is 18 digits with a check digit, a CNPJ is 14 digits, a CVU is 22 digits.</li>
 <li><strong>P1</strong> If required data is missing (for example Brazil's purpose code), the agent drafts an email to the vendor asking for it.</li>
@@ -371,7 +385,7 @@ h1{font-family:var(--display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:800
 </blockquote>
 <h3 id="prd-85-memo">8.5 Memo</h3>
 <ul>
-<li><strong>P0</strong> For each payout, Claude writes a short memo covering what's being paid, the chosen route, why it complies (each rule cited with its source link), the warnings, and what a human should check. Claude explains the engine's result and never overrides it.</li>
+<li><strong>P0</strong> For each payout, the local Llama model writes a short memo covering what's being paid, the chosen route, why it complies (each rule cited with its source link), the warnings, and what a human should check. The model explains the engine's result and never overrides it. If the model is down, a template memo built from the rule messages is used.</li>
 </ul>
 <h3 id="prd-86-approval-and-mandate-agent-passportlite">8.6 Approval and mandate (Agent Passport–lite)</h3>
 <ul>
@@ -480,40 +494,44 @@ h1{font-family:var(--display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:800
 <td>Competition slide: they own the rail, we're the compliance layer across all rails</td>
 </tr>
 <tr>
-<td>Archie can't host custom logic</td>
-<td>Core logic is a standalone TS module and API (see Architecture §9); Archie owns the UI</td>
+<td>Local model too slow or flaky on stage</td>
+<td>Pre-pulled and warmed model, cached extraction, template memo fallback, <code>llama3.2:3b</code> as a lighter option</td>
 </tr>
 </tbody>
 </table></div>
-<h2 id="prd-12-owners-4-people">12. Owners (4 people)</h2>
+<h2 id="prd-12-owners-3-frontend-3-backend">12. Owners (3 frontend + 3 backend)</h2>
+<p>Full split, screens and the integration timeline are in <strong>Part 3: Frontend and team plan</strong> (<code>FRONTEND.md</code>).</p>
 <div class="tbl"><table>
 <thead>
 <tr>
-<th>Area</th>
-<th>Owner</th>
+<th>Who</th>
 <th>Scope</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>App / UI</td>
-<td><em>TBD</em></td>
-<td>Archie screens, slider, approval card, ledger, audit view</td>
+<td>FE1</td>
+<td>App shell, inbox, as-of slider, reroute toast, invoice upload</td>
 </tr>
 <tr>
-<td>Agent</td>
-<td><em>TBD</em></td>
-<td>Extraction and memo prompts, structured outputs, vendor-email drafting</td>
+<td>FE2</td>
+<td>Payout detail: fields, route comparison, rules checklist, memo</td>
 </tr>
 <tr>
-<td>Rules + data</td>
-<td><em>TBD</em></td>
-<td><code>rules.json</code>, off-ramp registry, FX table, OFAC loader, seed invoices, rules tests</td>
+<td>FE3</td>
+<td>Shared components, approve and pay, ledger, audit (plus deck and video from 4:30)</td>
 </tr>
 <tr>
-<td>Rails, books, pitch</td>
-<td><em>TBD</em></td>
-<td>Rail adapter (mock/sandbox), reconciliation, journal export, deck, backup video</td>
+<td>BE1</td>
+<td>Rules engine, rules and demo data, quotes, golden tests, fixtures</td>
+</tr>
+<tr>
+<td>BE2</td>
+<td>Local LLM (Ollama + Llama): PDF text, extraction, memo, vendor email</td>
+</tr>
+<tr>
+<td>BE3</td>
+<td>DB, approvals, rail adapter, reconciliation, audit chain, deploy (plus deck and video from 4:30)</td>
 </tr>
 </tbody>
 </table></div>
@@ -563,32 +581,34 @@ h1{font-family:var(--display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:800
       <hr />
 <h2 id="arch-1-principles">1. Principles</h2>
 <ol>
-<li><strong>AI reads and explains, code decides, a human approves.</strong> Claude extracts invoices and writes memos. The allow/block decision is plain TypeScript over data. Money moves only after a human approves.</li>
-<li><strong>Rules are data.</strong> Every rule has an effective date and a source URL. Changing the law means changing one row of JSON, not code.</li>
-<li><strong>Deterministic core.</strong> The same inputs and the same as-of date always give the same plan, and tests prove it.</li>
-<li><strong>One interface per external dependency.</strong> Rails, the sanctions list and the FX table each sit behind an interface with a mock, so the demo never depends on a third party.</li>
-<li><strong>Every step is evidence.</strong> Each step appends to a hash-chained audit log.</li>
+<li><strong>AI reads and explains, code decides, a human approves.</strong> A <strong>local Llama model</strong> extracts invoices and writes memos. The allow/block decision is plain TypeScript over data. Money moves only after a human approves.</li>
+<li><strong>Invoices never leave our infrastructure.</strong> The LLM runs on our own machine through Ollama, with no third-party AI API. That's a real selling point to finance and compliance buyers.</li>
+<li><strong>Rules are data.</strong> Every rule has an effective date and a source URL. Changing the law means changing one row of JSON.</li>
+<li><strong>Deterministic core.</strong> The same inputs and the same as-of date always give the same plan, and <code>bun test</code> proves it.</li>
+<li><strong>One interface per external dependency.</strong> Rails, the sanctions list, FX and the LLM each sit behind an interface with a fallback, so the demo never depends on anything outside the laptop.</li>
+<li><strong>Tamper-evident evidence.</strong> Every step is appended to a keyed hash chain with signed checkpoints (§12).</li>
 </ol>
 <h2 id="arch-2-system-overview">2. System overview</h2>
-<pre><code>┌──────────────────────────── UI (Archie / Next.js) ─────────────────────────────┐
-│ Payouts inbox · Payout detail · Ledger · Audit · As-of date slider             │
+<pre><code>┌──────────────── tic-web (TanStack Start · React 19 · Tailwind) ── :8080 ───────┐
+│ Router (file routes) · Query (server state) · Form · Table                     │
+│ Inbox · Payout detail · Ledger · Audit · As-of slider (URL search param)       │
 └───────────────┬────────────────────────────────────────────────────────────────┘
-                │ HTTP (route handlers)
-┌───────────────▼──────────────── corredor-core (TypeScript) ────────────────────┐
+                │ fetch JSON (CORS)   PUBLIC_API_URL
+┌───────────────▼──────────────── tic-api (Bun · Hono) ── :3000 ──────────────────┐
+│ routes/*  ──►  corredor/*  (pure TS core)                                      │
 │                                                                                │
-│  extract ──► screen ──► quote ──► RULES ENGINE(as_of) ──► memo ──► approve     │
-│  (Claude)    (OFAC)     (registry)  (pure TS + rules.json)  (Claude)  (policy) │
-│                                                                    │           │
-│                                         reconcile ◄── pay ◄────────┘           │
-│                                         (match+JE)    (RailAdapter: mock|sandbox)
-│                                                                                │
-│  audit.append() on every step  ──►  hash-chained event log                     │
-└───────────────┬────────────────────────────────────────────────────────────────┘
-                │
-        ┌───────▼───────┐   ┌──────────────┐   ┌──────────────────────────┐
-        │ Postgres/SQLite│   │ Claude API   │   │ Bridge / BlindPay sandbox│
-        │ (app data)     │   │ claude-opus-5-5│ │ (optional, else mock)    │
-        └────────────────┘   └──────────────┘   └──────────────────────────┘
+│  pdf→text ─► extract ─► screen ─► quote ─► RULES ENGINE(asOf) ─► memo ─► approve│
+│  (unpdf)    (Llama)    (OFAC)   (registry) (pure TS + rules.json) (Llama) (policy)
+│                                                               │                │
+│                                 reconcile ◄── pay ◄───────────┘                │
+│                                 (match+JE)    (RailAdapter: mock | sandbox)    │
+│  audit.append() every step ─► HMAC-SHA-512 chain + Ed25519-signed checkpoints  │
+└──────┬──────────────────────────────┬──────────────────────────────────────────┘
+       │ Drizzle (bun-sql)            │ HTTP :11434
+┌──────▼────────┐             ┌───────▼─────────────┐   ┌──────────────────────────┐
+│ Postgres 17   │             │ Ollama · Llama 3.1 8B│   │ Bridge / BlindPay sandbox │
+│ (Docker/managed)            │ (local, no cloud AI) │   │ (optional, else mock)     │
+└───────────────┘             └─────────────────────┘   └──────────────────────────┘
 </code></pre>
 <h2 id="arch-3-stack">3. Stack</h2>
 <div class="tbl"><table>
@@ -596,81 +616,100 @@ h1{font-family:var(--display);font-size:clamp(2.2rem,5vw,3.2rem);font-weight:800
 <tr>
 <th>Layer</th>
 <th>Choice</th>
-<th>Why</th>
+<th>Notes</th>
 </tr>
 </thead>
 <tbody>
 <tr>
-<td>App shell</td>
-<td><strong>Archie</strong> (generates Next.js App Router, DB, auth, hosting)</td>
-<td>Fast UI, and enters us for the Archie prize</td>
+<td>Web</td>
+<td><strong>TanStack Start</strong> (React 19) + <strong>TanStack Router / Query / Form / Table</strong>, Tailwind v4, Biome</td>
+<td>Already in <code>tic-web</code>. Its bundler is <strong>rsbuild</strong>, not Vite (see §16).</td>
 </tr>
 <tr>
-<td>Core logic</td>
-<td>TypeScript module <code>lib/corredor</code></td>
-<td>Runs in Next.js route handlers, unit-testable</td>
+<td>API</td>
+<td><strong>Hono</strong> on <strong>Bun</strong></td>
+<td>Already in <code>tic-api</code>. Use <code>hono/cors</code> and <code>@hono/zod-validator</code>.</td>
 </tr>
 <tr>
-<td>LLM</td>
-<td><code>@anthropic-ai/sdk</code>, model <strong><code>claude-opus-5-5</code></strong></td>
-<td>Structured outputs, PDF input</td>
-</tr>
-<tr>
-<td>Validation</td>
-<td><code>zod</code></td>
-<td>Shared schemas for the API, the LLM output and the DB</td>
+<td>Validation and contracts</td>
+<td><strong>zod v4</strong></td>
+<td>Shared schemas. <code>z.toJSONSchema()</code> feeds the LLM's structured output.</td>
 </tr>
 <tr>
 <td>DB</td>
-<td>Whatever Archie provisions (Postgres). SQLite locally if needed</td>
-<td>Plain tables, no ORM magic required</td>
+<td><strong>Postgres 17 + Drizzle</strong> (<code>drizzle-orm/bun-sql</code>)</td>
+<td>Already in <code>tic-api</code>. Follow <code>DATABASE.md</code>: edit the schema, <code>db:generate</code>, <code>db:migrate</code>, commit <code>drizzle/</code>.</td>
+</tr>
+<tr>
+<td>LLM</td>
+<td><strong>Ollama</strong> serving <strong>Llama 3.1 8B Instruct</strong> (<code>llama3.1:8b</code>); fallback <code>llama3.2:3b</code></td>
+<td>Native <code>/api/chat</code> with a JSON-schema <code>format</code> for structured output. Temperature 0 with a fixed seed.</td>
+</tr>
+<tr>
+<td>PDF text</td>
+<td><code>unpdf</code></td>
+<td>Text layer from the PDF goes to the LLM, so no vision model is needed. Demo PDFs are generated with a text layer.</td>
+</tr>
+<tr>
+<td>Crypto</td>
+<td><code>node:crypto</code> (works in Bun)</td>
+<td>HMAC-SHA-512 and Ed25519 (§12)</td>
 </tr>
 <tr>
 <td>Tests</td>
-<td><code>vitest</code></td>
-<td>Golden tests for the rules engine</td>
+<td><code>bun test</code></td>
+<td>Per <code>tic-api/CLAUDE.md</code>. Don't use vitest.</td>
 </tr>
 <tr>
-<td>Hashing</td>
-<td>Node <code>crypto</code> (sha256)</td>
-<td>Audit chain</td>
-</tr>
-<tr>
-<td>Deploy</td>
-<td>Archie hosting, or Vercel (Node runtime)</td>
-<td>Public demo URL</td>
+<td>Hosting</td>
+<td><strong>BitQate</strong>: Docker containers, managed Postgres, Git-push deploys</td>
+<td>§15</td>
 </tr>
 </tbody>
 </table></div>
 <h2 id="arch-4-repo-layout">4. Repo layout</h2>
-<pre><code>/
-├─ docs/                     PRD.md, ARCHITECTURE.md
-├─ app/                      Archie-generated UI + route handlers (app/api/*)
-├─ lib/corredor/
-│  ├─ types.ts               shared zod schemas + TS types (§5) ← agree on these first
-│  ├─ extract.ts             Claude: PDF → Invoice
-│  ├─ screen.ts              OFAC SDN fuzzy match
-│  ├─ quote.ts               candidate routes from registry + FX table
-│  ├─ rules/
-│  │  ├─ rules.json          rules pack v1 (§6)
-│  │  ├─ checks.ts           check functions referenced by rules.json
-│  │  └─ engine.ts           plan(payout, routes, asOf) → Plan
-│  ├─ memo.ts                Claude: Plan → Memo (explains, never decides)
-│  ├─ policy.ts              mandate: caps, 2nd approver, daily limit
-│  ├─ rails/
-│  │  ├─ adapter.ts          RailAdapter interface
-│  │  ├─ mock.ts             deterministic fake IDs
-│  │  └─ bridge.ts           sandbox (optional)
-│  ├─ reconcile.ts           match + journal entry
-│  └─ audit.ts               append + verify hash chain
-├─ data/
-│  ├─ offramps.json          provider registry (demo data, fictional names)
-│  ├─ fx.json                demo FX rates (labeled demo)
-│  ├─ sdn.csv                OFAC SDN list (downloaded)
-│  └─ seed/invoices/*.pdf    4 demo invoices
-└─ tests/rules.test.ts       golden tests (§13)
+<h3 id="arch-tic-api"><code>tic-api</code></h3>
+<pre><code>src/
+├─ index.ts                 Hono app: cors, routes, error handler; export default { port: 3000, fetch: app.fetch }
+├─ routes/                  payouts.ts · invoices.ts · plan.ts · ledger.ts · audit.ts · rules.ts · settings.ts
+├─ contracts.ts             zod schemas + types shared with tic-web (§5) ← contract freeze 9:30
+├─ corredor/
+│  ├─ rules/rules.json      rules pack v1 (§6)
+│  ├─ rules/checks.ts       pure check functions
+│  ├─ rules/engine.ts       plan(invoice, routes, asOf) → Plan
+│  ├─ quote.ts              candidate routes from offramps.json + fx.json
+│  ├─ screen.ts             OFAC SDN fuzzy match
+│  ├─ policy.ts             mandate: 2nd approver, daily cap
+│  ├─ rails/{adapter,mock,bridge}.ts
+│  ├─ reconcile.ts          match + journal entry
+│  └─ audit.ts              HMAC chain + signed checkpoints + verify
+├─ llm/
+│  ├─ ollama.ts             chatJSON(schema, system, user)
+│  ├─ pdf.ts                PDF → text (unpdf)
+│  ├─ extract.ts            text → Invoice (+ sha256 cache in DB)
+│  └─ memo.ts               Plan → Memo (cited-rule guard, template fallback)
+├─ db/{index,schema,migrate}.ts   (existing; add tables §11)
+data/   offramps.json · fx.json · sdn.csv · seed/invoices/*.pdf
+scripts/ seed.ts · fixtures.ts (writes fixtures for tic-web) · keys.ts (generates audit keys)
+test/   rules.test.ts · audit.test.ts
+Dockerfile
 </code></pre>
-<h2 id="arch-5-core-types-libcorredortypests">5. Core types (<code>lib/corredor/types.ts</code>)</h2>
+<h3 id="arch-tic-web"><code>tic-web</code></h3>
+<pre><code>src/
+├─ routes/
+│  ├─ __root.tsx            shell: nav, AsOf slider, badges, QueryClientProvider
+│  ├─ index.tsx             Payouts inbox  (search: ?asOf=2026-10-17)
+│  ├─ payouts.$id.tsx       Payout detail
+│  ├─ ledger.tsx            Ledger
+│  └─ audit.tsx             Audit
+├─ lib/
+│  ├─ contracts.ts          copied from tic-api/src/contracts.ts (do not edit here)
+│  ├─ api.ts                queryOptions + mutations, USE_FIXTURES switch
+│  └─ format.ts             Money, dates
+├─ components/              StatusPill, Money, RouteChip, RuleRef, SimBadge, …
+└─ fixtures/                JSON produced by tic-api scripts/fixtures.ts
+</code></pre>
+<h2 id="arch-5-contracts-tic-apisrccontractsts-copied-to-tic-websrclibcontractsts">5. Contracts (<code>tic-api/src/contracts.ts</code>, copied to <code>tic-web/src/lib/contracts.ts</code>)</h2>
 <pre><code class="language-ts">import { z } from &quot;zod&quot;;
 
 export const Country = z.enum([&quot;BR&quot;, &quot;MX&quot;, &quot;AR&quot;, &quot;CO&quot;, &quot;VE&quot;]);
@@ -684,63 +723,61 @@ export const Invoice = z.object({
   amount: z.number(),
   currency: z.string(),                       // BRL, MXN, USD, ...
   dueDate: z.string().nullable(),             // ISO date
-  bankId: z.object({ type: LocalRail, value: z.string() }).nullable(), // Pix key, CLABE, CVU...
+  bankId: z.object({ type: LocalRail, value: z.string() }).nullable(),
   description: z.string(),
-  purposeCode: z.string().nullable(),         // BR FX purpose code if present
-  lowConfidence: z.array(z.string()),         // field names Claude was unsure about
+  purposeCode: z.string().nullable(),
+  lowConfidence: z.array(z.string()),         // fields the model was unsure about
 });
+export type Invoice = z.infer&lt;typeof Invoice&gt;;
 
 export type OfframpType =
   | &quot;vasp_authorized&quot; | &quot;vasp_pending&quot; | &quot;efx&quot; | &quot;bank&quot;
   | &quot;nonbank_licensed&quot; | &quot;psav_registered&quot; | &quot;p2p_unregistered&quot;;
 
 export interface Offramp {
-  id: string; name: string; country: z.infer&lt;typeof Country&gt;;
-  type: OfframpType; feePct: number; assets: (&quot;USDC&quot; | &quot;USDT&quot;)[];
-  networks: (&quot;base&quot; | &quot;arbitrum&quot; | &quot;tron&quot;)[]; rail: z.infer&lt;typeof LocalRail&gt;;
-  minutes: number;
+  id: string; name: string; country: z.infer&lt;typeof Country&gt;; type: OfframpType;
+  feePct: number; assets: (&quot;USDC&quot; | &quot;USDT&quot;)[]; networks: (&quot;base&quot; | &quot;arbitrum&quot; | &quot;tron&quot;)[];
+  rail: z.infer&lt;typeof LocalRail&gt;; minutes: number;
 }
 
 export interface Route {
-  id: string;                       // e.g. &quot;BR:usdc-base:sol-vasp&quot;
-  kind: &quot;wire&quot; | &quot;stablecoin&quot;;
-  asset: &quot;USDC&quot; | &quot;USDT&quot; | null;
-  network: &quot;base&quot; | &quot;arbitrum&quot; | &quot;tron&quot; | null;
-  offramp: Offramp | null;          // null for wire
-  rail: z.infer&lt;typeof LocalRail&gt;;
-  feePct: number; feeUsd: number; minutes: number;
-  amountUsd: number;
+  id: string; kind: &quot;wire&quot; | &quot;stablecoin&quot;;
+  asset: &quot;USDC&quot; | &quot;USDT&quot; | null; network: &quot;base&quot; | &quot;arbitrum&quot; | &quot;tron&quot; | null;
+  offramp: Offramp | null; rail: z.infer&lt;typeof LocalRail&gt;;
+  feePct: number; feeUsd: number; minutes: number; amountUsd: number;
 }
 
 export type Outcome = &quot;pass&quot; | &quot;warn&quot; | &quot;block&quot; | &quot;require_fields&quot;;
-
 export interface RuleResult {
   ruleId: string; title: string; outcome: Outcome; message: string;
-  source: { name: string; url: string }; effectiveFrom: string | null;
-  missingFields?: string[];
+  source: { name: string; url: string }; effectiveFrom: string | null; missingFields?: string[];
 }
-
 export interface RouteEvaluation { route: Route; results: RuleResult[]; compliant: boolean }
 
 export type PayoutStatus =
-  | &quot;needs_info&quot; | &quot;blocked&quot; | &quot;awaiting_second_approver&quot; | &quot;ready&quot;
+  | &quot;draft&quot; | &quot;needs_info&quot; | &quot;blocked&quot; | &quot;awaiting_second_approver&quot; | &quot;ready&quot;
   | &quot;approved&quot; | &quot;paid&quot; | &quot;booked&quot;;
 
 export interface Plan {
   payoutId: string; asOf: string;
   screening: { status: &quot;clear&quot; | &quot;possible_match&quot; | &quot;hit&quot;; match?: string; score?: number };
-  evaluations: RouteEvaluation[];      // every candidate route, ranked
-  recommended: Route | null;           // cheapest compliant
-  status: PayoutStatus;
-  reasons: string[];                   // human-readable, from rule messages
+  evaluations: RouteEvaluation[]; recommended: Route | null;
+  status: PayoutStatus; reasons: string[];
 }
+
+export const Memo = z.object({
+  summary: z.string(), routeRationale: z.string(), citedRuleIds: z.array(z.string()),
+  warnings: z.array(z.string()), humanChecks: z.array(z.string()), vendorEmail: z.string().optional(),
+});
+export type Memo = z.infer&lt;typeof Memo&gt;;
+
+// frontend-facing shapes: PayoutSummary, PayoutDetail, Reroute, JournalEntry, AuditEvent (FRONTEND §5)
 </code></pre>
-<h2 id="arch-6-rules-pack-rulesrulesjson">6. Rules pack (<code>rules/rules.json</code>)</h2>
-<p>Each rule = <strong>when</strong> (corridor + effective window) + <strong>check</strong> (a named function in <code>checks.ts</code> with params) + <strong>outcome</strong> + <strong>source</strong>.</p>
+<h2 id="arch-6-rules-pack-corredorrulesrulesjson">6. Rules pack (<code>corredor/rules/rules.json</code>)</h2>
+<p>Each rule = <strong>when</strong> (corridor + effective window) + <strong>check</strong> (named function plus params) + <strong>outcome</strong> + <strong>source</strong>.</p>
 <pre><code class="language-jsonc">[
   { &quot;id&quot;: &quot;BR-521-FX&quot;, &quot;corridor&quot;: &quot;BR&quot;, &quot;title&quot;: &quot;Stablecoin payment = FX operation&quot;,
-    &quot;effectiveFrom&quot;: &quot;2026-02-02&quot;, &quot;effectiveTo&quot;: null,
-    &quot;appliesTo&quot;: &quot;stablecoin&quot;,
+    &quot;effectiveFrom&quot;: &quot;2026-02-02&quot;, &quot;effectiveTo&quot;: null, &quot;appliesTo&quot;: &quot;stablecoin&quot;,
     &quot;check&quot;: { &quot;fn&quot;: &quot;requireFields&quot;, &quot;params&quot;: { &quot;fields&quot;: [&quot;purposeCode&quot;, &quot;payeeTaxId&quot;] } },
     &quot;outcome&quot;: &quot;require_fields&quot;,
     &quot;message&quot;: &quot;Brazil treats stablecoin payments as FX: purpose code and counterparty data required.&quot;,
@@ -758,16 +795,16 @@ export interface Plan {
     &quot;outcome&quot;: &quot;block&quot;, &quot;message&quot;: &quot;Since Oct 1, 2026, eFX providers may not settle overseas payments in stablecoins. Use an authorized VASP or bank.&quot;,
     &quot;source&quot;: { &quot;name&quot;: &quot;BCB Res. 561 (via Eco)&quot;, &quot;url&quot;: &quot;https://eco.com/support/en/articles/15575501-brazil-stablecoin-regulation-2026-what-drex-s-pivot-means-for-usdc-and-usdt-inflows&quot; } },
 
-  { &quot;id&quot;: &quot;BR-VASP-AUTH&quot;, &quot;corridor&quot;: &quot;BR&quot;, &quot;title&quot;: &quot;VASP authorization transition ends Oct 30&quot;,
-    &quot;effectiveFrom&quot;: &quot;2026-10-30&quot;, &quot;effectiveTo&quot;: null, &quot;appliesTo&quot;: &quot;stablecoin&quot;,
-    &quot;check&quot;: { &quot;fn&quot;: &quot;offrampTypeIn&quot;, &quot;params&quot;: { &quot;types&quot;: [&quot;vasp_pending&quot;] } },
-    &quot;outcome&quot;: &quot;block&quot;, &quot;message&quot;: &quot;Off-ramp is not BCB-authorized after the transition period.&quot;,
-    &quot;source&quot;: { &quot;name&quot;: &quot;fcm.law&quot;, &quot;url&quot;: &quot;https://fcm.law/brazil-vasp-license/&quot; } },
-
   { &quot;id&quot;: &quot;BR-VASP-PENDING-WARN&quot;, &quot;corridor&quot;: &quot;BR&quot;, &quot;title&quot;: &quot;Off-ramp authorization still pending&quot;,
     &quot;effectiveFrom&quot;: &quot;2026-02-02&quot;, &quot;effectiveTo&quot;: &quot;2026-10-29&quot;, &quot;appliesTo&quot;: &quot;stablecoin&quot;,
     &quot;check&quot;: { &quot;fn&quot;: &quot;offrampTypeIn&quot;, &quot;params&quot;: { &quot;types&quot;: [&quot;vasp_pending&quot;] } },
     &quot;outcome&quot;: &quot;warn&quot;, &quot;message&quot;: &quot;Off-ramp's BCB authorization is pending; it must be authorized by Oct 30, 2026.&quot;,
+    &quot;source&quot;: { &quot;name&quot;: &quot;fcm.law&quot;, &quot;url&quot;: &quot;https://fcm.law/brazil-vasp-license/&quot; } },
+
+  { &quot;id&quot;: &quot;BR-VASP-AUTH&quot;, &quot;corridor&quot;: &quot;BR&quot;, &quot;title&quot;: &quot;VASP authorization transition ends Oct 30&quot;,
+    &quot;effectiveFrom&quot;: &quot;2026-10-30&quot;, &quot;effectiveTo&quot;: null, &quot;appliesTo&quot;: &quot;stablecoin&quot;,
+    &quot;check&quot;: { &quot;fn&quot;: &quot;offrampTypeIn&quot;, &quot;params&quot;: { &quot;types&quot;: [&quot;vasp_pending&quot;] } },
+    &quot;outcome&quot;: &quot;block&quot;, &quot;message&quot;: &quot;Off-ramp is not BCB-authorized after the transition period.&quot;,
     &quot;source&quot;: { &quot;name&quot;: &quot;fcm.law&quot;, &quot;url&quot;: &quot;https://fcm.law/brazil-vasp-license/&quot; } },
 
   { &quot;id&quot;: &quot;MX-BANK-CRYPTO&quot;, &quot;corridor&quot;: &quot;MX&quot;, &quot;title&quot;: &quot;Banks may not operate with crypto&quot;,
@@ -796,9 +833,9 @@ export interface Plan {
 ]
 </code></pre>
 <p>⚠ <strong>Verify before the pitch:</strong> the BR rows against the BCB resolutions; the MX effective date (Banxico Circular 4/2019); and the date of the AR PSAV registry. Show the badge "Rules pack v1 · sourced · pending compliance review" in the UI.</p>
-<p><strong>Check functions</strong> (<code>checks.ts</code>): <code>always</code>, <code>offrampTypeIn(types)</code>, <code>amountUsdAbove(limit, offrampTypes?)</code>, <code>requireFields(fields)</code>, <code>fxSpreadAbove(pct, pair)</code>. Each is pure: <code>(ctx: {invoice, route, fx}) =&gt; boolean | {missing: string[]}</code>.</p>
+<p><strong>Check functions</strong> (<code>checks.ts</code>): <code>always</code>, <code>offrampTypeIn(types)</code>, <code>amountUsdAbove(limit, offrampTypes?)</code>, <code>requireFields(fields)</code>, <code>fxSpreadAbove(pct, pair)</code>. Each is pure: <code>(ctx: { invoice, route, fx }) =&gt; boolean | { missing: string[] }</code>.</p>
 <h2 id="arch-7-demo-data">7. Demo data</h2>
-<p><strong><code>offramps.json</code></strong> (fictional providers, labeled demo):</p>
+<p><strong><code>data/offramps.json</code></strong> (fictional providers, labeled demo):</p>
 <div class="tbl"><table>
 <thead>
 <tr>
@@ -822,21 +859,21 @@ export interface Plan {
 <td>pix</td>
 </tr>
 <tr>
-<td>br-sol</td>
-<td>Sol VASP</td>
-<td>BR</td>
-<td><code>vasp_authorized</code></td>
-<td>0.85%</td>
-<td>USDC/base, arbitrum</td>
-<td>pix</td>
-</tr>
-<tr>
 <td>br-ponte</td>
 <td>Ponte Digital</td>
 <td>BR</td>
 <td><code>vasp_pending</code></td>
 <td>0.70%</td>
 <td>USDC/base</td>
+<td>pix</td>
+</tr>
+<tr>
+<td>br-sol</td>
+<td>Sol VASP</td>
+<td>BR</td>
+<td><code>vasp_authorized</code></td>
+<td>0.85%</td>
+<td>USDC/base, arbitrum</td>
 <td>pix</td>
 </tr>
 <tr>
@@ -877,102 +914,87 @@ export interface Plan {
 </tr>
 </tbody>
 </table></div>
-<p>The design means the cheapest option is always non-compliant somewhere. That's what makes the rules visible:
-- <strong>BR:</strong> before Oct 1, PagaFX (0.55%) wins. Oct 1–29, Ponte (0.70%, pending) wins with the <code>BR-VASP-PENDING-WARN</code> warning. From Oct 30, only Sol (0.85%) passes. The slider shows <strong>three distinct routes</strong>.
+<p>The design means the cheapest option is always non-compliant somewhere:
+- <strong>BR:</strong> before Oct 1, PagaFX wins. Oct 1–29, Ponte wins with a warning. From Oct 30, only Sol passes. That gives <strong>three distinct routes</strong> on the slider.
 - <strong>MX:</strong> Banco Azul is always blocked, so Puente is chosen.
 - <strong>AR:</strong> Cueva is blocked, so Pampa is chosen.</p>
-<p><strong><code>fx.json</code></strong> (demo rates, labeled): <code>{ "BRL": 5.40, "MXN": 18.50, "ARS_official": 1350, "ARS_parallel": 1460 }</code>. The wire route is always <code>{ feePct: 4.5, minutes: 2880 }</code>.</p>
-<h2 id="arch-8-pipeline-and-claude-usage">8. Pipeline and Claude usage</h2>
+<p><strong><code>data/fx.json</code></strong> (demo rates, labeled): <code>{ "BRL": 5.40, "MXN": 18.50, "ARS_official": 1350, "ARS_parallel": 1460 }</code>. The wire route is always <code>{ feePct: 4.5, minutes: 2880 }</code>.</p>
+<h2 id="arch-8-local-llm-ollama-llama">8. Local LLM (Ollama + Llama)</h2>
 <div class="tbl"><table>
 <thead>
 <tr>
 <th>Step</th>
 <th>Code</th>
-<th>Claude?</th>
-<th>Effort</th>
+<th>LLM?</th>
 <th>Output</th>
 </tr>
 </thead>
 <tbody>
 <tr>
+<td>PDF → text</td>
+<td><code>llm/pdf.ts</code> (unpdf)</td>
+<td>No</td>
+<td>plain text</td>
+</tr>
+<tr>
 <td>Extract</td>
-<td><code>extract.ts</code></td>
-<td>Yes: PDF document block → structured output</td>
-<td><code>low</code></td>
+<td><code>llm/extract.ts</code></td>
+<td><strong>Llama</strong>, JSON-schema constrained</td>
 <td><code>Invoice</code></td>
 </tr>
 <tr>
-<td>Screen</td>
-<td><code>screen.ts</code></td>
-<td>No</td>
-<td>—</td>
-<td>screening result</td>
-</tr>
-<tr>
-<td>Quote</td>
-<td><code>quote.ts</code></td>
-<td>No</td>
-<td>—</td>
-<td><code>Route[]</code></td>
-</tr>
-<tr>
-<td>Plan</td>
-<td><code>rules/engine.ts</code></td>
+<td>Screen · Quote · Plan</td>
+<td><code>corredor/*</code></td>
 <td><strong>No (deterministic)</strong></td>
-<td>—</td>
 <td><code>Plan</code></td>
 </tr>
 <tr>
 <td>Memo</td>
-<td><code>memo.ts</code></td>
-<td>Yes: Plan JSON → structured memo</td>
-<td><code>medium</code></td>
+<td><code>llm/memo.ts</code></td>
+<td><strong>Llama</strong>, JSON-schema constrained</td>
 <td><code>Memo</code></td>
 </tr>
 <tr>
 <td>Vendor email (P1)</td>
-<td><code>memo.ts</code></td>
-<td>Yes, when status = <code>needs_info</code></td>
-<td><code>low</code></td>
-<td>email draft</td>
+<td><code>llm/memo.ts</code></td>
+<td>Llama, when status = <code>needs_info</code></td>
+<td>text</td>
 </tr>
 </tbody>
 </table></div>
-<p><strong>Extraction sketch</strong> (structured outputs with <code>zodOutputFormat</code>; no forced <code>tool_choice</code>, which Opus 5.5 rejects):</p>
-<pre><code class="language-ts">import Anthropic from &quot;@anthropic-ai/sdk&quot;;
-import { zodOutputFormat } from &quot;@anthropic-ai/sdk/helpers/zod&quot;;
-import { Invoice } from &quot;./types&quot;;
+<p><strong>Client</strong> (<code>llm/ollama.ts</code>):</p>
+<pre><code class="language-ts">import { z } from &quot;zod&quot;;
 
-const client = new Anthropic();
+const OLLAMA_URL = process.env.OLLAMA_URL ?? &quot;http://localhost:11434&quot;;
+const LLM_MODEL = process.env.LLM_MODEL ?? &quot;llama3.1:8b&quot;;
 
-export async function extractInvoice(pdfBase64: string) {
-  const res = await client.messages.parse({
-    model: &quot;claude-opus-5-5&quot;,
-    max_tokens: 16000,
-    output_config: { effort: &quot;low&quot;, format: zodOutputFormat(Invoice) },
-    system: &quot;Extract invoice fields exactly as written. Never guess bank identifiers; use null and list the field in lowConfidence.&quot;,
-    messages: [{
-      role: &quot;user&quot;,
-      content: [
-        { type: &quot;document&quot;, source: { type: &quot;base64&quot;, media_type: &quot;application/pdf&quot;, data: pdfBase64 } },
-        { type: &quot;text&quot;, text: &quot;Extract this invoice.&quot; },
-      ],
-    }],
+export async function chatJSON&lt;T extends z.ZodType&gt;(schema: T, system: string, user: string): Promise&lt;z.infer&lt;T&gt;&gt; {
+  const res = await fetch(`${OLLAMA_URL}/api/chat`, {
+    method: &quot;POST&quot;,
+    headers: { &quot;content-type&quot;: &quot;application/json&quot; },
+    body: JSON.stringify({
+      model: LLM_MODEL,
+      stream: false,
+      format: z.toJSONSchema(schema),          // structured output: model must emit this shape
+      options: { temperature: 0, seed: 7 },    // repeatable output
+      keep_alive: &quot;30m&quot;,                       // keep the model warm for the demo
+      messages: [{ role: &quot;system&quot;, content: system }, { role: &quot;user&quot;, content: user }],
+    }),
+    signal: AbortSignal.timeout(60_000),
   });
-  if (res.stop_reason === &quot;refusal&quot;) throw new Error(&quot;extraction refused&quot;);
-  return res.parsed_output;
+  if (!res.ok) throw new Error(`ollama ${res.status}`);
+  const data = (await res.json()) as { message: { content: string } };
+  return schema.parse(JSON.parse(data.message.content));   // validate; throw → caller falls back
 }
 </code></pre>
-<p><strong>Memo guardrail:</strong> Claude receives the <code>Plan</code> with its rule results and sources and returns <code>{ summary, routeRationale, citedRuleIds[], warnings[], humanChecks[] }</code>. Server side, <strong>reject any <code>citedRuleIds</code> entry that isn't in the Plan</strong> and retry once. The memo can't invent a rule or flip a decision.</p>
-<p><strong>Demo hardening:</strong> cache extraction results keyed by the PDF's sha256 so the four demo invoices return instantly. Keep the live call for a fifth "upload your own" moment.</p>
-<p><strong>Refusals and resilience:</strong> check <code>stop_reason === "refusal"</code> before reading output. For the memo, optionally enable server-side fallbacks (<code>betas: ["server-side-fallback-2026-07-01"]</code>, <code>fallbacks: "default"</code> on the beta messages endpoint). If Claude is unreachable, the memo falls back to a template built from the rule messages, so the decision path never depends on the LLM.</p>
-<h2 id="arch-9-archie-integration-decide-in-the-first-30-minutes">9. Archie integration (decide in the first 30 minutes)</h2>
-<ul>
-<li><strong>Plan A:</strong> Archie generates the Next.js app and DB, and we pull the code (GitHub export). <code>lib/corredor</code> goes into the repo, and route handlers in <code>app/api/*</code> call it.</li>
-<li><strong>Plan B:</strong> if Archie can't take custom code, deploy <code>corredor-core</code> as a small Next.js API on Vercel and have Archie's UI call it over HTTP, with the same routes as §10.</li>
-</ul>
-<p>Either way, the core logic is not written inside Archie prompts. It lives in tested TypeScript.</p>
-<h2 id="arch-10-api-routes">10. API routes</h2>
+<p><strong>Making an 8B model reliable:</strong>
+- <strong>Deterministic pre-pass:</strong> regexes pull CLABE (18 digits), CNPJ (14 digits), CVU (22 digits) and Pix keys from the text before the LLM runs. Checksums validate them, and validated values override the model's output.
+- <strong>Structured output:</strong> Ollama's JSON-schema <code>format</code> plus <code>schema.parse</code> on the result. On a validation failure, retry once, then mark the fields <code>lowConfidence</code> for a human to fix.
+- <strong>Cache:</strong> extraction results keyed by the PDF's sha256 (table <code>extraction_cache</code>). The four demo invoices are pre-warmed.
+- <strong>Memo guard:</strong> reject any <code>citedRuleIds</code> entry that isn't in the Plan and retry once. If the model is down or slow, use a <strong>template memo</strong> built from the rule messages. The decision path never depends on the LLM.</p>
+<p><strong>Setup:</strong> <code>ollama pull llama3.1:8b</code> (about 5 GB; fine on an Apple Silicon laptop). If it's slow on the demo machine, set <code>LLM_MODEL=llama3.2:3b</code>.</p>
+<h2 id="arch-9-api-hono-tic-apisrcroutes">9. API (Hono, <code>tic-api/src/routes</code>)</h2>
+<p><code>app.use("*", cors({ origin: process.env.WEB_ORIGIN ?? "http://localhost:8080" }))</code>. Request bodies are validated with <code>zValidator</code>. Errors come back as <code>{ error: { code, message } }</code>.</p>
 <div class="tbl"><table>
 <thead>
 <tr>
@@ -983,104 +1005,192 @@ export async function extractInvoice(pdfBase64: string) {
 </thead>
 <tbody>
 <tr>
+<td>GET</td>
+<td><code>/api/payouts</code> · <code>/api/payouts/:id</code></td>
+<td><code>PayoutSummary[]</code> · <code>PayoutDetail</code></td>
+</tr>
+<tr>
 <td>POST</td>
 <td><code>/api/invoices</code></td>
-<td>upload PDF → extract → create payout (status <code>draft</code>)</td>
+<td>multipart PDF → text → extract → create payout (<code>draft</code>) → plan</td>
 </tr>
 <tr>
 <td>PATCH</td>
 <td><code>/api/payouts/:id</code></td>
-<td>edit extracted fields</td>
+<td>edit invoice fields → re-plan</td>
 </tr>
 <tr>
 <td>POST</td>
-<td><code>/api/payouts/:id/plan?asOf=YYYY-MM-DD</code></td>
+<td><code>/api/payouts/:id/plan?asOf=</code></td>
 <td>screen + quote + rules → <code>Plan</code>, then memo</td>
 </tr>
 <tr>
 <td>POST</td>
-<td><code>/api/plan-all?asOf=…</code></td>
-<td>re-plan every open payout (the slider calls this)</td>
+<td><code>/api/plan-all?asOf=</code></td>
+<td>re-plan all open payouts → <code>{ payouts, reroutes }</code> (the slider calls this)</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/payouts/:id/approve</code></td>
-<td>record approver; second approval if over the cap</td>
+<td><code>{ approver }</code>; second approval if over the cap</td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/payouts/:id/pay</code></td>
-<td><code>RailAdapter.send(recommendedRoute)</code></td>
+<td><code>RailAdapter.send(recommended)</code></td>
 </tr>
 <tr>
 <td>POST</td>
 <td><code>/api/payouts/:id/reconcile</code></td>
-<td>match IDs → journal entry</td>
+<td>match → journal entry</td>
 </tr>
 <tr>
 <td>GET</td>
-<td><code>/api/ledger.csv</code></td>
-<td>journal export</td>
+<td><code>/api/ledger</code> · <code>/api/ledger.csv</code></td>
+<td>journal entries · CSV export</td>
 </tr>
 <tr>
 <td>GET</td>
 <td><code>/api/audit</code> · <code>/api/audit/verify</code></td>
-<td>events · chain check</td>
+<td>events · chain and signature check</td>
 </tr>
 <tr>
 <td>GET</td>
-<td><code>/api/rules?asOf=…</code></td>
-<td>rules active on that date (for the UI)</td>
+<td><code>/api/rules?asOf=</code></td>
+<td>active rules</td>
+</tr>
+<tr>
+<td>GET/PUT</td>
+<td><code>/api/settings</code></td>
+<td><code>{ asOf, railMode, policy }</code></td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/health</code></td>
+<td>DB, Ollama and model status (for the demo checklist)</td>
 </tr>
 </tbody>
 </table></div>
-<h2 id="arch-11-data-model">11. Data model</h2>
-<pre><code>payouts      (id, invoice_json, status, as_of, plan_json, memo_json, created_at)
-approvals    (id, payout_id, approver, role, created_at)
-payments     (id, payout_id, route_json, tx_hash, offramp_ref, rail_ref, rail_mode, status, created_at)
-journal      (id, payout_id, lines_json, booking_rate, settle_rate, created_at)
-audit_events (seq, payout_id, type, payload_json, prev_hash, hash, created_at)
-settings     (key, value)   -- demo_as_of, policy_json
+<h2 id="arch-10-rules-engine-corredorrulesenginets">10. Rules engine (<code>corredor/rules/engine.ts</code>)</h2>
+<pre><code>plan(invoice, asOf):
+  routes   = quote(invoice)                          // wire + every stablecoin route for the corridor
+  screening = screen(invoice.payeeName)
+  for each route:
+     results = rules.filter(r =&gt; r.corridor == country &amp;&amp; active(r, asOf) &amp;&amp; applies(r, route))
+                    .map(r =&gt; evaluate(r.check, ctx))
+     compliant = no result is &quot;block&quot;
+  recommended = cheapest compliant stablecoin route, else the wire if compliant, else null
+  status = screening hit/possible → &quot;blocked&quot;
+         | recommended == null    → &quot;blocked&quot;
+         | missing required fields → &quot;needs_info&quot;
+         | amountUsd &gt; policy.secondApproverAboveUsd → &quot;awaiting_second_approver&quot;
+         | otherwise → &quot;ready&quot;
 </code></pre>
-<p><strong>Policy (<code>settings.policy_json</code>):</strong> <code>{ "secondApproverAboveUsd": 50000, "dailyCapUsd": 150000 }</code></p>
-<h2 id="arch-12-rails-reconciliation-and-audit">12. Rails, reconciliation and audit</h2>
-<p><strong>Rail adapter</strong></p>
+<p>Pure function with no I/O. Rules, off-ramps and FX are loaded once at startup.</p>
+<h2 id="arch-11-data-model-drizzle-srcdbschemats">11. Data model (Drizzle, <code>src/db/schema.ts</code>)</h2>
+<p>Keep the example <code>users</code> table or remove it in the same migration. Then <code>bun run db:generate &amp;&amp; bun run db:migrate</code> and commit <code>drizzle/</code>.</p>
+<pre><code class="language-ts">payouts          (id text pk, invoice jsonb, status text, as_of date, plan jsonb, memo jsonb, created_at timestamptz)
+approvals        (id serial pk, payout_id text fk, approver text, created_at timestamptz)
+payments         (id serial pk, payout_id text fk, route jsonb, tx_hash text, offramp_ref text, rail_ref text,
+                  rail_mode text, status text, created_at timestamptz)
+journal_entries  (id serial pk, payout_id text fk, lines jsonb, booking_rate numeric, settle_rate numeric, created_at timestamptz)
+audit_events     (seq bigserial pk, payout_id text, type text, payload jsonb, created_at timestamptz,
+                  prev_mac text, mac text, key_id text)
+audit_checkpoints(seq bigint pk, head_mac text, signature text, public_key_id text, created_at timestamptz)
+extraction_cache (pdf_sha256 text pk, invoice jsonb, model text, created_at timestamptz)
+settings         (key text pk, value jsonb)          -- demo_as_of, policy, rail_mode
+</code></pre>
+<p><strong>Policy:</strong> <code>{ "secondApproverAboveUsd": 50000, "dailyCapUsd": 150000 }</code></p>
+<h2 id="arch-12-audit-trail-keyed-hash-chain-plus-signatures">12. Audit trail: keyed hash chain plus signatures</h2>
+<p>A plain SHA-256 chain isn't broken cryptographically. Its weakness is that <strong>anyone with database write access can rewrite a row and recompute every hash after it</strong>. So we make the chain keyed and signed:</p>
+<ol>
+<li><strong>HMAC-SHA-512 chain.</strong> <code>mac_n = HMAC-SHA-512(AUDIT_HMAC_KEY, mac_{n-1} ‖ canonicalJSON(event_n))</code>. The 256-bit key lives only in the API's secrets, never in the DB. Without the key, nobody can produce a valid chain, even with full DB access.</li>
+<li><strong>Ed25519-signed checkpoints.</strong> Every 10 events, and after each payout reaches <code>booked</code>, the API signs the head MAC with <code>AUDIT_SIGNING_KEY</code> (Ed25519) and stores it in <code>audit_checkpoints</code>. Anyone holding the <strong>public key</strong> can verify the checkpoints without any secret, which is what an auditor needs.</li>
+<li><strong>Canonical JSON:</strong> sorted keys and no whitespace, so the same event always produces the same bytes.</li>
+<li><strong><code>verify()</code></strong> recomputes every MAC and checks every checkpoint signature. It reports <code>{ ok, count, brokenAt?, lastSignedSeq }</code>. The UI shows "Chain verified · signed".</li>
+<li><strong>Key IDs</strong> on each row allow rotation later.</li>
+</ol>
+<pre><code class="language-ts">import { createHmac, sign, verify } from &quot;node:crypto&quot;;   // supported in Bun
+const mac = createHmac(&quot;sha512&quot;, HMAC_KEY).update(prevMac).update(canonical(event)).digest(&quot;hex&quot;);
+const sig = sign(null, Buffer.from(headMac, &quot;hex&quot;), SIGNING_PRIVATE_KEY);      // Ed25519
+const ok  = verify(null, Buffer.from(headMac, &quot;hex&quot;), SIGNING_PUBLIC_KEY, sig);
+</code></pre>
+<p><code>scripts/keys.ts</code> generates both keys once. Keys go into <code>.env</code> locally and into BitQate secrets in deployment. <strong>Test:</strong> tampering with any row, or with a checkpoint, makes <code>verify()</code> fail (<code>test/audit.test.ts</code>).</p>
+<blockquote>
+<p>Pitch line: "Even our own database admin can't quietly rewrite the history. Auditors verify it with a public key."</p>
+</blockquote>
+<h2 id="arch-13-rails-and-reconciliation">13. Rails and reconciliation</h2>
 <pre><code class="language-ts">export interface RailAdapter {
   mode: &quot;mock&quot; | &quot;bridge&quot; | &quot;blindpay&quot;;
   send(p: { payoutId: string; route: Route; amountUsd: number; payee: Invoice }):
     Promise&lt;{ txHash: string; offrampRef: string; railRef: string; settledLocal: number; settleRate: number }&gt;;
 }
 </code></pre>
-<p><code>mock.ts</code> derives IDs deterministically from <code>payoutId</code> (for example <code>txHash = "0x" + sha256(payoutId).slice(0, 64)</code>, and a Pix reference shaped <code>E</code> plus 31 alphanumeric characters). It applies a small simulated rate move so the FX gain/loss line isn't zero. The UI always shows the <code>rail_mode</code> badge.</p>
-<p><strong>Reconciliation:</strong> a payment is <code>matched</code> when invoice ↔ payment ↔ rail reference link 1:1 and amounts agree within the quoted fee. Otherwise it's an <code>exception</code> with a reason.</p>
-<p><strong>Journal entry (example, BR):</strong></p>
-<pre><code>Dr Accounts Payable – Estúdio Paulista   15,740.74   (R$85,000 @ 5.40 booking)
-Dr Bank &amp; network fees                      133.80
-Cr Cash – USDC (Base)                    15,874.54
-Cr FX gain                                    0.00   (booking vs. settle rate diff)
-</code></pre>
-<p><strong>Audit chain:</strong> <code>hash = sha256(prev_hash + canonicalJSON({seq, payoutId, type, payload, createdAt}))</code>. <code>verify()</code> recomputes the whole chain. Event types: <code>extracted</code>, <code>edited</code>, <code>screened</code>, <code>planned</code>, <code>memo</code>, <code>approved</code>, <code>paid</code>, <code>reconciled</code>, <code>asof_changed</code>.</p>
-<h2 id="arch-13-testing-it-doubles-as-a-demo-talking-point">13. Testing (it doubles as a demo talking point)</h2>
-<p><code>tests/rules.test.ts</code>: golden tests for each demo invoice at as-of dates <code>2026-09-30</code>, <code>2026-10-01</code>, <code>2026-10-17</code> and <code>2026-10-30</code>:
-- BR: recommended route is <code>br-pagafx</code>, then <code>br-ponte</code>, then <code>br-ponte</code>, then <code>br-sol</code>
-- MX: always <code>mx-puente</code>, with status <code>awaiting_second_approver</code>
-- AR: <code>ar-pampa</code>, plus an <code>AR-FX-SPREAD</code> warning
-- VE: <code>blocked</code>, with <code>recommended = null</code>
-- <strong>Determinism:</strong> run <code>plan()</code> 100 times and get byte-identical JSON.</p>
-<p>Also test that <code>audit.verify()</code> fails after a row is tampered with.</p>
-<h2 id="arch-14-environment-and-deploy">14. Environment and deploy</h2>
-<pre><code>ANTHROPIC_API_KEY=...
-DATABASE_URL=...            # from Archie / Postgres provider
-RAIL_MODE=mock              # mock | bridge | blindpay
-BRIDGE_API_KEY=...          # only if sandbox approved
-DEMO_DEFAULT_AS_OF=2026-10-17
-</code></pre>
-<p>Deploy on Archie hosting (Plan A) or Vercel (Plan B). Download <code>sdn.csv</code> from OFAC at build time and commit a snapshot as a fallback.</p>
-<h2 id="arch-15-demo-day-runbook">15. Demo-day runbook</h2>
 <ul>
-<li><strong>Pre-warm:</strong> run all four invoices once so the extraction cache is hot. Reset the DB with <code>npm run seed</code>.</li>
-<li>Leave the slider at <strong>2026-10-17</strong>. The rehearsed moves are to <strong>2026-09-30</strong> and back to <strong>2026-10-01</strong>.</li>
-<li><strong>If the LLM is down:</strong> use cached extraction and the template memo. Every decision still works.</li>
+<li><code>mock.ts</code> derives IDs deterministically from <code>payoutId</code>, applies a small simulated rate move so the FX line isn't zero, and the UI always shows the <code>rail_mode</code> badge.</li>
+<li><strong>Reconciliation:</strong> a payment is <code>matched</code> when invoice ↔ payment ↔ rail reference link 1:1 and amounts agree within the quoted fee. Otherwise it's an <code>exception</code> with a reason.</li>
+<li><strong>Journal entry (example, BR):</strong> debit AP – Estúdio Paulista 15,740.74 (R$85,000 at 5.40) · debit fees 133.80 · credit Cash – USDC (Base) 15,874.54 · FX gain/loss from the booking-vs-settle rate difference.</li>
+</ul>
+<h2 id="arch-14-testing-bun-test">14. Testing (<code>bun test</code>)</h2>
+<ul>
+<li><code>test/rules.test.ts</code>: golden tests for the four demo invoices at <code>2026-09-30</code>, <code>2026-10-01</code>, <code>2026-10-17</code> and <code>2026-10-30</code>:</li>
+<li>BR goes PagaFX → Ponte → Ponte → Sol</li>
+<li>MX is always Puente, <code>awaiting_second_approver</code></li>
+<li>AR is Pampa with an <code>AR-FX-SPREAD</code> warning</li>
+<li>VE is <code>blocked</code></li>
+<li><strong>Determinism:</strong> run <code>plan()</code> 100 times and get byte-identical JSON.</li>
+<li><code>test/audit.test.ts</code>: the chain verifies; editing one payload breaks it at that sequence number; a forged checkpoint signature fails.</li>
+<li><code>test/extract.test.ts</code> (optional, needs Ollama): the four demo PDFs extract to the expected fields.</li>
+</ul>
+<h2 id="arch-15-hosting-on-bitqate">15. Hosting on BitQate</h2>
+<p>BitQate runs Docker images or Git repos (rebuilt on each push), managed PostgreSQL, and full-root KVM VPSs.</p>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Service</th>
+<th>BitQate resource</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tic-api</code></td>
+<td>Docker container from a Git repo</td>
+<td><code>Dockerfile</code> based on <code>oven/bun</code>: <code>bun install --frozen-lockfile</code> → <code>bun run db:migrate</code> (release step) → <code>bun run src/index.ts</code></td>
+</tr>
+<tr>
+<td>Postgres</td>
+<td><strong>Managed PostgreSQL</strong></td>
+<td>Set <code>DATABASE_URL</code> (add <code>?sslmode=require</code> if needed). Never <code>db:push</code> against it.</td>
+</tr>
+<tr>
+<td><code>tic-web</code></td>
+<td>Docker container from a Git repo</td>
+<td><code>bun --bun run build</code> → <code>bun run start</code> (srvx). Set <code>PUBLIC_API_URL</code> to the API's URL.</td>
+</tr>
+<tr>
+<td>Ollama</td>
+<td><strong>KVM VPS</strong> (or a container) running <code>ollama serve</code></td>
+<td>CPU-only is slow, so host <code>llama3.2:3b</code> there. <strong>For the live demo, run Ollama on the presenting laptop</strong> and point <code>OLLAMA_URL</code> at it.</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Demo setup we recommend:</strong> the public link (judges can click it) runs on BitQate with cached extractions and template-memo fallback. The live pitch runs the API and Ollama on the laptop for speed. Check <code>GET /api/health</code> before going on stage.</p>
+<p><strong>Secrets:</strong> <code>DATABASE_URL</code>, <code>AUDIT_HMAC_KEY</code>, <code>AUDIT_SIGNING_KEY</code>, <code>AUDIT_PUBLIC_KEY</code>, <code>OLLAMA_URL</code>, <code>LLM_MODEL</code>, <code>RAIL_MODE</code>, <code>WEB_ORIGIN</code>, plus <code>BRIDGE_API_KEY</code> if the sandbox is approved.</p>
+<h2 id="arch-16-notes-and-decisions">16. Notes and decisions</h2>
+<ul>
+<li><strong>Bundler:</strong> <code>tic-web</code> was scaffolded with <strong>rsbuild</strong>, not Vite (<code>rsbuild.config.ts</code>). Both work with TanStack Start. Keep rsbuild unless someone has a reason to switch. Moving to Vite means replacing <code>rsbuild.config.ts</code> with <code>vite.config.ts</code> using the <code>tanstackStart()</code> Vite plugin and renaming env vars from <code>PUBLIC_</code> to <code>VITE_</code>.</li>
+<li><strong>Ports:</strong> web on <strong>8080</strong> (dev script), API on <strong>3000</strong> (Hono/Bun default). <code>rsbuild.config.ts</code> also says 3000, but the <code>--port 8080</code> flag wins. Delete that line to avoid confusion.</li>
+<li><strong>Contracts sync:</strong> <code>tic-api/src/contracts.ts</code> is the source of truth. Copy it into <code>tic-web/src/lib/contracts.ts</code> whenever it changes, and post in the team chat when you do.</li>
+<li><strong>Archie</strong> is out of the stack, which means <strong>we don't compete for the separate Archie prize</strong> ($2.5k / $1k / $500).</li>
+</ul>
+<h2 id="arch-17-demo-day-runbook">17. Demo-day runbook</h2>
+<ul>
+<li><code>ollama pull llama3.1:8b</code>, then <code>ollama run llama3.1:8b "hi"</code> to warm it up.</li>
+<li><code>bun run db:reset &amp;&amp; bun run scripts/seed.ts</code>, then pre-warm extraction for the four PDFs.</li>
+<li><code>GET /api/health</code> should report DB ok, Ollama ok and model loaded.</li>
+<li>Leave the slider on <strong>2026-10-17</strong>. Rehearsed moves: <strong>Sep 30 → Oct 1 → Oct 30 → today</strong>.</li>
+<li><strong>If the LLM is down:</strong> cached extraction and the template memo still give every decision.</li>
 <li><strong>If the network is down:</strong> the backup video plays from the laptop.</li>
 </ul>
 <h2 id="arch-sources">Sources</h2>
@@ -1090,7 +1200,536 @@ DEMO_DEFAULT_AS_OF=2026-10-17
 <li>Mexico banks and crypto: https://www.iproup.com/economia-digital/67728-bitcoin-bancos-mexicanos-sigue-prohibido-acceder-legalmente-mayo-2026</li>
 <li>Costs and pain: https://stabled.co/resources/latam-report · https://eco.com/support/en/articles/14466065-stablecoin-settlement-reconciliation-in-2026-why-the-accounting-layer-is-the-real-bottleneck</li>
 <li>Rails: https://docs.stripe.com/stablecoins/ecosystem/bridge · https://blindpay.com/resources/more/best-stablecoin-apis-cross-border-payments-2026</li>
+<li>BitQate: https://www.producthunt.com/products/bitqate</li>
 </ul>
+    </section>
+
+    <section class="doc" id="fe" aria-labelledby="fe-h">
+      <div class="dochead"><span class="eyebrow">Part 3</span><h2 id="fe-h">Frontend and team plan</h2><p class="lede" style="font-size:1rem">3 frontend + 3 backend. Frontend builds on fixtures from the start and switches to the live API one screen at a time.</p></div>
+      <p>Team: <strong>3 frontend (FE1–FE3)</strong> and <strong>3 backend (BE1–BE3)</strong>. Frontend builds against <strong>fixtures</strong> from minute one and switches to the real API one screen at a time. Nobody waits on anybody.</p>
+<hr />
+<h2 id="fe-1-what-the-frontend-must-make-obvious">1. What the frontend must make obvious</h2>
+<p>Judges should get four things without anyone explaining:</p>
+<ol>
+<li><strong>Status at a glance.</strong> Each payout reads as Ready, Needs info, Blocked, Awaiting 2nd approver, Paid or Booked.</li>
+<li><strong>Why.</strong> Every decision shows the rule, the date it took effect and a source link.</li>
+<li><strong>The reroute moment.</strong> Moving the date visibly changes the route, and the app says which rule caused it.</li>
+<li><strong>What's real vs. simulated.</strong> Badges for "Rail: simulated" and "Rules pack v1 · pending compliance review".</li>
+</ol>
+<h2 id="fe-2-stack-repo-tic-web">2. Stack (repo: <code>tic-web</code>)</h2>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Need</th>
+<th>Use</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>App framework</td>
+<td><strong>TanStack Start</strong> (React 19)</td>
+<td>Already scaffolded. Bundler is rsbuild (ARCHITECTURE §16). Dev on <strong>:8080</strong>.</td>
+</tr>
+<tr>
+<td>Routing</td>
+<td><strong>TanStack Router</strong> (file routes in <code>src/routes</code>)</td>
+<td><code>index.tsx</code> inbox · <code>payouts.$id.tsx</code> detail · <code>ledger.tsx</code> · <code>audit.tsx</code>. Delete <code>about.tsx</code>.</td>
+</tr>
+<tr>
+<td>As-of date</td>
+<td>Router <strong>search param</strong> <code>?asOf=2026-10-17</code>, validated with zod</td>
+<td>Shareable URLs; the slider writes to it; every query keys on it.</td>
+</tr>
+<tr>
+<td>Server data</td>
+<td><strong>TanStack Query</strong></td>
+<td><code>lib/api.ts</code> exports <code>queryOptions</code> and mutations. A <code>USE_FIXTURES</code> switch decides whether each <code>queryFn</code> reads <code>fixtures/</code> or calls the API. Mutations invalidate <code>["payouts"]</code>.</td>
+</tr>
+<tr>
+<td>Forms</td>
+<td><strong>TanStack Form</strong> + zod</td>
+<td>Invoice fields form (validation for CLABE 18 digits, CNPJ 14, CVU 22), approver picker</td>
+</tr>
+<tr>
+<td>Tables</td>
+<td><strong>TanStack Table</strong></td>
+<td>Payouts inbox, route comparison, ledger. Sorting and column helpers.</td>
+</tr>
+<tr>
+<td>Slider debounce</td>
+<td><strong>TanStack Pacer</strong> (optional)</td>
+<td>Debounce <code>plan-all</code> calls while dragging (~150 ms)</td>
+</tr>
+<tr>
+<td>Devtools</td>
+<td>TanStack Devtools (already installed)</td>
+<td>Router and Query panels during development</td>
+</tr>
+<tr>
+<td>Styling</td>
+<td>Tailwind v4 (already set up) · Biome for lint/format</td>
+<td><code>bun --bun run check</code> before pushing</td>
+</tr>
+</tbody>
+</table></div>
+<ul>
+<li><strong>API URL:</strong> <code>import.meta.env.PUBLIC_API_URL</code> (rsbuild exposes <code>PUBLIC_*</code> variables), defaulting to <code>http://localhost:3000</code>. If the team switches to Vite, rename it to <code>VITE_API_URL</code>.</li>
+<li><strong>Types:</strong> <code>src/lib/contracts.ts</code> is a copy of <code>tic-api/src/contracts.ts</code>. Don't edit it in tic-web.</li>
+<li><strong>Formatting:</strong> <code>Intl.NumberFormat</code> (<code>pt-BR</code> for BRL, <code>es-MX</code> for MXN, <code>es-AR</code> for ARS, <code>en-US</code> for USD). Dates show as "Oct 17, 2026".</li>
+<li><strong>Data fetching:</strong> client-side through TanStack Query. We don't need SSR loaders for the demo.</li>
+</ul>
+<h2 id="fe-3-screens">3. Screens</h2>
+<h3 id="fe-31-payouts-inbox-home-fe1">3.1 Payouts inbox (home): <strong>FE1</strong></h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Component</th>
+<th>Data</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Top bar</td>
+<td><code>AsOfSlider</code></td>
+<td>Router search <code>?asOf=</code></td>
+<td>Slider plus jump buttons (Sep 30 · Oct 1 · Today · Oct 30). Writes the search param; a debounced (Pacer) mutation calls <code>POST /api/plan-all?asOf=</code> and updates the Query cache.</td>
+</tr>
+<tr>
+<td>Top bar</td>
+<td><code>RulesBadge</code>, <code>RailModeBadge</code></td>
+<td><code>GET /api/rules?asOf=</code> count, <code>railMode</code></td>
+<td>Shows "Rules pack v1 · 9 rules · pending review" and "Rail: simulated"</td>
+</tr>
+<tr>
+<td>Intake</td>
+<td><code>InvoiceDropzone</code></td>
+<td><code>POST /api/invoices</code> (multipart PDF)</td>
+<td>Drag a PDF or pick a seeded invoice. Show a skeleton row while extracting.</td>
+</tr>
+<tr>
+<td>List</td>
+<td><code>PayoutTable</code> (TanStack Table)</td>
+<td><code>GET /api/payouts</code></td>
+<td>Columns: payee + flag · amount (local + USD) · route chip · status pill · warnings count · open</td>
+</tr>
+<tr>
+<td>Feedback</td>
+<td><code>RerouteToast</code></td>
+<td>diff of <code>recommended.id</code> before and after re-plan</td>
+<td>"Rerouted Estúdio Paulista → Sol VASP · BR-VASP-AUTH". The changed row flashes for about 1 s (skip the flash when <code>prefers-reduced-motion</code> is set).</td>
+</tr>
+</tbody>
+</table></div>
+<p>States: empty ("Drop an invoice or load the demo set"), loading skeletons, API error (inline banner with retry).</p>
+<h3 id="fe-32-payout-detail-drawer-or-page-fe2">3.2 Payout detail (drawer or page): <strong>FE2</strong></h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Section</th>
+<th>Component</th>
+<th>Data</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Header</td>
+<td><code>PayoutHeader</code></td>
+<td>payout</td>
+<td>Payee, country, amount, status pill, "View memo" anchor</td>
+</tr>
+<tr>
+<td>Invoice</td>
+<td><code>InvoiceFieldsForm</code> (TanStack Form)</td>
+<td><code>invoice</code></td>
+<td>Editable fields. Anything in <code>lowConfidence</code> gets an amber outline and a "check this" hint. Save with <code>PATCH /api/payouts/:id</code>, then re-plan.</td>
+</tr>
+<tr>
+<td>Screening</td>
+<td><code>ScreeningCard</code></td>
+<td><code>plan.screening</code></td>
+<td>Clear / Possible match (score and matched name) / Hit</td>
+</tr>
+<tr>
+<td>Routes</td>
+<td><code>RouteComparison</code> (TanStack Table)</td>
+<td><code>plan.evaluations[]</code></td>
+<td>One row per route: rail, coin and network, provider, fee % and $, time, status. The recommended row is highlighted and the wire is shown for contrast (for example "4.5% · 2 days").</td>
+</tr>
+<tr>
+<td>Rules</td>
+<td><code>RulesChecklist</code></td>
+<td><code>evaluations[recommended].results</code></td>
+<td>Each rule shows ✓ / ⚠ / ✕ / "fields needed", its title, message, effective date and source link. Blocked routes expand to show which rule blocked them.</td>
+</tr>
+<tr>
+<td>Memo</td>
+<td><code>MemoPanel</code></td>
+<td><code>memo</code></td>
+<td>Summary, route rationale, warnings and checks for a human. Each cited rule ID is a chip that scrolls to the checklist.</td>
+</tr>
+<tr>
+<td>Needs info</td>
+<td><code>VendorEmailDraft</code> (P1)</td>
+<td><code>memo.vendorEmail</code></td>
+<td>Copyable draft asking the vendor for missing fields</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="fe-33-approve-and-pay-fe3">3.3 Approve and pay: <strong>FE3</strong></h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Data</th>
+<th>Behavior</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ApprovalPanel</code></td>
+<td><code>approvals[]</code>, policy</td>
+<td>Approve or Reject. Above $50k it shows "1 of 2 approvals" and needs a second, different approver (pick a name from a demo dropdown: Maria Lopez / Daniel Ortiz).</td>
+</tr>
+<tr>
+<td><code>PayButton</code></td>
+<td>status <code>approved</code></td>
+<td><code>POST /api/payouts/:id/pay</code>, then shows the transaction hash, off-ramp reference and Pix/SPEI/CVU reference with copy buttons and a "simulated" tag</td>
+</tr>
+<tr>
+<td><code>ReconcileButton</code></td>
+<td>status <code>paid</code></td>
+<td><code>POST /api/payouts/:id/reconcile</code> → status <code>booked</code>, linking to the ledger</td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="fe-34-ledger-fe3">3.4 Ledger: <strong>FE3</strong></h3>
+<p><code>JournalTable</code> from <code>GET /api/ledger</code>: date · payee · debit/credit lines · FX gain/loss · match status (Matched / Exception with reason). An "Export CSV" link points to <code>GET /api/ledger.csv</code>.</p>
+<h3 id="fe-35-audit-fe3">3.5 Audit: <strong>FE3</strong></h3>
+<p><code>AuditTimeline</code> from <code>GET /api/audit</code>: events newest first (type icon, payout, short payload summary, hash prefix). <code>ChainBadge</code> from <code>GET /api/audit/verify</code> shows "Chain verified · signed · 42 events" in green, or "Chain broken at #17" in red.</p>
+<h2 id="fe-4-shared-components-build-first-30-min-fe3">4. Shared components (build first, ~30 min): <strong>FE3</strong></h2>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Spec</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>StatusPill</code></td>
+<td><code>ready</code> green · <code>needs_info</code> amber · <code>blocked</code> red · <code>awaiting_second_approver</code> amber · <code>approved</code> / <code>paid</code> / <code>booked</code> neutral with a check icon. Color is never the only signal: always text plus an icon.</td>
+</tr>
+<tr>
+<td><code>CountryFlag</code></td>
+<td>BR 🇧🇷 MX 🇲🇽 AR 🇦🇷 VE 🇻🇪 CO 🇨🇴, with a text code next to the flag</td>
+</tr>
+<tr>
+<td><code>Money</code></td>
+<td><code>&lt;Money amount currency /&gt;</code> using Intl, plus a USD equivalent in muted text</td>
+</tr>
+<tr>
+<td><code>RouteChip</code></td>
+<td>"USDC · Base · Sol VASP · 0.85%"</td>
+</tr>
+<tr>
+<td><code>RuleRef</code></td>
+<td>Rule ID chip with a tooltip (title and source) that links to the source</td>
+</tr>
+<tr>
+<td><code>SimBadge</code></td>
+<td>"Simulated" / "Demo data" tag</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="fe-5-api-contract-frontend-view">5. API contract (frontend view)</h2>
+<p>Types come from <code>tic-api/src/contracts.ts</code> (ARCHITECTURE §5), copied to <code>tic-web/src/lib/contracts.ts</code>. <strong>Contract freeze is 9:30.</strong> After that, changes need both leads to agree.</p>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Route</th>
+<th>Returns</th>
+<th>Used by</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>GET</td>
+<td><code>/api/payouts</code></td>
+<td><code>PayoutSummary[]</code></td>
+<td>Inbox</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/payouts/:id</code></td>
+<td><code>PayoutDetail</code></td>
+<td>Detail</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/invoices</code></td>
+<td><code>PayoutDetail</code> (status <code>draft</code>, then planned)</td>
+<td>Dropzone</td>
+</tr>
+<tr>
+<td>PATCH</td>
+<td><code>/api/payouts/:id</code></td>
+<td><code>PayoutDetail</code></td>
+<td>Fields form</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/payouts/:id/plan?asOf=</code></td>
+<td><code>PayoutDetail</code></td>
+<td>Detail refresh</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/plan-all?asOf=</code></td>
+<td><code>{ payouts: PayoutSummary[], reroutes: Reroute[] }</code></td>
+<td>Slider</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/payouts/:id/approve</code></td>
+<td><code>PayoutDetail</code></td>
+<td>Approval panel</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/payouts/:id/pay</code></td>
+<td><code>PayoutDetail</code> (with <code>payment</code>)</td>
+<td>Pay button</td>
+</tr>
+<tr>
+<td>POST</td>
+<td><code>/api/payouts/:id/reconcile</code></td>
+<td><code>PayoutDetail</code> (with <code>journal</code>)</td>
+<td>Reconcile</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/ledger</code> · <code>/api/ledger.csv</code></td>
+<td><code>JournalEntry[]</code> · CSV</td>
+<td>Ledger</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/audit</code> · <code>/api/audit/verify</code></td>
+<td><code>AuditEvent[]</code> · <code>{ ok, count, brokenAt? }</code></td>
+<td>Audit</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/rules?asOf=</code></td>
+<td><code>Rule[]</code> (active)</td>
+<td>Rules badge</td>
+</tr>
+<tr>
+<td>GET/PUT</td>
+<td><code>/api/settings</code></td>
+<td><code>{ asOf, railMode, policy }</code></td>
+<td>Top bar</td>
+</tr>
+<tr>
+<td>GET</td>
+<td><code>/api/health</code></td>
+<td><code>{ db, ollama, model }</code></td>
+<td>Pre-demo check</td>
+</tr>
+</tbody>
+</table></div>
+<pre><code class="language-ts">// additions to types.ts, frontend-facing
+type PayoutSummary = {
+  id: string; payeeName: string; country: &quot;BR&quot;|&quot;MX&quot;|&quot;AR&quot;|&quot;VE&quot;|&quot;CO&quot;;
+  amountLocal: number; currency: string; amountUsd: number;
+  status: PayoutStatus; warnings: number;
+  recommended: { id: string; label: string; feePct: number; minutes: number } | null;
+};
+type PayoutDetail = PayoutSummary &amp; {
+  invoice: Invoice; plan: Plan; memo: Memo | null;
+  approvals: { approver: string; at: string }[];
+  payment?: { txHash: string; offrampRef: string; railRef: string; railMode: string };
+  journal?: JournalEntry;
+};
+type Reroute = { payoutId: string; from: string | null; to: string | null; ruleId: string };
+type Memo = { summary: string; routeRationale: string; citedRuleIds: string[];
+  warnings: string[]; humanChecks: string[]; vendorEmail?: string };
+</code></pre>
+<h2 id="fe-6-fixtures-so-frontend-never-waits">6. Fixtures (so frontend never waits)</h2>
+<p><strong>BE1 delivers by 11:00</strong> (from <code>tic-api/scripts/fixtures.ts</code>): <code>tic-web/src/fixtures/</code> containing <code>payouts.json</code> (the four demo payouts) and <code>plan-all.&lt;date&gt;.json</code> for <code>2026-09-30</code>, <code>2026-10-01</code>, <code>2026-10-17</code> and <code>2026-10-30</code>. They're generated by the real rules engine, so frontend and backend agree by construction. Until 11:00, FE1 hand-writes a minimal <code>payouts.json</code> in the same shape.</p>
+<p>Expected states (from PRD §10):</p>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Payout</th>
+<th>Sep 30</th>
+<th>Oct 1</th>
+<th>Oct 17 (today)</th>
+<th>Oct 30</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Estúdio Paulista (BR)</td>
+<td>Ready · PagaFX</td>
+<td>Ready ⚠ · Ponte</td>
+<td>Ready ⚠ · Ponte</td>
+<td>Ready · Sol VASP</td>
+</tr>
+<tr>
+<td>Autopartes del Norte (MX)</td>
+<td>Awaiting 2nd · Puente</td>
+<td>same</td>
+<td>same</td>
+<td>same</td>
+</tr>
+<tr>
+<td>Lucía Fernández (AR)</td>
+<td>Ready ⚠ · Pampa</td>
+<td>same</td>
+<td>same</td>
+<td>same</td>
+</tr>
+<tr>
+<td>Transportes Orinoco (VE)</td>
+<td>Blocked</td>
+<td>Blocked</td>
+<td>Blocked</td>
+<td>Blocked</td>
+</tr>
+</tbody>
+</table></div>
+<h2 id="fe-7-polish-list-in-priority-order-after-330">7. Polish list (in priority order, after 3:30)</h2>
+<ol>
+<li>The reroute toast and row flash work perfectly at Sep 30 → Oct 1 → Oct 30.</li>
+<li>The approval card looks great at 1280×720, the projector size.</li>
+<li>Loading states during extraction (skeleton plus "Reading invoice…").</li>
+<li>Every source link opens in a new tab.</li>
+<li>Dark mode doesn't matter. Contrast on the projector does.</li>
+</ol>
+<h2 id="fe-8-team-assignments">8. Team assignments</h2>
+<h3 id="fe-frontend">Frontend</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Who</th>
+<th>Owns</th>
+<th>First 30 min</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>FE1</strong></td>
+<td>App shell, nav, inbox (TanStack Table), as-of slider (Router search param + Pacer), reroute toast, dropzone, <code>lib/api.ts</code> (TanStack Query, fixtures switch)</td>
+<td>Routes <code>index</code>, <code>payouts.$id</code>, <code>ledger</code>, <code>audit</code>; QueryClientProvider in <code>__root.tsx</code>; hand-written fixture</td>
+</tr>
+<tr>
+<td><strong>FE2</strong></td>
+<td>Payout detail: invoice fields (TanStack Form), screening, route comparison (TanStack Table), rules checklist, memo</td>
+<td>Detail layout against the fixture</td>
+</tr>
+<tr>
+<td><strong>FE3</strong></td>
+<td>Shared components (§4), approval and pay flow, ledger, audit</td>
+<td><code>StatusPill</code>, <code>Money</code>, <code>RouteChip</code>, <code>RuleRef</code></td>
+</tr>
+</tbody>
+</table></div>
+<h3 id="fe-backend">Backend</h3>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Who</th>
+<th>Owns</th>
+<th>First 30 min</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>BE1</strong></td>
+<td>Rules engine, <code>rules.json</code>, <code>offramps.json</code>, <code>fx.json</code>, quotes, golden tests (<code>bun test</code>), <code>/plan</code>, <code>/plan-all</code>, <code>/rules</code>, <strong>fixtures by 11:00</strong></td>
+<td><code>src/contracts.ts</code> drafted and pushed for the contract freeze</td>
+</tr>
+<tr>
+<td><strong>BE2</strong></td>
+<td>Local LLM: Ollama client, PDF text (unpdf), extraction (regex pre-pass, sha256 cache), memo (cited-rule guard plus template fallback), vendor email. Routes <code>/invoices</code> and PATCH. Seed PDFs.</td>
+<td><code>ollama pull llama3.1:8b</code>, first extraction from one PDF</td>
+</tr>
+<tr>
+<td><strong>BE3</strong></td>
+<td>Drizzle schema and seed, policy and approvals, rail adapter (mock, sandbox if approved), reconciliation and journal, audit chain (HMAC-SHA-512 plus Ed25519 checkpoints), <code>/approve</code> <code>/pay</code> <code>/reconcile</code> <code>/ledger</code> <code>/audit</code> <code>/settings</code> <code>/health</code>, BitQate deploy</td>
+<td>Request sandbox access, DB schema, seed script</td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Pitch and video:</strong> FE3 and BE3 from 4:30, since their areas finish first. Everyone rehearses at 5:00.</p>
+<h2 id="fe-9-integration-timeline">9. Integration timeline</h2>
+<div class="tbl"><table>
+<thead>
+<tr>
+<th>Time</th>
+<th>Frontend</th>
+<th>Backend</th>
+<th>Together</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>9:30</td>
+<td>Shell and routes up</td>
+<td><code>types.ts</code> pushed</td>
+<td><strong>Contract freeze</strong></td>
+</tr>
+<tr>
+<td>10:30</td>
+<td>Inbox and detail on hand-written fixtures</td>
+<td>Rail decision; first extraction</td>
+<td></td>
+</tr>
+<tr>
+<td>11:00</td>
+<td>Swap to generated fixtures</td>
+<td><strong>Fixtures delivered</strong></td>
+<td></td>
+</tr>
+<tr>
+<td>12:30</td>
+<td>Inbox on the live <code>/payouts</code> and <code>/plan-all</code></td>
+<td>Plan endpoints live</td>
+<td>First live slider test</td>
+</tr>
+<tr>
+<td>2:00</td>
+<td>Detail, approve and pay on the live API</td>
+<td>Memo, approvals and pay live</td>
+<td>Full flow, one invoice</td>
+</tr>
+<tr>
+<td>3:30</td>
+<td>Ledger and audit live</td>
+<td>Reconcile, journal and audit live</td>
+<td><strong>All four invoices end to end</strong></td>
+</tr>
+<tr>
+<td>4:30</td>
+<td>Feature freeze → polish list</td>
+<td>Feature freeze → hardening, seed reset</td>
+<td>Record the backup video</td>
+</tr>
+<tr>
+<td>5:30</td>
+<td></td>
+<td></td>
+<td><strong>Submit</strong></td>
+</tr>
+</tbody>
+</table></div>
+<p><strong>Integration rule:</strong> if an endpoint isn't live when frontend needs it, frontend stays on fixtures. Never block on the backend.</p>
     </section>
   </main>
 </div>
