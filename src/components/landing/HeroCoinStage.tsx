@@ -74,12 +74,12 @@ export function HeroCoinStage() {
 				preserveAspectRatio="none"
 				aria-hidden="true"
 			>
-				<path d="M 14 22 Q 38 28 50 48" />
-				<path d="M 12 42 Q 36 44 50 50" />
-				<path d="M 16 64 Q 38 56 50 52" />
-				<path d="M 86 24 Q 62 30 50 48" />
-				<path d="M 88 44 Q 64 46 50 50" />
-				<path d="M 84 66 Q 62 58 50 52" />
+				<path d="M 4 22 Q 30 28 50 48" />
+				<path d="M 2 42 Q 28 44 50 50" />
+				<path d="M 5 64 Q 30 56 50 52" />
+				<path d="M 96 24 Q 70 30 50 48" />
+				<path d="M 98 44 Q 72 46 50 50" />
+				<path d="M 95 66 Q 70 58 50 52" />
 			</svg>
 			<div className="hero-coin-coin" aria-hidden="true">
 				<div className="hero-coin-disc" />

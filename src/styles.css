@@ -767,10 +767,36 @@
    The coverage globe is a live Three.js scene. The hero coin is still the
    composited PNG so the rails and chips stay sharp.
    ========================================================================= */
+.lp-page {
+  --lp-max: 82.5rem;
+  --lp-gutter: clamp(1rem, 2.8vw + 0.25rem, 1.75rem);
+  width: 100%;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.lp-shell {
+  box-sizing: border-box;
+  width: min(100%, var(--lp-max));
+  max-width: 100%;
+  min-width: 0;
+  margin-inline: auto;
+  padding-inline: var(--lp-gutter);
+}
+
+.lp-hero-copy {
+  width: 100%;
+  max-width: min(48rem, 100%);
+}
+
+.lp-hero-band {
+  overflow-x: clip;
+}
+
 .lp-glow {
   position: absolute;
   inset: -20% -10% auto -10%;
-  height: 720px;
+  height: clamp(420px, 52vw, 720px);
   pointer-events: none;
   background: radial-gradient(
     60% 55% at 62% 35%,
@@ -782,10 +808,30 @@
 
 .hero-coin-stage {
   position: relative;
-  width: 100%;
-  max-width: 680px;
+  container-type: inline-size;
+  box-sizing: border-box;
+  width: min(100%, clamp(17.5rem, 88vw, 42.5rem));
+  max-width: 100%;
   margin-inline: auto;
+  padding-inline: clamp(0.5rem, 7cqw, 2.25rem);
   aspect-ratio: 1024 / 682;
+  overflow: visible;
+}
+
+@container (max-width: 26rem) {
+  .hero-currency-chip {
+    font-size: 12px;
+    padding: 6px 10px;
+    gap: 6px;
+  }
+
+  .hero-currency-chip--left {
+    left: -4%;
+  }
+
+  .hero-currency-chip--right {
+    right: -4%;
+  }
 }
 
 .hero-coin-glow {
@@ -868,12 +914,12 @@
 }
 
 .hero-currency-chip--left {
-  left: -2%;
+  left: -9%;
   transform-origin: left center;
 }
 
 .hero-currency-chip--right {
-  right: -2%;
+  right: -9%;
   transform-origin: right center;
   animation-direction: reverse;
 }
@@ -1121,6 +1167,34 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+}
+
+.lp-corridor-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  align-items: start;
+}
+
+.lp-corridor-metrics {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 0.75rem 1rem;
+}
+
+@media (min-width: 40rem) {
+  .lp-corridor-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+  }
+
+  .lp-corridor-metrics {
+    flex-wrap: nowrap;
+    justify-content: flex-end;
+    text-align: right;
+  }
 }
 
 /* Payment receipts keep the list quiet; evidence opens in place. */

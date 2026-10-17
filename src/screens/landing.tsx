@@ -51,12 +51,12 @@ export function LandingPage() {
 		return () => lenis.destroy();
 	}, []);
 	return (
-		<div className="min-h-screen text-bone">
-			<div className="relative overflow-hidden">
+		<div className="lp-page min-h-screen text-bone">
+			<div className="lp-hero-band relative">
 				<div className="lp-glow" aria-hidden="true" />
 
 				{/* masthead ----------------------------------------------------- */}
-				<header className="relative mx-auto flex max-w-[1320px] flex-wrap items-center justify-between gap-4 px-6 py-6">
+				<header className="lp-shell relative flex flex-wrap items-center justify-between gap-4 py-6">
 					<div className="flex items-center gap-3">
 						<span className="corredor-mark" role="img" aria-label="Corredor" />
 						<div className="flex flex-col">
@@ -107,8 +107,8 @@ export function LandingPage() {
 				</header>
 
 				{/* hero --------------------------------------------------------- */}
-				<section className="relative mx-auto flex max-w-[1320px] flex-col items-center gap-10 px-6 pt-8 pb-20">
-					<div className="flex w-full max-w-3xl flex-col items-center gap-6 text-center">
+				<section className="lp-shell relative flex flex-col items-center gap-10 pt-8 pb-20">
+					<div className="lp-hero-copy flex flex-col items-center gap-6 text-center">
 						<span className="lab" style={{ color: "var(--color-volt)" }}>
 							Cross-border payments
 						</span>
@@ -122,8 +122,8 @@ export function LandingPage() {
 							<span style={{ color: "var(--color-volt)" }}>next door.</span>
 						</h1>
 						<p
-							className="m-0 mx-auto text-ash"
-							style={{ fontSize: 17, maxWidth: "54ch" }}
+							className="m-0 mx-auto max-w-[54ch] text-ash"
+							style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.35vw, 1.0625rem)" }}
 						>
 							Corredor helps US businesses pay suppliers in Latin America with
 							stablecoins. It checks each country’s rules, finds a compliant
@@ -181,7 +181,7 @@ export function LandingPage() {
 
 			{/* coverage — second beat after the hero -------------------------- */}
 			<section id="coverage" className="lp-section">
-				<div className="mx-auto grid max-w-[1320px] items-center gap-10 px-6 py-16 lg:grid-cols-[1fr_1fr]">
+				<div className="lp-shell grid items-center gap-10 py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
 					<div className="flex flex-col gap-4">
 						<span className="lab" style={{ color: "var(--color-volt)" }}>
 							Coverage
@@ -247,7 +247,7 @@ export function LandingPage() {
 					<CoverageGlobe />
 				</div>
 
-				<div className="mx-auto max-w-[1320px] px-6 pb-16">
+				<div className="lp-shell pb-16">
 					<LiveCorridors />
 				</div>
 			</section>
@@ -256,9 +256,9 @@ export function LandingPage() {
 
 			{/* closing band — last beat before the footer ------------------- */}
 			<section className="lp-section">
-				<div className="mx-auto max-w-[1320px] px-6 py-16">
+				<div className="lp-shell py-16">
 					<div
-						className="flex flex-wrap items-center justify-between gap-6 rounded-2xl px-8 py-10"
+						className="flex flex-wrap items-center justify-between gap-6 rounded-2xl px-[clamp(1.25rem,4vw,2rem)] py-[clamp(1.75rem,4vw,2.5rem)]"
 						style={{
 							border: "1px solid var(--color-edge)",
 							background:
@@ -296,7 +296,7 @@ export function LandingPage() {
 			</section>
 
 			<footer className="lp-section">
-				<div className="mx-auto flex max-w-[1320px] flex-wrap items-center justify-between gap-4 px-6 py-8">
+				<div className="lp-shell flex flex-wrap items-center justify-between gap-4 py-8">
 					<div className="flex items-center gap-3">
 						<span
 							className="corredor-mark"
@@ -367,8 +367,7 @@ function LiveCorridors() {
 			{rows.map((r) => (
 				<div
 					key={r.id}
-					className="grid items-center gap-3 border-t border-edge-soft pt-3"
-					style={{ gridTemplateColumns: "minmax(0,1fr) auto" }}
+					className="lp-corridor-row border-t border-edge-soft pt-3"
 				>
 					<div className="flex min-w-0 flex-col gap-1">
 						<span className="flex items-center gap-2" style={{ fontSize: 15 }}>
@@ -382,23 +381,17 @@ function LiveCorridors() {
 							{r.asset} · {r.rail}
 						</span>
 					</div>
-					<div className="flex items-center gap-4 text-right">
+					<div className="lp-corridor-metrics">
 						<span
 							className="mono"
 							style={{ fontSize: 14, color: "var(--color-volt)" }}
 						>
 							{r.fee}
 						</span>
-						<span
-							className="mono text-ash"
-							style={{ fontSize: 13, minWidth: 56 }}
-						>
+						<span className="mono text-ash" style={{ fontSize: 13 }}>
 							{r.time}
 						</span>
-						<span
-							className="mono text-ash-dim"
-							style={{ fontSize: 13, minWidth: 92 }}
-						>
+						<span className="mono text-ash-dim" style={{ fontSize: 13 }}>
 							saves {r.saved}
 						</span>
 					</div>

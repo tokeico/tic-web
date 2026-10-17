@@ -193,7 +193,7 @@ export function LandingDualCarousel() {
 			className="lp-section lp-section-subtle"
 			aria-label="Product details"
 		>
-			<div className="mx-auto grid max-w-[1320px] gap-8 px-6 py-10 lg:grid-cols-2 lg:gap-10">
+			<div className="lp-shell grid gap-8 py-10 lg:grid-cols-2 lg:gap-10">
 				<MiniCarousel
 					id="how-it-works"
 					label="How it works"
