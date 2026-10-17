@@ -1,4 +1,5 @@
-import { OFFRAMP_TYPE_LABEL } from '@/domain/data'
+import { useMemo, useState } from 'react'
+import { OFFRAMP_TYPE_LABEL, RULES } from '@/domain/data'
 import { approvedUsd, eff, fingerprint, need, rname } from '@/domain/engine'
 import { fmtDate, local, mins, objWord, usd, usd0 } from '@/domain/format'
 import { memoFor } from '@/domain/memo'
@@ -144,31 +145,116 @@ export function DetailPane({ v }: { v: PayoutView }) {
       <RulesChecklistCard v={v} />
       <MemoCard v={v} />
 
-      <Card>
-        <h3 className="m-0" style={{ fontSize: 16 }}>
-          Sanctions screening
-        </h3>
-        <div className="flex flex-wrap items-center gap-2.5">
-          <span className="pill p-ok">Clear</span>
-          <span className="text-ash" style={{ fontSize: 14 }}>
-            No OFAC SDN match above the 0.85 threshold.
-          </span>
-        </div>
-        {m.license && (
-          <span style={{ fontSize: 14 }}>
-            {'OFAC general license ' +
-              m.license.number +
-              ' recorded, signed off by ' +
-              m.license.by +
-              '.'}
-          </span>
-        )}
-      </Card>
+      <SanctionsCard v={v} />
 
       <FieldsCard v={v} locked={locked} />
     </aside>
   )
 }
+
+/* ----------------------------------------------------------------- sanctions */
+
+/**
+ * Name screening plus the sanctions policy hold (VE-OFAC): the block is
+ * lifted only by a compliance sign-off that names the OFAC general license
+ * (or rests on "nobody blocked is involved") and what was checked. The agent
+ * can't do this; the sign-off is recorded through the API and audited.
+ */
+function SanctionsCard({ v }: { v: PayoutView }) {
+  const { releaseSanctions } = useStore()
+  const { p, m, plan } = v
+  const [license, setLicense] = useState('')
+  const [note, setNote] = useState('')
+  const liftable = useMemo(
+    () => new Set(RULES.filter((r) => r.liftedBy === 'sanctions_signoff').map((r) => r.id)),
+    [],
+  )
+  const holdIds = [
+    ...new Set(
+      plan.evals.flatMap((e) =>
+        e.results
+          .filter((r) => r.o === 'block' && liftable.has(r.rule.id))
+          .map((r) => r.rule.id),
+      ),
+    ),
+  ]
+  const onHold = holdIds.length > 0
+  return (
+    <Card>
+      <h3 className="m-0" style={{ fontSize: 16 }}>
+        Sanctions screening
+      </h3>
+      <div className="flex flex-wrap items-center gap-2.5">
+        <span className={'pill ' + (onHold ? 'p-bad' : 'p-ok')}>
+          {onHold ? 'Policy hold' : 'Clear'}
+        </span>
+        <span className="text-ash" style={{ fontSize: 14 }}>
+          {onHold
+            ? holdIds.join(', ') +
+              ' blocks every route until compliance signs off: company policy, not a country-wide ban.'
+            : 'No OFAC SDN match above the 0.88 threshold.'}
+        </span>
+      </div>
+      {m.license && (
+        <span style={{ fontSize: 14 }}>
+          {'OFAC general license ' +
+            m.license.number +
+            ' recorded, signed off by ' +
+            m.license.by +
+            '. The hold became a warning that names the sign-off.'}
+        </span>
+      )}
+      {onHold && !lockedByHuman(m) && (
+        <div
+          className="flex flex-col gap-2.5 rounded-md p-3"
+          style={{
+            border: '1px solid color-mix(in oklab, var(--color-coral) 30%, transparent)',
+            background: 'color-mix(in oklab, var(--color-coral) 8%, transparent)',
+          }}
+        >
+          <label htmlFor={'glc-' + p.id} className="lab">
+            OFAC general license relied on (optional, e.g. GL 57)
+          </label>
+          <input
+            id={'glc-' + p.id}
+            className="inp"
+            value={license}
+            onChange={(e) => setLicense(e.target.value)}
+            placeholder="Leave empty if nobody blocked is involved"
+          />
+          <label htmlFor={'sanc-' + p.id} className="lab">
+            Compliance sign-off note (what you checked)
+          </label>
+          <textarea
+            id={'sanc-' + p.id}
+            className="inp"
+            rows={3}
+            style={{ resize: 'vertical', fontSize: 13.5, lineHeight: 1.45 }}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Checked the payee, its owners and the receiving bank against the SDN list and the 50% rule."
+          />
+          <div>
+            <button
+              type="button"
+              className="btn btn-sm"
+              disabled={note.trim().length < 5}
+              onClick={() => {
+                releaseSanctions(p.id, license.trim(), note.trim())
+                setLicense('')
+                setNote('')
+              }}
+            >
+              Release hold as Daniel Ortiz · Compliance
+            </button>
+          </div>
+        </div>
+      )}
+    </Card>
+  )
+}
+
+const lockedByHuman = (m: PayoutView['m']) => !!(m.final || m.approvals.length > 0)
 
 /* ------------------------------------------------------------------ security */
 
@@ -176,31 +262,40 @@ function SecurityCard({ v, hold }: { v: PayoutView; hold: boolean }) {
   const { state: s, setSecDraft, clearSecurityHold, rejectFraud } = useStore()
   const { p, m } = v
   const checks: { kind: 'ok' | 'warn' | 'bad'; text: string }[] = p.security
-    ? [
-        {
-          kind: 'bad',
-          text:
-            'Injected instructions found in the PDF (“' +
-            p.security.quote +
-            '”). Treated as data, not followed.',
-        },
-        {
-          kind: 'bad',
-          text:
-            'Bank details changed: invoice Pix key ' +
-            p.security.onInvoice +
-            ', vendor master ' +
-            p.security.onFile +
-            '.',
-        },
-        {
-          kind: 'warn',
-          text:
-            'Possible duplicate of ' +
-            p.security.dupOf +
-            ': same payee, amount within 0.4%, five days apart.',
-        },
-      ]
+    ? p.security.findings
+      ? // Live invoices: exactly what the server's injection scanner found, quoted verbatim.
+        [
+          ...p.security.findings.map((f) => ({
+            kind: 'bad' as const,
+            text: f.pattern + ': “' + f.quote + '”',
+          })),
+          { kind: 'warn' as const, text: 'The invoice text is data: nothing above was followed.' },
+        ]
+      : [
+          {
+            kind: 'bad',
+            text:
+              'Injected instructions found in the PDF (“' +
+              p.security.quote +
+              '”). Treated as data, not followed.',
+          },
+          {
+            kind: 'bad',
+            text:
+              'Bank details changed: invoice Pix key ' +
+              p.security.onInvoice +
+              ', vendor master ' +
+              p.security.onFile +
+              '.',
+          },
+          {
+            kind: 'warn',
+            text:
+              'Possible duplicate of ' +
+              p.security.dupOf +
+              ': same payee, amount within 0.4%, five days apart.',
+          },
+        ]
     : [
         { kind: 'ok', text: 'Injection scan: no instruction-like text in the invoice.' },
         {
@@ -243,7 +338,13 @@ function SecurityCard({ v, hold }: { v: PayoutView; hold: boolean }) {
         </div>
       ))}
 
-      {hold && (
+      {hold && p.security?.status === 'confirmed_suspicious' && (
+        <span className="font-semibold" style={{ fontSize: 14, color: 'var(--color-coral)' }}>
+          Kept on hold as suspicious by a person. Nothing will be paid.
+        </span>
+      )}
+
+      {hold && p.security?.status !== 'confirmed_suspicious' && (
         <div
           className="flex flex-col gap-2.5 rounded-md p-3"
           style={{

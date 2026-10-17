@@ -53,6 +53,16 @@ export interface SecurityFlags {
   onFile: string
   onInvoice: string
   dupOf: string
+  /** From the API (uploaded invoices): the exact lines the server scanner found. */
+  findings?: SecurityFinding[]
+  /** From the API: where the hold stands; cleared keeps the findings visible. */
+  status?: 'active' | 'cleared' | 'confirmed_suspicious'
+}
+
+/** One instruction-like line the API's injection scanner flagged, quoted verbatim. */
+export interface SecurityFinding {
+  pattern: string
+  quote: string
 }
 
 export interface Payout {
@@ -115,6 +125,9 @@ export interface Rule {
   src: Source
   /** Effective date still needs a human to confirm it against the source. */
   verify?: boolean
+  /** Rules pack flag: this block is a policy hold a compliance person can lift
+   *  with a recorded sign-off (VE-OFAC). Only rules from the API carry it. */
+  liftedBy?: 'sanctions_signoff'
   ev: (p: EffectivePayout, r: Route) => [Outcome, string]
 }
 
@@ -256,6 +269,8 @@ export interface AgentAction {
   cites: string[]
   body?: string
   license?: string
+  /** For kind 'license': what the compliance person checked, sent with the sign-off. */
+  note?: string
   result?: string
 }
 

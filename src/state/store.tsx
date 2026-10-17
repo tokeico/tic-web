@@ -17,7 +17,7 @@ import {
   welcomeMessage,
   type AgentActionDraft,
 } from '@/domain/agent'
-import { remotePayouts, setServerVerify } from '@/domain/remote'
+import { remoteHit, remotePayouts, setServerVerify } from '@/domain/remote'
 import { payoutById, visiblePayouts } from '@/domain/data'
 import {
   approvedUsd,
@@ -146,6 +146,9 @@ export interface Store {
   setSecDraft: (pid: string, patch: { cb?: boolean; note?: string }) => void
   clearSecurityHold: (pid: string) => void
   rejectFraud: (pid: string) => void
+  /** A compliance person releases the sanctions policy hold (VE-OFAC): names the
+   *  OFAC general license and says what they checked. */
+  releaseSanctions: (pid: string, license: string, note: string) => void
   addSuspicious: () => void
   radarDecide: (ok: boolean) => void
   markVerified: (ruleId: string) => void
@@ -499,6 +502,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       },
       rejectFraud: (pid) =>
         set(rejectP(get(), pid, ACTOR, 'Rejected as suspected fraud by ' + ACTOR)),
+      releaseSanctions: () => {},
 
       addSuspicious,
 
@@ -702,6 +706,72 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       })()
     }
 
+    // Security holds: live payouts resolve through the API (the server holds the
+    // quotes and the review); the scripted fraud demo stays client-side.
+    api.clearSecurityHold = (pid) => {
+      const s = get()
+      const note = (s.secDraft?.note || '').trim()
+      set({ secDraft: null })
+      if (remoteHit(pid)) {
+        void (async () => {
+          try {
+            await http.reviewSecurityHold(pid, { reviewer: ACTOR, decision: 'cleared', note })
+            await refresh()
+          } catch (e) {
+            fail(e)
+          }
+        })()
+        return
+      }
+      set({
+        mut: withMut(s, pid, { secCleared: { by: ACTOR, note } }),
+        events: appendFor(s.events, pid, [
+          {
+            type: 'security_cleared',
+            summary:
+              'Hold cleared by ' + ACTOR + ' after callback to number on file: “' + note + '”',
+          },
+        ]),
+      })
+    }
+
+    api.rejectFraud = (pid) => {
+      if (remoteHit(pid)) {
+        void (async () => {
+          try {
+            await http.reviewSecurityHold(pid, {
+              reviewer: COMPLIANCE,
+              decision: 'confirmed_suspicious',
+              note: 'Rejected as suspected fraud by ' + COMPLIANCE,
+            })
+            await http.approvePayout(pid, { approver: ACTOR, decision: 'rejected' })
+            await refresh()
+          } catch (e) {
+            fail(e)
+          }
+        })()
+        return
+      }
+      set(rejectP(get(), pid, ACTOR, 'Rejected as suspected fraud by ' + ACTOR))
+    }
+
+    // The sanctions sign-off: only a person does this, and it names the OFAC
+    // general license (or rests on "nobody blocked is involved") plus what was checked.
+    api.releaseSanctions = (pid, license, note) => {
+      void (async () => {
+        try {
+          await http.reviewSanctions(
+            pid,
+            { decision: 'released', licenseRef: license || undefined, note },
+            COMPLIANCE,
+          )
+          await refresh()
+        } catch (e) {
+          fail(e)
+        }
+      })()
+    }
+
     api.pay = (id) => {
       set({ paying: id })
       void (async () => {
@@ -851,8 +921,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       } else if (a.kind === 'email') {
         finish('Sent · ' + who)
       } else if (a.kind === 'fraud' && a.pid) {
-        api.reject(a.pid)
+        api.rejectFraud(a.pid)
         finish('Rejected · ' + who)
+      } else if (a.kind === 'license' && a.pid) {
+        // The sign-off goes to the API: the hold becomes a warning naming it.
+        api.releaseSanctions(a.pid, (a.license || '').trim(), (a.note || '').trim())
+        finish('Recorded · ' + COMPLIANCE)
       }
     }
 

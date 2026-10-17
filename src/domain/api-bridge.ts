@@ -15,6 +15,8 @@ import {
   reconcilePayout,
   replayPlan,
   resetDemo,
+  reviewSanctions,
+  reviewSecurityHold,
   rulesQuery,
   settingsQuery,
   updateSettings,
@@ -195,6 +197,7 @@ function toPayout(detail: PayoutDetail): Payout {
   const rate = detail.journal?.bookingRate ?? (detail.amountUsd ? inv.amount / detail.amountUsd : 1)
   const bank = inv.bankId ? `${RAIL[inv.bankId.type] ?? inv.bankId.type} · ${inv.bankId.value}` : ''
   const country = inv.payeeCountry as Corridor
+  const hold = detail.securityHold
   return {
     id: detail.id,
     payee: inv.payeeName,
@@ -217,6 +220,18 @@ function toPayout(detail: PayoutDetail): Payout {
       desc: inv.description,
     },
     usd: detail.amountUsd,
+    ...(hold
+      ? {
+          security: {
+            quote: hold.findings[0]?.quote ?? '',
+            onFile: '',
+            onInvoice: '',
+            dupOf: '',
+            findings: hold.findings,
+            status: hold.status,
+          },
+        }
+      : {}),
   }
 }
 
@@ -238,6 +253,12 @@ function toMut(detail: PayoutDetail, plan: Plan): Mut {
     approvals: detail.approvals.map((a) => ({ who: a.approver, at: clock(a.at) })),
     ...(terminal ? { final: detail.status as Status } : {}),
     ...(terminal && plan.iso ? { lockedIso: plan.iso } : {}),
+    ...(detail.sanctionsReview?.decision === 'released' && detail.sanctionsReview.licenseRef
+      ? { license: { number: detail.sanctionsReview.licenseRef, by: detail.sanctionsReview.by } }
+      : {}),
+    ...(detail.securityHold?.status === 'cleared' && detail.securityHold.reviewedBy
+      ? { secCleared: { by: detail.securityHold.reviewedBy, note: detail.securityHold.reviewNote ?? '' } }
+      : {}),
     ...(detail.payment
       ? {
           payment: {
@@ -255,7 +276,9 @@ function toMut(detail: PayoutDetail, plan: Plan): Mut {
 function toHit(detail: PayoutDetail): RemoteHit {
   const country = detail.invoice.payeeCountry as Corridor
   const plan = detail.plan ? toPlan(detail, country) : emptyPlan()
-  const status = (detail.status === 'draft' ? 'draft' : detail.status) as Status
+  let status = (detail.status === 'draft' ? 'draft' : detail.status) as Status
+  const terminal = ['approved', 'paid', 'booked', 'rejected'].includes(detail.status)
+  if (detail.onSecurityHold && !terminal) status = 'security_hold' // the security hold gates approval; a rejection is still final
   return { p: toPayout(detail), mut: toMut(detail, plan), plan, status, asOf: plan.iso }
 }
 
@@ -276,6 +299,7 @@ function catalog(rules: ApiRule[], offramps: OfframpListing[]) {
       kind: r.outcome === 'warn' ? 'warn' : r.outcome === 'block' ? 'block' : 'fields',
       title: r.title,
       src: sources[key]!,
+      liftedBy: r.liftedBy,
       ev: () => ['na', ''],
     }
   })
@@ -297,6 +321,16 @@ function describe(e: { type: string; payload: Record<string, unknown> }, payee: 
   const p = e.payload
   const by = typeof p.by === 'string' ? p.by : ''
   if (e.type === 'extracted') return 'Fields extracted from the invoice'
+  if (e.type === 'security_flagged') {
+    const n = typeof p.findings === 'number' ? p.findings : 0
+    return 'Injection scan: ' + n + ' instruction-like line' + (n === 1 ? '' : 's') + ' flagged · security hold placed'
+  }
+  if (e.type === 'security_reviewed')
+    return p.decision === 'cleared' ? 'Security hold cleared by a person' + (by ? ' (' + by + ')' : '') : 'Kept on hold as suspicious' + (by ? ' (' + by + ')' : '')
+  if (e.type === 'sanctions_reviewed')
+    return p.decision === 'released'
+      ? 'Sanctions hold released' + (p.licenseRef ? ' · general license ' + String(p.licenseRef) : '') + (by ? ' · by ' + by : '')
+      : 'Sanctions hold confirmed blocked' + (by ? ' · by ' + by : '')
   if (e.type === 'screened') return p.match ? 'OFAC SDN: ' + String(p.status) + ' · ' + String(p.match) : 'OFAC SDN: clear'
   if (e.type === 'planned') return typeof p.recommendedRouteId === 'string' ? 'Route ' + p.recommendedRouteId : 'Plan updated'
   if (e.type === 'memo') return 'Memo drafted'
@@ -460,6 +494,8 @@ export const api = {
   resetDemo,
   askAgentApi,
   replayPlan,
+  reviewSanctions,
+  reviewSecurityHold,
   verify: (tamper?: number) => verifyQuery(tamper).queryFn(),
   iso,
 }
