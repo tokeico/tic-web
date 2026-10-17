@@ -24,6 +24,7 @@ import {
 	OUTCOME_CLS,
 	OUTCOME_LABEL,
 	OutcomeIcon,
+	RouteHero,
 	RuleRef,
 	SEC_CLS,
 	SecurityIcon,
@@ -126,6 +127,8 @@ export function DetailPane({ v }: { v: PayoutView }) {
 						</span>
 					)}
 				</div>
+
+				<RouteHero rec={plan.rec} usd={p.usd} checked={plan.evals.length} />
 
 				<div className="flex flex-wrap gap-2">
 					<button

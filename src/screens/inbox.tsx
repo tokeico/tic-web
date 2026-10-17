@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { DetailPane } from "@/components/DetailPane";
 import { FileUp, More } from "@/components/icons";
 import { ManualInvoiceForm } from "@/components/ManualInvoiceForm";
-import { Card, Cc, StatusPill } from "@/components/ui";
+import { Card, Cc, RouteTag, StatusPill } from "@/components/ui";
 import { PAYOUTS } from "@/domain/data";
 import { eff, rname, views, warnIds } from "@/domain/engine";
 import { local, usd } from "@/domain/format";
@@ -450,6 +450,12 @@ export function InboxPage() {
 									<span role="columnheader" className="lab">
 										Payee
 									</span>
+									<span
+										role="columnheader"
+										className="lab hidden @min-[920px]:block"
+									>
+										Route
+									</span>
 									<span role="columnheader" className="lab">
 										Amount
 									</span>
@@ -469,7 +475,7 @@ export function InboxPage() {
 											key={p.id}
 											role="row"
 											className={
-												"grid grid-cols-[minmax(0,1fr)_auto] @min-[680px]:grid-cols-[minmax(0,2fr)_minmax(160px,1fr)_minmax(180px,1fr)] items-center gap-x-4 gap-y-2 border-t border-edge-soft px-4 py-5 cursor-pointer hover:bg-raise" +
+												"grid grid-cols-[minmax(0,1fr)_auto] @min-[680px]:grid-cols-[minmax(0,2fr)_minmax(160px,1fr)_minmax(180px,1fr)] @min-[920px]:grid-cols-[minmax(0,2fr)_minmax(200px,1.2fr)_minmax(150px,1fr)_minmax(170px,1fr)] items-center gap-x-4 gap-y-2 border-t border-edge-soft px-4 py-5 cursor-pointer hover:bg-raise" +
 												(s.selected === p.id ? " bg-raise" : "") +
 												(s.flashId === p.id ? " flash" : "")
 											}
@@ -514,7 +520,17 @@ export function InboxPage() {
 													>
 														{invNo}
 													</span>
+													<span className="mt-1 @min-[920px]:hidden">
+														<RouteTag rec={plan.rec} />
+													</span>
 												</div>
+											</div>
+
+											<div
+												role="cell"
+												className="hidden min-w-0 @min-[920px]:flex"
+											>
+												<RouteTag rec={plan.rec} />
 											</div>
 
 											<div

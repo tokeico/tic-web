@@ -38,7 +38,7 @@ type Kpi = {
 	format: (n: number) => string;
 	sub: string;
 	spark?: number[];
-	tone?: "volt" | "jade" | "coral";
+	tone?: "jade" | "coral";
 };
 type Escalation = { tag: string; text: string; view: ViewId };
 type StreamItem = StreamTemplate & { key: number };
@@ -80,7 +80,6 @@ function demoModel(): CeoModel {
 				format: compact,
 				sub: `${delta(sep.volume, aug.volume)} Sep vs Aug · ${t.payouts.toLocaleString("en-US")} payouts`,
 				spark: DEMO_MONTHS.map((m) => m.volume),
-				tone: "volt",
 			},
 			{
 				label: "Saved vs bank wire",
@@ -186,7 +185,6 @@ function liveModel(store: ReturnType<typeof useStore>): CeoModel {
 				value: total(paid),
 				format: compact,
 				sub: `${paid.length} of ${vs.length} payouts paid`,
-				tone: "volt",
 			},
 			{
 				label: "Saved vs bank wire",
@@ -406,7 +404,6 @@ function KpiTile({ kpi }: { kpi: Kpi }) {
 						fontSize: "clamp(18px, 14cqi, 34px)",
 						lineHeight: 1.05,
 						fontVariantNumeric: "tabular-nums",
-						color: kpi.tone === "volt" ? "var(--color-volt)" : undefined,
 					}}
 				>
 					{kpi.format(shown)}
@@ -489,10 +486,10 @@ function VolumeChart({ months }: { months: MonthRow[] }) {
 					<linearGradient id="vol-fill" x1="0" x2="0" y1="0" y2="1">
 						<stop
 							offset="0%"
-							stopColor="var(--color-volt)"
-							stopOpacity={0.22}
+							stopColor="var(--color-bone)"
+							stopOpacity={0.12}
 						/>
-						<stop offset="100%" stopColor="var(--color-volt)" stopOpacity={0} />
+						<stop offset="100%" stopColor="var(--color-bone)" stopOpacity={0} />
 					</linearGradient>
 				</defs>
 				{ticks.map((t) => (
@@ -537,7 +534,7 @@ function VolumeChart({ months }: { months: MonthRow[] }) {
 				<path
 					d={line(0, solidTo)}
 					fill="none"
-					stroke="var(--color-volt)"
+					stroke="var(--color-bone)"
 					strokeWidth={2}
 					strokeLinejoin="round"
 					pathLength={1}
@@ -547,7 +544,7 @@ function VolumeChart({ months }: { months: MonthRow[] }) {
 					<path
 						d={line(full - 1, pts.length)}
 						fill="none"
-						stroke="var(--color-volt)"
+						stroke="var(--color-bone)"
 						strokeWidth={2}
 						strokeDasharray="4 4"
 						className="ceo-fade"
@@ -569,10 +566,10 @@ function VolumeChart({ months }: { months: MonthRow[] }) {
 						cy={py}
 						r={hover === i ? 5 : i === pts.length - 1 ? 4 : 0}
 						fill={
-							months[i].partial ? "var(--color-panel)" : "var(--color-volt)"
+							months[i].partial ? "var(--color-panel)" : "var(--color-bone)"
 						}
 						stroke={
-							months[i].partial ? "var(--color-volt)" : "var(--color-panel)"
+							months[i].partial ? "var(--color-bone)" : "var(--color-panel)"
 						}
 						strokeWidth={2}
 					/>

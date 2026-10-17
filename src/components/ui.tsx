@@ -1,7 +1,9 @@
 import type { ReactNode } from "react";
 
+import { WIRE_FEE_PCT } from "@/domain/data";
 import { type PillIcon, pill } from "@/domain/engine";
-import type { Outcome, Status } from "@/domain/types";
+import { mins, usd0 } from "@/domain/format";
+import type { Outcome, RouteEval, Status } from "@/domain/types";
 import {
 	Check,
 	CheckCircle,
@@ -211,3 +213,78 @@ export const PAGE_MAX_W: Record<string, string> = {
 	"/audit": "max-w-[1200px]",
 	"/customize": "max-w-[1000px]",
 };
+
+const routeMeta = (rec: RouteEval) => {
+	const r = rec.route;
+	return r.off
+		? `${r.off.asset} · ${r.off.net} · ${r.fee.toFixed(2)}% · ${mins(r.min)}`
+		: `${r.fee.toFixed(2)}% · ${mins(r.min)}`;
+};
+
+/** The engine's chosen route. It wears the accent: volt marks the chosen path. */
+export function RouteTag({ rec }: { rec: RouteEval | null }) {
+	if (!rec)
+		return (
+			<span className="text-ash-faint" style={{ fontSize: 13 }}>
+				No compliant route
+			</span>
+		);
+	const r = rec.route;
+	return (
+		<span className="route-tag" title={r.label}>
+			<span
+				className={r.off ? "route-tag-name" : "route-tag-name route-tag-wire"}
+			>
+				{r.off ? `→ ${r.off.name}` : "→ SWIFT wire"}
+			</span>
+			<span className="route-tag-meta">{routeMeta(rec)}</span>
+		</span>
+	);
+}
+
+/** The route, said up front in the payout header: who, how, cost, time, saving. */
+export function RouteHero({
+	rec,
+	usd,
+	checked,
+}: {
+	rec: RouteEval | null;
+	usd: number;
+	checked: number;
+}) {
+	if (!rec)
+		return (
+			<div className="route-hero route-hero-none">
+				<Lab>Route</Lab>
+				<span style={{ fontSize: 15 }}>
+					No compliant route. Nothing can be paid until the rules allow one.
+				</span>
+			</div>
+		);
+	const r = rec.route;
+	const saved = (usd * (WIRE_FEE_PCT - r.fee)) / 100;
+	return (
+		<div className="route-hero">
+			<Lab>Route · picked by the rules engine</Lab>
+			<div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
+				<span className="display text-volt" style={{ fontSize: 21 }}>
+					{r.off ? r.off.name : "SWIFT wire"}
+				</span>
+				{r.off && (
+					<span className="chip">
+						{r.off.asset} on {r.off.net}
+					</span>
+				)}
+				<span className="chip">{r.fee.toFixed(2)}% fee</span>
+				<span className="chip">{mins(r.min)}</span>
+			</div>
+			<span className="text-ash-dim" style={{ fontSize: 13 }}>
+				{r.off && saved > 0
+					? `Saves ${usd0(saved)} vs a ${WIRE_FEE_PCT}% SWIFT wire · ${checked} routes checked`
+					: `${checked} routes checked · no cheaper compliant route`}
+				{rec.warns > 0 &&
+					` · ${rec.warns} warning${rec.warns > 1 ? "s" : ""} to acknowledge`}
+			</span>
+		</div>
+	);
+}
