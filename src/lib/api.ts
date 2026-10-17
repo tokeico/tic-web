@@ -46,14 +46,20 @@ async function request<S extends z.ZodType>(
 	init: { method?: string; body?: unknown } = {},
 ): Promise<z.infer<S>> {
 	let res: Response;
+	const form = init.body instanceof FormData;
 	try {
 		res = await fetch(`${API_URL}${path}`, {
 			method: init.method ?? "GET",
 			headers:
-				init.body === undefined
+				init.body === undefined || form
 					? undefined
 					: { "content-type": "application/json" },
-			body: init.body === undefined ? undefined : JSON.stringify(init.body),
+			body:
+				init.body === undefined
+					? undefined
+					: form
+						? (init.body as FormData)
+						: JSON.stringify(init.body),
 		});
 	} catch {
 		throw new ApiRequestError(
@@ -187,3 +193,16 @@ export const askAgentApi = (messages: AgentTurn[], asOf: string) =>
 		method: "POST",
 		body: { messages, asOf },
 	});
+
+// ---- Invoices and memos ---------------------------------------------------------------
+
+/** Upload one invoice PDF: the API reads it, creates the payout and plans it. */
+export const uploadInvoice = (file: File) => {
+	const body = new FormData();
+	body.append("file", file);
+	return request(PayoutDetail, "/api/invoices", { method: "POST", body });
+};
+
+/** Have the model write the memo for the current plan (citations checked against the plan). */
+export const writeMemo = (id: string) =>
+	request(PayoutDetail, `/api/payouts/${enc(id)}/memo`, { method: "POST" });
