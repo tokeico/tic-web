@@ -66,7 +66,7 @@ async function mountHeroCoin(
 	el.appendChild(renderer.domElement);
 
 	const scene = new THREE.Scene();
-	const camera = new THREE.PerspectiveCamera(30, 1, 0.05, 40);
+	const camera = new THREE.PerspectiveCamera(34, 1, 0.05, 40);
 
 	const pmrem = new THREE.PMREMGenerator(renderer);
 	scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
@@ -119,16 +119,17 @@ async function mountHeroCoin(
 	coin.position.sub(center);
 	// The export faces +Z. Tip it so the reeded edge catches the key light
 	// without rolling around to the open back.
-	coin.scale.setScalar(1.85 / Math.max(size.x, size.y));
+	// Leave margin for the idle sway so the rim never clips the stage.
+	coin.scale.setScalar(1.42 / Math.max(size.x, size.y));
 
 	const rig = new THREE.Group();
 	rig.add(coin);
-	rig.rotation.x = 0.42;
-	rig.rotation.z = -0.12;
+	rig.rotation.x = 0.38;
+	rig.rotation.z = -0.1;
 	scene.add(rig);
 
-	camera.position.set(0.02, 0.0, 2.95);
-	camera.lookAt(0, -0.02, 0);
+	camera.position.set(0.02, -0.06, 3.05);
+	camera.lookAt(0, -0.06, 0);
 
 	const pointer = { x: 0, y: 0 };
 	const onPointer = (event: PointerEvent) => {
@@ -168,10 +169,10 @@ async function mountHeroCoin(
 		if (!reduce) frame = requestAnimationFrame(draw);
 		if (!visible && !reduce) return;
 		const t = clock.getElapsedTime();
-		const sway = reduce ? 0 : Math.sin(t * 0.45) * 0.16;
-		const nod = reduce ? 0 : Math.sin(t * 0.28) * 0.035;
-		rig.rotation.y = sway + pointer.x * 0.14;
-		rig.rotation.x = 0.42 + nod - pointer.y * 0.08;
+		const sway = reduce ? 0 : Math.sin(t * 0.45) * 0.12;
+		const nod = reduce ? 0 : Math.sin(t * 0.28) * 0.025;
+		rig.rotation.y = sway + pointer.x * 0.1;
+		rig.rotation.x = 0.38 + nod - pointer.y * 0.06;
 		renderer.render(scene, camera);
 	};
 	draw();

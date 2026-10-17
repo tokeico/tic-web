@@ -245,7 +245,7 @@ async function mountGlobe(
 		if (!reduce) frame = requestAnimationFrame(draw);
 		if (!visible && !reduce) return;
 		const t = clock.getElapsedTime();
-		globe.rotation.y = reduce ? 0.15 : 0.15 + Math.sin(t * 0.18) * 0.1;
+		globe.rotation.y = reduce ? 0.15 : 0.15 + t * 0.42;
 		curves.forEach((entry, index) => {
 			const along = reduce ? 0.45 : (t * 0.13 + index * 0.23) % 1;
 			entry.pulse.position.copy(entry.curve.getPoint(along));

@@ -783,7 +783,7 @@
 .hero-stage {
   display: block;
   width: 100%;
-  aspect-ratio: 888 / 520;
+  aspect-ratio: 888 / 580;
 }
 .hero-stage canvas {
   display: block;
