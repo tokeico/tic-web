@@ -1032,114 +1032,87 @@
   background: color-mix(in oklab, var(--color-panel) 40%, transparent);
 }
 
-.lp-mini-carousel {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
-
-.lp-mini-carousel-header {
-  margin-bottom: 1.25rem;
-  padding-bottom: 0.25rem;
-}
-
-.lp-mini-carousel-title {
-  font-size: clamp(18px, 2.1vw, 24px);
-  line-height: 1.2;
-  max-width: 24ch;
-  color: var(--color-ash);
-  margin-top: 0.35rem;
-}
-
-.lp-mini-carousel-viewport {
-  margin-bottom: 1rem;
-  min-height: 10.5rem;
-}
-
-.lp-mini-carousel-panel {
-  display: flex;
-  flex-direction: column;
-  min-height: 10.5rem;
-  padding: 18px 20px;
-  gap: 10px;
-}
-
-.lp-mini-carousel-dots {
-  margin-top: 0.15rem;
-}
-
-@keyframes lp-carousel-slide-in {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.lp-carousel-slide-in {
-  animation: lp-carousel-slide-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .lp-carousel-slide-in {
-    animation: none;
-  }
-}
-
-.lp-mini-carousel-num {
-  font-size: 20px;
-  font-weight: 600;
-  color: var(--color-volt);
-}
-
-.lp-carousel-btn {
+/* Circular volt badge shared by the timeline nodes and the security cards. */
+.lp-glyph-badge {
   display: grid;
   flex: none;
   place-items: center;
-  box-sizing: border-box;
-  width: 36px;
-  min-width: 36px;
-  height: 36px;
-  min-height: 36px;
-  padding: 0;
-  border-radius: 999px;
+  width: 44px;
+  height: 44px;
   border: 1px solid var(--color-edge-strong);
-  background: color-mix(in oklab, var(--color-panel) 70%, transparent);
-  color: var(--color-ash);
-  font-size: 15px;
-  line-height: 1;
-  transition:
-    border-color 0.2s ease,
-    color 0.2s ease,
-    background 0.2s ease,
-    transform 0.2s ease;
+  border-radius: 999px;
+  background: var(--color-panel);
+  color: var(--color-volt);
 }
 
-.lp-carousel-btn:active {
-  transform: scale(0.94);
-}
-
-.lp-carousel-btn:hover {
-  border-color: var(--color-volt);
-  color: var(--color-bone);
-}
-
-.lp-carousel-dot {
-  width: 7px;
-  height: 7px;
+/* How it works: a static numbered timeline. The dashed rail joins node to
+   node — vertical on small screens, horizontal from lg. Keep --lp-node in
+   sync with the badge size above. */
+.lp-timeline {
+  --lp-node: 44px;
+  --lp-gap: 1.75rem;
+  --lp-rail: color-mix(in oklab, var(--color-volt) 45%, transparent);
+  display: grid;
+  gap: var(--lp-gap);
+  list-style: none;
+  margin: 0;
   padding: 0;
-  border: none;
-  border-radius: 50%;
-  background: var(--color-edge-strong);
-  cursor: pointer;
 }
 
-.lp-carousel-dot[data-active] {
-  background: var(--color-volt);
-  box-shadow: 0 0 10px color-mix(in oklab, var(--color-volt) 55%, transparent);
+.lp-timeline-step {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.lp-timeline-step:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: calc(var(--lp-node) / 2);
+  top: var(--lp-node);
+  bottom: calc(-1 * var(--lp-gap));
+  border-left: 1.5px dashed var(--lp-rail);
+}
+
+.lp-timeline-num {
+  font-size: 12px;
+  letter-spacing: 0.16em;
+  color: var(--color-volt);
+}
+
+@media (min-width: 1024px) {
+  .lp-timeline {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .lp-timeline-step {
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+    text-align: center;
+  }
+
+  .lp-timeline-step:not(:last-child)::after {
+    left: calc(50% + var(--lp-node) / 2);
+    top: calc(var(--lp-node) / 2);
+    bottom: auto;
+    width: calc(100% + var(--lp-gap) - var(--lp-node));
+    border-left: none;
+    border-top: 1.5px dashed var(--lp-rail);
+  }
+}
+
+/* Security: one card per guarantee the code enforces. */
+.lp-security-grid {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 640px) {
+  .lp-security-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .lp-step {

@@ -169,3 +169,77 @@ export const Play = ({ size = 16 }: IconProps) => (
 		<path d="M8 5v14l11-7z" />
 	</svg>
 );
+
+/* Landing glyphs: one shape per marketing concept, so each section's
+   visuals say what the section is about. */
+
+/** Scales: the rules of the payee's country, weighed for this payment. */
+export const Scales = (p: IconProps) => (
+	<Svg {...p}>
+		<path d="M12 3v18" />
+		<path d="m19 8 3 8a5 5 0 0 1-6 0zV7" />
+		<path d="M3 7h1a17 17 0 0 0 8-2 17 17 0 0 0 8 2h1" />
+		<path d="m5 8 3 8a5 5 0 0 1-6 0zV7" />
+		<path d="M7 21h10" />
+	</Svg>
+);
+
+/** Route: the mapped rail from invoice to payout. */
+export const Route = (p: IconProps) => (
+	<Svg {...p}>
+		<circle cx="6" cy="19" r="3" />
+		<path d="M9 19h8.5a3.5 3.5 0 0 0 0-7h-11a3.5 3.5 0 0 1 0-7H15" />
+		<circle cx="18" cy="5" r="3" />
+	</Svg>
+);
+
+/** Banknote with a check: review, approve, then pay. */
+export const BanknoteCheck = (p: IconProps) => (
+	<Svg {...p}>
+		<rect x="2" y="6" width="20" height="12" rx="2" />
+		<circle cx="12" cy="12" r="3.4" />
+		<path d="m10.7 12 1 1 1.7-1.9" />
+		<path d="M6 12h.01" />
+		<path d="M18 12h.01" />
+	</Svg>
+);
+
+/** Fingerprint: the same invoice and date always produce the same plan. */
+export const Fingerprint = (p: IconProps) => (
+	<Svg {...p} width={p.width ?? 1.8}>
+		<path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4" />
+		<path d="M14 13.12c0 2.38 0 6.38-1 8.88" />
+		<path d="M17.29 21.02c.12-.6.43-2.3.5-3.02" />
+		<path d="M2 12a10 10 0 0 1 18-6" />
+		<path d="M2 16h.01" />
+		<path d="M21.8 16c.2-2 .131-5.354 0-6" />
+		<path d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2" />
+		<path d="M8.65 22c.21-.66.45-1.32.57-2" />
+		<path d="M9 6.8a6 6 0 0 1 9 5.2v2" />
+	</Svg>
+);
+
+/** Quote marks: every claim in a plan cites its rule and source. */
+export const Quote = (p: IconProps) => (
+	<Svg {...p} width={p.width ?? 2}>
+		<path d="M16 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z" />
+		<path d="M5 3a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2 1 1 0 0 1 1 1v1a2 2 0 0 1-2 2 1 1 0 0 0-1 1v2a1 1 0 0 0 1 1 6 6 0 0 0 6-6V5a2 2 0 0 0-2-2z" />
+	</Svg>
+);
+
+/** A person with a check: approval exists only for people. */
+export const UserCheck = (p: IconProps) => (
+	<Svg {...p}>
+		<path d="m16 11 2 2 4-4" />
+		<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+		<circle cx="9" cy="7" r="4" />
+	</Svg>
+);
+
+/** Chain links: the hash-chained audit log. */
+export const Chain = (p: IconProps) => (
+	<Svg {...p}>
+		<path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+		<path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+	</Svg>
+);

@@ -5,7 +5,8 @@ import "lenis/dist/lenis.css";
 import { Check, CheckCircle, ShieldCheck } from "@/components/icons";
 import { CoverageGlobe } from "@/components/landing/CoverageGlobe";
 import { HeroCoinStage } from "@/components/landing/HeroCoinStage";
-import { LandingDualCarousel } from "@/components/landing/LandingDualCarousel";
+import { HowItWorks } from "@/components/landing/HowItWorks";
+import { SecurityGrid } from "@/components/landing/SecurityGrid";
 import { payoutById } from "@/domain/data";
 import { type EngineState, plan, rname } from "@/domain/engine";
 import { iso, mins, usd } from "@/domain/format";
@@ -38,28 +39,7 @@ const CORRIDORS = [
 	{ id: "mx", flag: "🇲🇽", name: "Mexico" },
 	{ id: "ar", flag: "🇦🇷", name: "Argentina" },
 ];
-/*
-const STEPS = [
-	{
-		n: "01",
-		icon: Chat,
-		title: "Drop in your invoice",
-		body: "Tell us who you’re paying and in which country.",
-	},
-	{
-		n: "02",
-		icon: Clock,
-		title: "We analyze the rules",
-		body: "Corredor checks local regulations and available payment routes, as of today’s date.",
-	},
-	{
-		n: "03",
-		icon: WarnTriangle,
-		title: "We build your payment plan",
-		body: "Corredor maps a customized route for your invoice—rails, local rules, and tradeoffs, as of today’s date.",
-	},
-];
-*/
+
 export function LandingPage() {
 	// Brand feel: long marketing scroll glides (Lenis). Only here — the app is a
 	// working surface, not a story. Native for anyone who prefers reduced motion.
@@ -138,7 +118,9 @@ export function LandingPage() {
 						</h1>
 						<p
 							className="m-0 mx-auto max-w-[54ch] text-ash"
-							style={{ fontSize: "clamp(0.9375rem, 0.85rem + 0.35vw, 1.0625rem)" }}
+							style={{
+								fontSize: "clamp(0.9375rem, 0.85rem + 0.35vw, 1.0625rem)",
+							}}
 						>
 							Corredor helps US businesses pay suppliers in Latin America with
 							stablecoins. It checks each country’s rules, finds a compliant
@@ -194,7 +176,7 @@ export function LandingPage() {
 				</section>
 			</div>
 
-			{/* coverage — second beat after the hero -------------------------- */}
+			{/* coverage — routes by country, computed live ---------------------- */}
 			<section id="coverage" className="lp-section">
 				<div className="lp-shell grid items-center gap-10 py-16 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
 					<div className="flex flex-col gap-4">
@@ -267,7 +249,11 @@ export function LandingPage() {
 				</div>
 			</section>
 
-			<LandingDualCarousel />
+			{/* how it works — the four steps, one static timeline --------------- */}
+			<HowItWorks />
+
+			{/* security — the four guarantees, one card each -------------------- */}
+			<SecurityGrid />
 
 			{/* closing band — last beat before the footer ------------------- */}
 			<section className="lp-section">
