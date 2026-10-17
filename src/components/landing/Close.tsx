@@ -9,7 +9,7 @@ export default function Close() {
 				<p className="m-0">Corredor fixes</p>
 				<p className="m-0">everything else.</p>
 			</div>
-			<Button label="Come in" href="#route-card" />
+			<Button label="Come in" href="/app" />
 		</section>
 	);
 }

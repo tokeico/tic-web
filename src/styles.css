@@ -1,5 +1,19 @@
+/* Fonts for the landing page (Bricolage Grotesque, Geist, Geist Mono).
+   The app's fonts (Archivo, IBM Plex Sans/Mono) load via <link> in
+   src/routes/__root.tsx. */
 @import url("https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap");
-@import "tailwindcss";
+
+@layer theme, base, components, utilities;
+
+/* Tailwind without its preflight reset: the app's stylesheet below was ported
+   from a plain-CSS design mockup and must not inherit the reset (e.g. its
+   <ul> uses the browser's default bullets, and no heading should shrink to
+   font-size: inherit). The landing page — which was built against preflight —
+   replicates the base rules it relies on, scoped to .landing-root, further
+   below so they never reach app markup. */
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/utilities.css" layer(utilities);
+
 @plugin "@tailwindcss/typography";
 
 @theme {
@@ -11,9 +25,7 @@
 /* ============================================================
    Corredor brandbook v3 (Figma: RnBfu09keGfHHiW012uKKh)
    Black ground. One accent: #FFFF67. Status only for status.
-   Custom CSS lives in @layer base/components so that Tailwind
-   utilities (e.g. text-[var(--brand-black)] on links) always
-   win over the base "a { color: inherit }" reset.
+   Landing-only tokens; the app does not reference these.
    ============================================================ */
 
 :root {
@@ -45,48 +57,185 @@
   --radius-pill: 999px;
 }
 
+/* ============================================================
+   The app: Corredor design system. Ported verbatim from the
+   design mockup ("Corredor · clickable MVP"): class names,
+   colours, type and spacing are the design's. Fonts load from
+   Google Fonts in __root.tsx (Archivo, IBM Plex Sans/Mono).
+   ============================================================ */
+
 @layer base {
-  * {
+body{margin:0;background:#f3f6f5}
+a{color:#0e6b5c;text-underline-offset:2px}a:hover{color:#0a4f44}
+button{font:inherit;cursor:pointer}
+button:disabled{cursor:not-allowed;opacity:.45}
+a:focus-visible,button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid #0e6b5c;outline-offset:2px}
+.pill{display:inline-flex;align-items:center;gap:6px;font:500 12.5px/1.2 'IBM Plex Sans',sans-serif;padding:5px 9px;border-radius:999px;white-space:nowrap}
+.p-ok{background:#dcefe9;color:#0b5a4d}
+.p-warn{background:#fbeedd;color:#8a4b00}
+.p-bad{background:#f8e3e1;color:#922b24}
+.p-neutral{background:#e7ecea;color:#2b3a35}
+.p-muted{background:transparent;color:#56655f;border:1px solid #d6dfdb}
+.chip{display:inline-block;font:500 12px/1.2 'IBM Plex Mono',monospace;padding:4px 7px;border-radius:4px;background:#e7ecea;color:#13201c;white-space:nowrap}
+.tool{display:inline-flex;align-items:center;gap:5px;font:400 11.5px/1.2 'IBM Plex Mono',monospace;padding:3px 7px;border-radius:4px;background:#f3f6f5;color:#3b4a44;border:1px solid #e1e8e5}
+.cc{display:inline-block;font:600 11.5px/1 'IBM Plex Mono',monospace;padding:4px 5px;border-radius:3px;border:1px solid #9fb0a9;color:#13201c;letter-spacing:.04em}
+.act{display:inline-block;font:600 10.5px/1 'IBM Plex Mono',monospace;letter-spacing:.08em;text-transform:uppercase;padding:4px 6px;border-radius:3px;white-space:nowrap}
+.act-ai{background:#dcefe9;color:#0b5a4d}
+.act-code{background:#e3e8f2;color:#2b3a5c}
+.act-human{background:#fbeedd;color:#8a4b00}
+.ruleref{display:inline-block;font:500 12px/1.2 'IBM Plex Mono',monospace;padding:3px 7px;border-radius:4px;background:#dcefe9;color:#0b5a4d;text-decoration:none}
+.ruleref:hover{background:#c5e4da;color:#063a31}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:40px;padding:0 16px;border-radius:6px;border:1px solid #c3cfca;background:#ffffff;color:#13201c;font-weight:500;font-size:14px;text-decoration:none}
+.btn:hover:not(:disabled){border-color:#0e6b5c;color:#0e6b5c}
+.btn-primary{background:#0e6b5c;border-color:#0e6b5c;color:#ffffff}
+.btn-primary:hover:not(:disabled){background:#0a4f44;color:#ffffff}
+.btn-danger{color:#922b24;border-color:#e3b9b4}
+.btn-dangerfill{background:#a3322a;border-color:#a3322a;color:#ffffff}
+.btn-dangerfill:hover:not(:disabled){background:#7f241e;color:#ffffff}
+.btn-sm{min-height:32px;padding:0 10px;font-size:13px}
+.jump{min-height:36px;padding:0 12px;border-radius:6px;border:1px solid #c3cfca;background:#ffffff;color:#13201c;font:500 12.5px/1 'IBM Plex Mono',monospace}
+.jump:hover{border-color:#0e6b5c;color:#0e6b5c}
+.jump-on{background:#0e6b5c;border-color:#0e6b5c;color:#ffffff}
+.jump-on:hover{color:#ffffff}
+.seg{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:10px 12px;border-radius:6px;border:1px solid #c3cfca;background:#ffffff;color:#13201c;min-height:44px;flex:1 1 180px}
+.seg:hover{border-color:#0e6b5c}
+.seg-on{border:2px solid #0e6b5c;background:#eef6f3}
+.tab{min-height:40px;padding:0 12px;border:0;border-radius:6px;background:transparent;color:#3b4a44;font-weight:500;font-size:14px}
+.tab:hover{background:#e7ecea}
+.tab-on{background:#13201c;color:#ffffff}
+.tab-on:hover{background:#13201c}
+.row{display:grid;grid-template-columns:minmax(190px,1.9fr) minmax(120px,1.2fr) minmax(180px,1.9fr) minmax(150px,1.4fr) 76px 78px;gap:12px;align-items:center;padding:12px 16px;border-bottom:1px solid #e1e8e5}
+.row-sel{background:#eef6f3}
+.flash{animation:flash 1.2s ease-out}
+@keyframes flash{0%{background:#ffe2a8}100%{background:transparent}}
+.skel{background:linear-gradient(90deg,#e7ecea 0%,#f3f6f5 50%,#e7ecea 100%);background-size:200% 100%;animation:sh 1.2s linear infinite;border-radius:4px;height:12px}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.dots span{display:inline-block;width:6px;height:6px;border-radius:50%;background:#0e6b5c;margin-right:4px;animation:bl 1s infinite}
+.dots span:nth-child(2){animation-delay:.15s}.dots span:nth-child(3){animation-delay:.3s}
+@keyframes bl{0%,100%{opacity:.25}50%{opacity:1}}
+.route{display:grid;grid-template-columns:minmax(0,1fr) 92px 72px 160px;gap:10px;align-items:center;padding:11px 12px;border:1px solid #d6dfdb;border-radius:6px;background:#ffffff}
+.route-rec{border:2px solid #0e6b5c;background:#eef6f3}
+.route-bad{background:#fafbfb;color:#56655f}
+.field{display:flex;flex-direction:column;gap:3px;padding:8px 10px;border:1px solid #e1e8e5;border-radius:6px;background:#ffffff}
+.field-low{border:2px solid #c98a2e;background:#fff8ee}
+.inp{min-height:38px;padding:6px 10px;border:1px solid #b9c8c2;border-radius:6px;font:400 14px/1.3 'IBM Plex Sans',sans-serif;color:#13201c;background:#ffffff;width:100%;box-sizing:border-box}
+.lab{font:500 11px/1.2 'IBM Plex Mono',monospace;letter-spacing:.06em;text-transform:uppercase;color:#56655f}
+.card{background:#ffffff;border:1px solid #d6dfdb;border-radius:8px;padding:16px;display:flex;flex-direction:column;gap:12px}
+.stage{background:#ffffff;border:1px solid #d6dfdb;border-radius:8px;padding:12px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.kpi{background:#ffffff;border:1px solid #d6dfdb;border-radius:8px;padding:14px 16px;display:flex;flex-direction:column;gap:4px;min-width:0}
+.check{display:grid;grid-template-columns:22px minmax(0,1fr);gap:10px;padding:10px 0;border-top:1px solid #e1e8e5;scroll-margin-top:16px}
+.ic-ok{color:#0b5a4d}.ic-warn{color:#a35a00}.ic-bad{color:#a3322a}.ic-muted{color:#7a8a84}
+.mono{font-family:'IBM Plex Mono',monospace}
+.ev{display:grid;grid-template-columns:44px 170px minmax(0,1fr) 120px 60px;gap:12px;align-items:center;padding:10px 16px;border-bottom:1px solid #e1e8e5;font-size:14px}
+.ack{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:6px;background:#fff8ee;border:1px solid #f0d4a8;font-size:14px}
+.ack input{width:18px;height:18px;margin-top:1px;accent-color:#0e6b5c;flex:none}
+.sugg{min-height:36px;padding:6px 12px;border-radius:999px;border:1px solid #c3cfca;background:#ffffff;color:#13201c;font-size:13.5px;text-align:left}
+.sugg:hover:not(:disabled){border-color:#0e6b5c;color:#0e6b5c}
+.secrow{display:grid;grid-template-columns:20px minmax(0,1fr);gap:10px;font-size:14px;align-items:start}
+@media (prefers-reduced-motion:reduce){.flash,.skel,.dots span{animation:none}}
+
+/* Page frame: the mockup's outer wrapper div. */
+html, body { margin: 0; }
+body {
+  min-height: 100vh;
+  background: #f3f6f5;
+  color: #13201c;
+  font-family: 'IBM Plex Sans', -apple-system, 'Segoe UI', sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+}
+h1, h2, h3, h4, p, ul, ol { margin: 0; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+
+/* Small fixes on top of the design, for real data: long route labels and legal wording. */
+[role="cell"] { min-width: 0; }
+.chip { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+.clamp2 { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+}
+
+/* ============================================================
+   The landing page. Custom CSS lives in @layer base/components
+   so that Tailwind utilities (e.g. text-[var(--brand-black)] on
+   links) always win over the base "a { color: inherit }" reset.
+   Element resets are scoped to .landing-root (the wrapper div the
+   landing route renders) so the app's light theme is untouched.
+   ============================================================ */
+
+@layer base {
+  .landing-root,
+  .landing-root * {
     box-sizing: border-box;
   }
 
-  html,
-  body,
-  #app {
-    min-height: 100%;
-  }
-
-  html {
-    scroll-behavior: smooth;
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    html {
-      scroll-behavior: auto;
-    }
-  }
-
-  body {
-    margin: 0;
+  .landing-root {
+    min-height: 100vh;
     background: var(--brand-black);
     color: var(--neutral-paper);
     font-family: var(--font-sans);
-    overflow-x: hidden;
+    font-size: 1rem;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
 
-  section[id] {
+  /* The page behind the landing wrapper stays black, and horizontal
+     overflow clips at the viewport — which is also what keeps the
+     sticky header working (overflow on an inner wrapper would not). */
+  body:has(.landing-root) {
+    background: var(--brand-black);
+    overflow-x: hidden;
+  }
+
+  html:has(.landing-root) {
+    scroll-behavior: smooth;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html:has(.landing-root) {
+      scroll-behavior: auto;
+    }
+  }
+
+  .landing-root section[id] {
     scroll-margin-top: 5.5rem;
   }
 
-  a {
+  /* The bits of Tailwind's preflight the landing markup relies on,
+     restated so the app can keep running without the reset. */
+  .landing-root h1,
+  .landing-root h2,
+  .landing-root h3,
+  .landing-root h4,
+  .landing-root p,
+  .landing-root ul,
+  .landing-root ol {
+    margin: 0;
+  }
+
+  .landing-root img,
+  .landing-root svg,
+  .landing-root video,
+  .landing-root canvas {
+    display: block;
+    vertical-align: middle;
+  }
+
+  .landing-root img,
+  .landing-root video {
+    max-width: 100%;
+    height: auto;
+  }
+
+  .landing-root button {
+    font-family: inherit;
+  }
+
+  .landing-root a {
     color: inherit;
     text-decoration: none;
   }
 
-  button,
-  a {
+  .landing-root button,
+  .landing-root a {
     transition: background-color 180ms ease, color 180ms ease, border-color 180ms ease,
       transform 180ms ease, opacity 180ms ease;
   }

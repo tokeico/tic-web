@@ -22,7 +22,7 @@ export default function Header() {
 					<a className="nav-link" href="#why-now">
 						Why now
 					</a>
-					<Button label="Come in" size="small" href="#route-card" />
+					<Button label="Come in" size="small" href="/app" />
 				</div>
 			</nav>
 		</header>

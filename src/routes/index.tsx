@@ -1,4 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
+import Footer from "../components/Footer";
+import Header from "../components/Header";
 import Close from "../components/landing/Close";
 import Confianza from "../components/landing/Confianza";
 import CorridorTicker from "../components/landing/CorridorTicker";
@@ -13,16 +15,20 @@ export const Route = createFileRoute("/")({ component: LandingPage });
 
 function LandingPage() {
 	return (
-		<main>
-			<Hero />
-			<CorridorTicker />
-			<RouteCard />
-			<Confianza />
-			<WeKeepWatch />
-			<HowItWorks />
-			<WhyNow />
-			<WhyCorredor />
-			<Close />
-		</main>
+		<div className="landing-root">
+			<Header />
+			<main>
+				<Hero />
+				<CorridorTicker />
+				<RouteCard />
+				<Confianza />
+				<WeKeepWatch />
+				<HowItWorks />
+				<WhyNow />
+				<WhyCorredor />
+				<Close />
+			</main>
+			<Footer />
+		</div>
 	);
 }

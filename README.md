@@ -1,198 +1,55 @@
-Welcome to your new TanStack Start app!
+# Corredor web (`tic-web`)
 
-# Getting Started
+The Corredor frontend, translated from the "Corredor · clickable MVP" design. TanStack Start (React 19), Router and Query, built with rsbuild. It talks to [`tic-api`](../tic-api) for everything: plans, approvals, payments, the ledger and the audit chain. Product and screen plan: `docs/FRONTEND.md`.
 
-To run this application:
+## Run it
 
-```bash
-bun install
-bun --bun run dev
+```sh
+cd ../tic-api && bun run db:up && bun run db:migrate && bun run db:seed && bun run dev   # API on :3000
+cd ../tic-web && bun install && cp .env.example .env && bun --bun run dev               # web on :8080
 ```
 
-# Building For Production
+Open http://localhost:8080 for the landing page; **Come in** (header or the closing section) enters the app at `/app`, where you click **Start the 3-minute guided demo**. **Reset demo** (Inbox) wipes back to the four draft invoices.
 
-To build this application for production:
+## Screens
 
-```bash
+| Tab | What | Data |
+|---|---|---|
+| Overview | Pipeline (who is responsible for each step), key numbers, "Needs a person", latest audit events | `/api/payouts?detail=1`, `/api/audit` |
+| Inbox | Payouts table and the detail panel: approval, pay, reconcile, routes, rules checklist, memo, sanctions, invoice fields | payouts, approve, pay, reconcile, PATCH, replay |
+| Agent | Chat plus the "Waiting for you" queue | scripted replies over live data; dry runs use `/api/payouts/:id/preview` |
+| Trust & compliance | Regulatory radar (registry update with a real dry-run impact), agent permissions, guardrails | `/api/settings` (registry), preview |
+| Ledger | Booked journal entries, CSV export | `/api/ledger`, `/api/ledger.csv` |
+| Audit | Hash-chained events, verification, tamper simulation | `/api/audit`, `/api/audit/verify?tamper=` |
+| Customize | Autonomy, approval policy, routing preference, providers, rules pack | `/api/settings`, `/api/offramps`, `/api/rules?all=1` |
+
+The as-of date lives in the URL (`?asOf=2026-10-17`) on every page; moving it re-plans every open payout through `POST /api/plan-all`.
+
+### Real vs. simulated
+
+- **Real (API):** rules engine, reroutes, approvals and daily cap, payment records, reconciliation, ledger, audit chain, settings, registry update.
+- **Simulated, and labeled as such:** the payment rail (mock adapter), the agent's replies (scripted over live data; the local model will write them), the vendor email "send", the regulatory radar's detection, agent autonomy and the warning-acknowledgment preference (browser session only).
+- **From the design, not built yet:** the "suspicious invoice" security hold, human route overrides and OFAC license sign-off.
+
+## Where things are
+
+| Path | What |
+|---|---|
+| `src/routes/` | Landing page at `/`; one file per tab under `src/routes/app/` (`app.tsx` wraps them in the `Shell`) |
+| `src/components/Shell.tsx` | Header, tabs, as-of bar, toast; `TourBar.tsx` is the guided demo; `PayoutPanel.tsx` the inbox detail |
+| `src/lib/api.ts` | The only code that calls the API |
+| `src/lib/use-actions.ts` | Every button's behaviour (writes, refreshes, error toasts) |
+| `src/lib/agent.ts` · `radar.ts` | The agent's responder and the radar's dry run |
+| `src/lib/demo-store.ts` | Client-only state (chat, queue, tour, toast) |
+| `src/lib/contracts.ts` | **Copy** of `tic-api/src/contracts.ts`. Don't edit it here |
+| `src/styles.css` | The app's design CSS, verbatim, plus the landing page's brand CSS (Tailwind runs without its preflight reset; landing resets are scoped to `.landing-root`); `src/lib/st.ts` keeps the app's inline styles verbatim too |
+
+After `tic-api/src/contracts.ts` changes: `cp ../tic-api/src/contracts.ts src/lib/contracts.ts`.
+
+## Checks
+
+```sh
+bunx tsc --noEmit          # types
+bun --bun run check        # Biome (ARIA-role grids and non-null assertions are allowed on purpose, see biome.json)
 bun --bun run build
 ```
-
-## Styling
-
-This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
-
-### Removing Tailwind CSS
-
-If you prefer not to use Tailwind CSS:
-
-1. Remove the demo pages in `src/routes/demo/`
-2. Replace the Tailwind import in `src/styles.css` with your own styles
-3. Remove `pluginTailwindcss()` from the plugins array in `rsbuild.config.ts`
-4. Remove `@rsbuild/plugin-tailwindcss` and `tailwindcss` from `package.json`
-
-## Linting & Formatting
-
-This project uses [Biome](https://biomejs.dev/) for linting and formatting. The following scripts are available:
-
-
-```bash
-bun --bun run lint
-bun --bun run format
-bun --bun run check
-```
-
-
-
-## Routing
-
-This project uses [TanStack Router](https://tanstack.com/router) with file-based routing. Routes are managed as files in `src/routes`.
-
-### Adding A Route
-
-To add a new route to your application just add a new file in the `./src/routes` directory.
-
-TanStack will automatically generate the content of the route file for you.
-
-Now that you have two routes you can use a `Link` component to navigate between them.
-
-### Adding Links
-
-To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
-
-```tsx
-import { Link } from "@tanstack/react-router";
-```
-
-Then anywhere in your JSX you can use it like so:
-
-```tsx
-<Link to="/about">About</Link>
-```
-
-This will create a link that will navigate to the `/about` route.
-
-More information on the `Link` component can be found in the [Link documentation](https://tanstack.com/router/v1/docs/framework/react/api/router/linkComponent).
-
-### Using A Layout
-
-In the File Based Routing setup the layout is located in `src/routes/__root.tsx`. Anything you add to the root route will appear in all the routes. The route content will appear in the JSX where you render `{children}` in the `shellComponent`.
-
-Here is an example layout that includes a header:
-
-```tsx
-import { HeadContent, Scripts, createRootRoute } from '@tanstack/react-router'
-
-export const Route = createRootRoute({
-  head: () => ({
-    meta: [
-      { charSet: 'utf-8' },
-      { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-      { title: 'My App' },
-    ],
-  }),
-  shellComponent: ({ children }) => (
-    <html lang="en">
-      <head>
-        <HeadContent />
-      </head>
-      <body>
-        <header>
-          <nav>
-            <Link to="/">Home</Link>
-            <Link to="/about">About</Link>
-          </nav>
-        </header>
-        {children}
-        <Scripts />
-      </body>
-    </html>
-  ),
-})
-```
-
-More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
-## Server Functions
-
-TanStack Start provides server functions that allow you to write server-side code that seamlessly integrates with your client components.
-
-```tsx
-import { createServerFn } from '@tanstack/react-start'
-
-const getServerTime = createServerFn({
-  method: 'GET',
-}).handler(async () => {
-  return new Date().toISOString()
-})
-
-// Use in a component
-function MyComponent() {
-  const [time, setTime] = useState('')
-  
-  useEffect(() => {
-    getServerTime().then(setTime)
-  }, [])
-  
-  return <div>Server time: {time}</div>
-}
-```
-
-## API Routes
-
-You can create API routes by using the `server` property in your route definitions:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-import { json } from '@tanstack/react-start'
-
-export const Route = createFileRoute('/api/hello')({
-  server: {
-    handlers: {
-      GET: () => json({ message: 'Hello, World!' }),
-    },
-  },
-})
-```
-
-## Data Fetching
-
-There are multiple ways to fetch data in your application. You can use TanStack Query to fetch data from a server. But you can also use the `loader` functionality built into TanStack Router to load the data for a route before it's rendered.
-
-For example:
-
-```tsx
-import { createFileRoute } from '@tanstack/react-router'
-
-export const Route = createFileRoute('/people')({
-  loader: async () => {
-    const response = await fetch('https://swapi.dev/api/people')
-    return response.json()
-  },
-  component: PeopleComponent,
-})
-
-function PeopleComponent() {
-  const data = Route.useLoaderData()
-  return (
-    <ul>
-      {data.results.map((person) => (
-        <li key={person.name}>{person.name}</li>
-      ))}
-    </ul>
-  )
-}
-```
-
-Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
-
-
-# Demo files
-
-Files prefixed with `demo` can be safely deleted. They are there to provide a starting point for you to play around with the features you've installed.
-
-
-# Learn More
-
-You can learn more about all of the offerings from TanStack in the [TanStack documentation](https://tanstack.com).
-
-For TanStack Start specific documentation, visit [TanStack Start](https://tanstack.com/start).
