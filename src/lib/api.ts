@@ -4,6 +4,9 @@
 import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { z } from "zod";
 import {
+	AgentReply,
+	AgentStatus,
+	type AgentTurn,
 	type ApproveRequest,
 	AuditEvent,
 	AuditVerifyResult,
@@ -197,3 +200,17 @@ export const resetDemo = () =>
 	);
 
 export { mutationOptions };
+
+// ---- Agent (local model) -------------------------------------------------------------------
+
+export const agentStatusQuery = queryOptions({
+	queryKey: ["agent", "status"],
+	queryFn: () => request(AgentStatus, "/api/agent/status"),
+	staleTime: 60_000,
+});
+
+export const askAgentApi = (messages: AgentTurn[], asOf: string) =>
+	request(AgentReply, "/api/agent/chat", {
+		method: "POST",
+		body: { messages, asOf },
+	});

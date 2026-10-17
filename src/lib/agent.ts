@@ -10,8 +10,15 @@
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@tanstack/react-router";
 import { useMemo } from "react";
-import { payoutsQuery, previewPlan, settingsQuery } from "./api";
-import type { PayoutDetail, Plan } from "./contracts";
+import {
+	ApiRequestError,
+	agentStatusQuery,
+	askAgentApi,
+	payoutsQuery,
+	previewPlan,
+	settingsQuery,
+} from "./api";
+import type { AgentReply, AgentTurn, PayoutDetail, Plan } from "./contracts";
 import {
 	type AgentAction,
 	type AgentMessage,
@@ -541,6 +548,67 @@ export const SUGGESTIONS = [
 	"Pay what’s approved",
 ];
 
+// ---- Local model: turn the transcript into turns, and a reply into a message ----------------
+
+/** The chat so far, as plain turns for the model (the welcome message is the UI's, not the model's). */
+function toTurns(chat: AgentMessage[]): AgentTurn[] {
+	return chat
+		.slice(1)
+		.map(
+			(m): AgentTurn => ({
+				role: m.role === "user" ? "user" : "assistant",
+				content:
+					m.role === "user"
+						? (m.text ?? "")
+						: [
+								...(m.paras ?? []),
+								...(m.bullets ?? []).map((b) => `- ${b}`),
+							].join("\n"),
+			}),
+		)
+		.filter((t) => t.content.trim())
+		.slice(-20);
+}
+
+/** Model text → the design's message shape: paragraphs, then bullet lines. */
+function fromReply(r: AgentReply, autonomy: Ctx["autonomy"]): Reply {
+	const paras: string[] = [];
+	const bullets: string[] = [];
+	for (const raw of r.text.split("\n")) {
+		const line = raw.trim();
+		if (!line) continue;
+		const b = line.match(/^(?:[-*•]|\d+\.)\s+(.*)$/);
+		if (b) bullets.push(b[1]!.replaceAll("**", ""));
+		else paras.push(line.replaceAll("**", ""));
+	}
+	const notes = [
+		`Answered locally by ${r.model} in ${(r.ms / 1000).toFixed(1)} s.`,
+	];
+	if (r.removedCites.length)
+		notes.push(
+			`Citation guard: ${r.removedCites.join(", ")} isn’t in the rules pack.`,
+		);
+	let actions: Proposal[] = r.actions;
+	let auto: (() => void) | undefined;
+	if (r.actions.length && autonomy === "suggest") {
+		notes.push("Autonomy is Suggest only, so nothing was queued.");
+		actions = [];
+	}
+	return {
+		msg: {
+			role: "agent",
+			tools: r.tools,
+			paras,
+			bullets,
+			cites: r.cites,
+			note: notes.join(" "),
+			cta: null,
+		},
+		actions,
+		auto,
+	};
+}
+
 // ---- The hook the pages use ---------------------------------------------------------------
 
 export function useAgent() {
@@ -606,7 +674,41 @@ export function useAgent() {
 				if (opts.view) actions.go("/agent");
 				let reply: Reply;
 				try {
-					reply = await respond(text, ctx());
+					const status = await queryClient
+						.fetchQuery(agentStatusQuery)
+						.catch(() => null);
+					if (status?.available) {
+						try {
+							const c = ctx();
+							const r = await askAgentApi([...toTurns(getDemo().chat)], c.asOf);
+							reply = fromReply(r, c.autonomy);
+							// Auto-run low-risk: moving the demo clock is the only step the agent may take itself.
+							if (c.autonomy === "auto") {
+								const clock = reply.actions?.find(
+									(a) => a.kind === "asof" && a.asOf,
+								);
+								if (clock?.asOf) {
+									reply.actions = reply.actions!.filter((a) => a !== clock);
+									const target = clock.asOf;
+									reply.auto = () => c.setAsOf(target);
+									reply.msg.note =
+										`${reply.msg.note ?? ""} I moved the demo clock to ${formatDate(target)} (low risk, autonomy is Auto-run).`.trim();
+								}
+							}
+						} catch (e) {
+							if (
+								!(
+									e instanceof ApiRequestError &&
+									(e.status === 503 || e.status === 0)
+								)
+							)
+								throw e;
+							reply = await respond(text, ctx());
+							reply.msg.note = `${reply.msg.note ? `${reply.msg.note} ` : ""}(Scripted reply: the local model is unavailable. ${e.message})`;
+						}
+					} else {
+						reply = await respond(text, ctx());
+					}
 				} catch (e) {
 					reply = {
 						msg: {
