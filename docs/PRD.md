@@ -141,6 +141,8 @@ Priority: **P0** must ship for the demo · **P1** strongly wanted · **P2** stre
 
 ## 10. Demo script (3 minutes)
 
+**Live path:** Start the **guided tour** or tap **Load demo** on the inbox. Four pre-seeded payouts appear with statuses and extracted fields already filled. Invoice upload and live AI extraction are not implemented—do not plan to drop PDFs on stage.
+
 Seed data: four invoices, all names fictional.
 
 | # | Payee | Amount | Expected (as of Oct 17) |
@@ -150,14 +152,13 @@ Seed data: four invoices, all names fictional.
 | 3 | Lucía Fernández, contractor (Buenos Aires) | US$4,000 | **Ready, with warning.** USDT on Tron → registered PSAV → CVU. Rate-spread warning shown (BCRA wholesale 1,518 vs. USDT/ARS 1,619, a 6.7% gap; business risk, not a legal rule). |
 | 4 | Transportes Orinoco C.A. (Caracas) | US$12,500 | **Blocked.** VE-OFAC sanctions-review hold (company policy, not a country-wide ban). |
 
-1. **0:00 Hook:** "Paying Latin America costs 3–7% and days. Stablecoins fix the money. Corredor fixes everything else."
-2. **0:20** Drop the four invoices. Fields extract live.
-3. **0:50** Statuses appear: Ready, Awaiting 2nd approver, Warning, Blocked. Open Brazil and show the route comparison and the cited rules checklist.
-4. **1:30 Rule-change moment:** drag the date to Sep 30 and Brazil uses the cheaper eFX provider. Drag to Oct 1 and it reroutes ("BR-561-EFX took effect"); Ponte shows a "hasn't filed for authorization" warning. Drag to Oct 31 and it reroutes again to the authorized VASP ("BR-VASP-AUTH took effect: Missed the Oct 30 BCB filing deadline"). Back to today.
+1. **0:00 Hook + load demo:** "Paying Latin America costs 3–7% and days. Stablecoins fix the money. Corredor fixes everything else." Guided tour step 1 (or **Load demo**): inbox shows four countries with Ready, Awaiting 2nd approver, Warning, and Blocked.
+2. **0:30** Open Brazil and show the route comparison and the cited rules checklist.
+3. **0:50 Rule-change moment:** drag the date to Sep 30 and Brazil uses the cheaper eFX provider. Drag to Oct 1 and it reroutes ("BR-561-EFX took effect"); Ponte shows a "hasn't filed for authorization" warning. Drag to Oct 31 and it reroutes again to the authorized VASP ("BR-VASP-AUTH took effect: Missed the Oct 30 BCB filing deadline"). Back to today.
    - Say it right: Oct 30 is the deadline to **file** for authorization, not to be authorized. Oct 30 itself is still a valid filing day, which is why the reroute happens on Oct 31. Sol VASP is fictional, and no SPSAV has been authorized yet. See [RULES-SOURCES.md](./RULES-SOURCES.md) §6–8.
-5. **2:00** Approve Brazil, then second-approve Mexico. Pay and show the simulated IDs.
-6. **2:20** Ledger: the matched journal entry with the FX line. Audit: chain verified.
-7. **2:40 Close:** "Ramp and Bitso move the money. Corredor is the compliance brain across every rail. AI reads and explains, code decides, you approve."
+4. **2:00** Approve Brazil, then second-approve Mexico. Pay and show the simulated IDs.
+5. **2:20** Ledger: the matched journal entry with the FX line. Audit: chain verified.
+6. **2:40 Close:** "Ramp and Bitso move the money. Corredor is the compliance brain across every rail. AI reads and explains, code decides, you approve."
 
 ## 11. Risks and mitigations
 

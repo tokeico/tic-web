@@ -10,102 +10,129 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
-import { Route as AgentRouteImport } from './routes/agent'
-import { Route as AuditRouteImport } from './routes/audit'
-import { Route as CustomizeRouteImport } from './routes/customize'
-import { Route as InboxRouteImport } from './routes/inbox'
-import { Route as LedgerRouteImport } from './routes/ledger'
-import { Route as TrustRouteImport } from './routes/trust'
+import { Route as AppRouteImport } from './routes/_app'
+import { Route as AppAgentRouteImport } from './routes/_app/agent'
+import { Route as AppAppRouteImport } from './routes/_app/app'
+import { Route as AppAuditRouteImport } from './routes/_app/audit'
+import { Route as AppCustomizeRouteImport } from './routes/_app/customize'
+import { Route as AppInboxRouteImport } from './routes/_app/inbox'
+import { Route as AppLedgerRouteImport } from './routes/_app/ledger'
+import { Route as AppTrustRouteImport } from './routes/_app/trust'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AgentRoute = AgentRouteImport.update({
+const AppRoute = AppRouteImport.update({
+  id: '/_app',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppAgentRoute = AppAgentRouteImport.update({
   id: '/agent',
   path: '/agent',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
-const AuditRoute = AuditRouteImport.update({
+const AppAppRoute = AppAppRouteImport.update({
+  id: '/app',
+  path: '/app',
+  getParentRoute: () => AppRoute,
+} as any)
+const AppAuditRoute = AppAuditRouteImport.update({
   id: '/audit',
   path: '/audit',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
-const CustomizeRoute = CustomizeRouteImport.update({
+const AppCustomizeRoute = AppCustomizeRouteImport.update({
   id: '/customize',
   path: '/customize',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
-const InboxRoute = InboxRouteImport.update({
+const AppInboxRoute = AppInboxRouteImport.update({
   id: '/inbox',
   path: '/inbox',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
-const LedgerRoute = LedgerRouteImport.update({
+const AppLedgerRoute = AppLedgerRouteImport.update({
   id: '/ledger',
   path: '/ledger',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
-const TrustRoute = TrustRouteImport.update({
+const AppTrustRoute = AppTrustRouteImport.update({
   id: '/trust',
   path: '/trust',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AppRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/agent': typeof AgentRoute
-  '/audit': typeof AuditRoute
-  '/customize': typeof CustomizeRoute
-  '/inbox': typeof InboxRoute
-  '/ledger': typeof LedgerRoute
-  '/trust': typeof TrustRoute
+  '/agent': typeof AppAgentRoute
+  '/app': typeof AppAppRoute
+  '/audit': typeof AppAuditRoute
+  '/customize': typeof AppCustomizeRoute
+  '/inbox': typeof AppInboxRoute
+  '/ledger': typeof AppLedgerRoute
+  '/trust': typeof AppTrustRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/agent': typeof AgentRoute
-  '/audit': typeof AuditRoute
-  '/customize': typeof CustomizeRoute
-  '/inbox': typeof InboxRoute
-  '/ledger': typeof LedgerRoute
-  '/trust': typeof TrustRoute
+  '/agent': typeof AppAgentRoute
+  '/app': typeof AppAppRoute
+  '/audit': typeof AppAuditRoute
+  '/customize': typeof AppCustomizeRoute
+  '/inbox': typeof AppInboxRoute
+  '/ledger': typeof AppLedgerRoute
+  '/trust': typeof AppTrustRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/agent': typeof AgentRoute
-  '/audit': typeof AuditRoute
-  '/customize': typeof CustomizeRoute
-  '/inbox': typeof InboxRoute
-  '/ledger': typeof LedgerRoute
-  '/trust': typeof TrustRoute
+  '/_app': typeof AppRouteWithChildren
+  '/_app/agent': typeof AppAgentRoute
+  '/_app/app': typeof AppAppRoute
+  '/_app/audit': typeof AppAuditRoute
+  '/_app/customize': typeof AppCustomizeRoute
+  '/_app/inbox': typeof AppInboxRoute
+  '/_app/ledger': typeof AppLedgerRoute
+  '/_app/trust': typeof AppTrustRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/agent' | '/audit' | '/customize' | '/inbox' | '/ledger' | '/trust'
-  fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/agent' | '/audit' | '/customize' | '/inbox' | '/ledger' | '/trust'
-  id:
-    | '__root__'
     | '/'
     | '/agent'
+    | '/app'
     | '/audit'
     | '/customize'
     | '/inbox'
     | '/ledger'
     | '/trust'
+  fileRoutesByTo: FileRoutesByTo
+  to:
+    | '/'
+    | '/agent'
+    | '/app'
+    | '/audit'
+    | '/customize'
+    | '/inbox'
+    | '/ledger'
+    | '/trust'
+  id:
+    | '__root__'
+    | '/'
+    | '/_app'
+    | '/_app/agent'
+    | '/_app/app'
+    | '/_app/audit'
+    | '/_app/customize'
+    | '/_app/inbox'
+    | '/_app/ledger'
+    | '/_app/trust'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AgentRoute: typeof AgentRoute
-  AuditRoute: typeof AuditRoute
-  CustomizeRoute: typeof CustomizeRoute
-  InboxRoute: typeof InboxRoute
-  LedgerRoute: typeof LedgerRoute
-  TrustRoute: typeof TrustRoute
+  AppRoute: typeof AppRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
@@ -117,59 +144,90 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/agent': {
-      id: '/agent'
+    '/_app': {
+      id: '/_app'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AppRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/agent': {
+      id: '/_app/agent'
       path: '/agent'
       fullPath: '/agent'
-      preLoaderRoute: typeof AgentRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppAgentRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/audit': {
-      id: '/audit'
+    '/_app/app': {
+      id: '/_app/app'
+      path: '/app'
+      fullPath: '/app'
+      preLoaderRoute: typeof AppAppRouteImport
+      parentRoute: typeof AppRoute
+    }
+    '/_app/audit': {
+      id: '/_app/audit'
       path: '/audit'
       fullPath: '/audit'
-      preLoaderRoute: typeof AuditRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppAuditRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/customize': {
-      id: '/customize'
+    '/_app/customize': {
+      id: '/_app/customize'
       path: '/customize'
       fullPath: '/customize'
-      preLoaderRoute: typeof CustomizeRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppCustomizeRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/inbox': {
-      id: '/inbox'
+    '/_app/inbox': {
+      id: '/_app/inbox'
       path: '/inbox'
       fullPath: '/inbox'
-      preLoaderRoute: typeof InboxRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppInboxRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/ledger': {
-      id: '/ledger'
+    '/_app/ledger': {
+      id: '/_app/ledger'
       path: '/ledger'
       fullPath: '/ledger'
-      preLoaderRoute: typeof LedgerRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppLedgerRouteImport
+      parentRoute: typeof AppRoute
     }
-    '/trust': {
-      id: '/trust'
+    '/_app/trust': {
+      id: '/_app/trust'
       path: '/trust'
       fullPath: '/trust'
-      preLoaderRoute: typeof TrustRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AppTrustRouteImport
+      parentRoute: typeof AppRoute
     }
   }
 }
 
+interface AppRouteChildren {
+  AppAgentRoute: typeof AppAgentRoute
+  AppAppRoute: typeof AppAppRoute
+  AppAuditRoute: typeof AppAuditRoute
+  AppCustomizeRoute: typeof AppCustomizeRoute
+  AppInboxRoute: typeof AppInboxRoute
+  AppLedgerRoute: typeof AppLedgerRoute
+  AppTrustRoute: typeof AppTrustRoute
+}
+
+const AppRouteChildren: AppRouteChildren = {
+  AppAgentRoute: AppAgentRoute,
+  AppAppRoute: AppAppRoute,
+  AppAuditRoute: AppAuditRoute,
+  AppCustomizeRoute: AppCustomizeRoute,
+  AppInboxRoute: AppInboxRoute,
+  AppLedgerRoute: AppLedgerRoute,
+  AppTrustRoute: AppTrustRoute,
+}
+
+const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AgentRoute: AgentRoute,
-  AuditRoute: AuditRoute,
-  CustomizeRoute: CustomizeRoute,
-  InboxRoute: InboxRoute,
-  LedgerRoute: LedgerRoute,
-  TrustRoute: TrustRoute,
+  AppRoute: AppRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

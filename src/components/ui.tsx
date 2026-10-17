@@ -1,123 +1,158 @@
-import { Link, type LinkProps } from "@tanstack/react-router";
-import type { Country, PayoutStatus } from "#/lib/contracts";
-import { COUNTRY_NAME, STATUS } from "#/lib/view";
-import { PillGlyph } from "./icons";
+import type { ReactNode } from 'react'
 
-export function StatusPill({ status }: { status: PayoutStatus }) {
-	const s = STATUS[status];
-	return (
-		<span className={`pill ${s.cls}`}>
-			<PillGlyph icon={s.icon} />
-			{s.label}
-		</span>
-	);
+import { pill, type PillIcon } from '@/domain/engine'
+import type { Outcome, Status } from '@/domain/types'
+import {
+  Check,
+  CheckCircle,
+  Clock,
+  Dash,
+  InfoCircle,
+  ShieldAlert,
+  WarnTriangle,
+  XCircle,
+} from './icons'
+
+export const Lab = ({ children, className = '' }: { children: ReactNode; className?: string }) => (
+  <span className={'lab ' + className}>{children}</span>
+)
+
+export const Chip = ({ children }: { children: ReactNode }) => (
+  <span className="chip">{children}</span>
+)
+
+/** Country code badge. */
+export const Cc = ({ code, label }: { code: string; label?: string }) => (
+  <span className="cc" aria-label={label}>
+    {code}
+  </span>
+)
+
+const PILL_ICON: Record<PillIcon, (p: { size?: number }) => ReactNode> = {
+  ok: Check,
+  warn: WarnTriangle,
+  bad: XCircle,
+  shield: ShieldAlert,
+  wait: Clock,
+  done: CheckCircle,
 }
 
-/** Two-letter country code in the design's outlined box. */
-export function Cc({ country }: { country: Country }) {
-	return (
-		<span className="cc" role="img" aria-label={COUNTRY_NAME[country]}>
-			{country}
-		</span>
-	);
+export function StatusPill({ status }: { status: Status }) {
+  const { label, cls, icon } = pill(status)
+  const Icon = PILL_ICON[icon]
+  return (
+    <span className={cls}>
+      <Icon />
+      {label}
+    </span>
+  )
 }
 
-export type Actor = "AI" | "AI + Code" | "Code" | "Human";
-const ACTOR_CLS: Record<Actor, string> = {
-	AI: "act-ai",
-	"AI + Code": "act-ai",
-	Code: "act-code",
-	Human: "act-human",
-};
+/** Who was responsible: AI, Code or Human. */
+export const ActorTag = ({ actor, cls }: { actor: string; cls: string }) => (
+  <span className={cls}>{actor}</span>
+)
 
-/** Who is responsible for a step: AI reads, code decides, a person approves. */
-export const Act = ({
-	actor,
-	style,
-}: {
-	actor: Actor;
-	style?: React.CSSProperties;
-}) => (
-	<span className={`act ${ACTOR_CLS[actor]}`} style={style}>
-		{actor}
-	</span>
-);
-
-/** A rule id that links to its source. */
+/** A rule id that links to its source. Every decision carries one. */
 export function RuleRef({
-	id,
-	url,
-	tip,
-	href,
-	style,
+  id,
+  url,
+  tip,
 }: {
-	id: string;
-	url?: string;
-	tip?: string;
-	href?: string;
-	style?: React.CSSProperties;
+  id: string
+  url: string
+  tip?: string
 }) {
-	return (
-		<a
-			className="ruleref"
-			href={href ?? url ?? "#"}
-			title={tip}
-			style={style}
-			{...(href ? {} : { target: "_blank", rel: "noopener noreferrer" })}
-		>
-			{id}
-		</a>
-	);
+  return (
+    <a className="ruleref" href={url} target="_blank" rel="noopener" title={tip}>
+      {id}
+    </a>
+  )
 }
 
-/** A link that keeps the as-of date in the URL. */
-export function KeepLink(
-	props: Omit<LinkProps, "search"> & {
-		className?: string;
-		children?: React.ReactNode;
-	},
-) {
-	return (
-		<Link
-			{...(props as LinkProps)}
-			search={
-				((p: Record<string, unknown>) => ({
-					asOf: p.asOf,
-				})) as LinkProps["search"]
-			}
-		/>
-	);
+const OUTCOME_ICON: Record<Outcome, (p: { size?: number }) => ReactNode> = {
+  pass: Check,
+  warn: WarnTriangle,
+  block: XCircle,
+  fields: InfoCircle,
+  na: Dash,
+  inactive: Clock,
 }
 
-export const Lab = ({
-	children,
-	style,
-}: {
-	children: React.ReactNode;
-	style?: React.CSSProperties;
-}) => (
-	<span className="lab" style={style}>
-		{children}
-	</span>
-);
+export const OUTCOME_CLS: Record<Outcome, string> = {
+  pass: 'ic-ok',
+  warn: 'ic-warn',
+  block: 'ic-bad',
+  fields: 'ic-warn',
+  na: 'ic-muted',
+  inactive: 'ic-muted',
+}
 
-export const H1 = ({
-	children,
-	id,
+export const OUTCOME_LABEL: Record<Outcome, string> = {
+  pass: 'Pass',
+  warn: 'Warning',
+  block: 'Blocked',
+  fields: 'Fields needed',
+  na: 'Not applicable',
+  inactive: 'Not in effect',
+}
+
+export function OutcomeIcon({ o }: { o: Outcome }) {
+  const Icon = OUTCOME_ICON[o]
+  return <Icon size={18} />
+}
+
+/** Security-check rows use shield-alert rather than a plain cross. */
+export function SecurityIcon({ kind }: { kind: 'ok' | 'warn' | 'bad' }) {
+  if (kind === 'ok') return <Check size={18} />
+  if (kind === 'warn') return <WarnTriangle size={18} />
+  return <ShieldAlert size={18} />
+}
+
+export const SEC_CLS: Record<'ok' | 'warn' | 'bad', string> = {
+  ok: 'ic-ok',
+  warn: 'ic-warn',
+  bad: 'ic-bad',
+}
+
+export const Card = ({
+  children,
+  className = '',
+  id,
+  style,
 }: {
-	children: React.ReactNode;
-	id?: string;
+  children: ReactNode
+  className?: string
+  id?: string
+  style?: React.CSSProperties
 }) => (
-	<h1
-		id={id}
-		style={{
-			margin: 0,
-			fontFamily: "'Archivo',sans-serif",
-			fontWeight: 750,
-			fontStretch: "90%",
-			fontSize: 26,
-		}}
-	>
-		{children}
-	</h1>
-);
+  <div className={'card ' + className} id={id} style={style}>
+    {children}
+  </div>
+)
+
+export const CardHead = ({
+  title,
+  aside,
+  level = 3,
+}: {
+  title: ReactNode
+  aside?: ReactNode
+  level?: 2 | 3
+}) => {
+  const H = level === 2 ? 'h2' : 'h3'
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <H className="m-0" style={{ fontSize: level === 2 ? 18 : 16 }}>
+        {title}
+      </H>
+      {aside}
+    </div>
+  )
+}
+
+export const Muted = ({ children, size = 13 }: { children: ReactNode; size?: number }) => (
+  <span className="text-ash-dim" style={{ fontSize: size }}>
+    {children}
+  </span>
+)

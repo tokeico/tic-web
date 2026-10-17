@@ -1,7 +1,6 @@
-// The only file that talks to tic-api. Components import query options and
-// mutations from here and never call fetch themselves.
+// The only file that talks to tic-api. The token-incinerators store calls these
+// fetch helpers directly (no React Query in the UI layer).
 
-import { mutationOptions, queryOptions } from "@tanstack/react-query";
 import { z } from "zod";
 import {
 	AgentReply,
@@ -78,60 +77,43 @@ async function request<S extends z.ZodType>(
 
 const enc = encodeURIComponent;
 
-// ---- Queries ------------------------------------------------------------------------
-
 /** Every payout with its plan, memo, approvals, payment and journal in one request. */
-export const payoutsQuery = queryOptions({
-	queryKey: ["payouts"],
+export const payoutsQuery = {
 	queryFn: () => request(z.array(PayoutDetail), "/api/payouts?detail=1"),
-});
+};
 
-export const settingsQuery = queryOptions({
-	queryKey: ["settings"],
+export const settingsQuery = {
 	queryFn: () => request(Settings, "/api/settings"),
-});
+};
 
-/** The whole rules pack (Customize, and the "not in effect" rows of a checklist). */
-export const rulesQuery = queryOptions({
-	queryKey: ["rules"],
+export const rulesQuery = {
 	queryFn: () => request(z.array(Rule), "/api/rules?all=1"),
-	staleTime: Infinity,
-});
+};
 
-export const offrampsQuery = queryOptions({
-	queryKey: ["offramps"],
+export const offrampsQuery = {
 	queryFn: () => request(z.array(OfframpListing), "/api/offramps"),
-});
+};
 
-export const ledgerQuery = queryOptions({
-	queryKey: ["ledger"],
+export const ledgerQuery = {
 	queryFn: () => request(z.array(LedgerEntry), "/api/ledger"),
-});
+};
 
-export const auditQuery = queryOptions({
-	queryKey: ["audit"],
+export const auditQuery = {
 	queryFn: () => request(z.array(AuditEvent), "/api/audit"),
+};
+
+export const verifyQuery = (tamper?: number) => ({
+	queryFn: () =>
+		request(
+			AuditVerifyResult,
+			`/api/audit/verify${tamper ? `?tamper=${tamper}` : ""}`,
+		),
 });
 
-/** `tamper` edits that event in memory before verifying: the audit page's demo. */
-export const verifyQuery = (tamper?: number) =>
-	queryOptions({
-		queryKey: ["audit", "verify", tamper ?? null],
-		queryFn: () =>
-			request(
-				AuditVerifyResult,
-				`/api/audit/verify${tamper ? `?tamper=${tamper}` : ""}`,
-			),
-	});
-
-export const healthQuery = queryOptions({
-	queryKey: ["health"],
+export const healthQuery = {
 	queryFn: () => request(Health, "/api/health"),
-});
+};
 
-// ---- Reads that aren't cached (dry runs and proofs) --------------------------------------
-
-/** What would this payout's plan be on another date, optionally if registry updates were approved? Stores nothing. */
 export const previewPlan = (
 	id: string,
 	asOf: string,
@@ -154,9 +136,6 @@ export const replayPlan = (id: string, n = 100) =>
 
 export const ledgerCsvUrl = `${API_URL}/api/ledger.csv`;
 
-// ---- Mutations ----------------------------------------------------------------------
-
-/** The slider. Moves the server's demo clock and returns every payout plus what rerouted. */
 export const planAll = (asOf: string) =>
 	request(PlanAllResponse, `/api/plan-all?asOf=${enc(asOf)}`, {
 		method: "POST",
@@ -199,15 +178,9 @@ export const resetDemo = () =>
 		{ method: "POST" },
 	);
 
-export { mutationOptions };
-
-// ---- Agent (local model) -------------------------------------------------------------------
-
-export const agentStatusQuery = queryOptions({
-	queryKey: ["agent", "status"],
+export const agentStatusQuery = {
 	queryFn: () => request(AgentStatus, "/api/agent/status"),
-	staleTime: 60_000,
-});
+};
 
 export const askAgentApi = (messages: AgentTurn[], asOf: string) =>
 	request(AgentReply, "/api/agent/chat", {

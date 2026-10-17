@@ -1,274 +1,258 @@
-// The frame around every page: header with tabs, the as-of date bar, the
-// guided-demo bar and the toast. Ported from the design's header block.
+import { Link, useLocation } from '@tanstack/react-router'
+import type { ReactNode } from 'react'
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { Link, useSearch } from "@tanstack/react-router";
-import { useEffect, useRef } from "react";
-import { payoutsQuery, planAll, rulesQuery, settingsQuery } from "#/lib/api";
-import { setDemo, useDemo } from "#/lib/demo-store";
-import { formatDate } from "#/lib/format";
-import { announceReroutes } from "#/lib/reroutes";
-import {
-	DEMO_TODAY,
-	dayToIso,
-	isoToDay,
-	JUMP_DATES,
-	SLIDER_DAYS,
-} from "#/lib/search";
-import { st } from "#/lib/st";
-import { useActions } from "#/lib/use-actions";
-import { IcClose, IcSwap } from "./icons";
-import { TourBar } from "./TourBar";
+import { RULES } from '@/domain/data'
+import { activeRuleCount } from '@/domain/engine'
+import { fmtDate, iso } from '@/domain/format'
+import { ACTOR, useStore, VIEW_PATH, type ViewId } from '@/state/store'
+import { Close, Swap } from './icons'
 
-const TABS = [
-	{ to: "/", label: "Overview" },
-	{ to: "/inbox", label: "Inbox" },
-	{ to: "/agent", label: "Agent" },
-	{ to: "/trust", label: "Trust & compliance" },
-	{ to: "/ledger", label: "Ledger" },
-	{ to: "/audit", label: "Audit" },
-	{ to: "/customize", label: "Customize" },
-] as const;
+const TABS: [ViewId, string][] = [
+  ['overview', 'Overview'],
+  ['inbox', 'Inbox'],
+  ['agent', 'Agent'],
+  ['trust', 'Trust & compliance'],
+  ['ledger', 'Ledger'],
+  ['audit', 'Audit'],
+  ['customize', 'Customize'],
+]
 
-export function Shell({ children }: { children: React.ReactNode }) {
-	const { asOf = DEMO_TODAY } = useSearch({ strict: false }) as {
-		asOf?: string;
-	};
-	const actions = useActions();
-	const queryClient = useQueryClient();
-	const payouts = useQuery(payoutsQuery);
-	const settings = useQuery(settingsQuery);
-	const rules = useQuery(rulesQuery);
-	const pending = useDemo(
-		(s) => s.actions.filter((a) => a.status === "pending").length,
-	);
-	const toast = useDemo((s) => s.toast);
+/** The milestones the pitch drags between. */
+const JUMPS: [number, string][] = [
+  [5, 'Sep 30'],
+  [6, 'Oct 1 · Res. 561'],
+  [22, 'Today'],
+  [35, 'Oct 30 · VASP deadline'],
+]
 
-	// Rules in force on the as-of date, for the badge.
-	const total = rules.data?.length ?? 0;
-	const active = (rules.data ?? []).filter(
-		(r) =>
-			!(r.effectiveFrom && asOf < r.effectiveFrom) &&
-			!(r.effectiveTo && asOf > r.effectiveTo),
-	).length;
-	const registryV2 = Object.keys(settings.data?.registry ?? {}).length > 0;
+export function Shell({ children }: { children: ReactNode }) {
+  const { state, go } = useStore()
+  const { pathname } = useLocation()
+  const pending = state.actions.filter((a) => a.status === 'pending')
 
-	// The slider writes ?asOf=; ~150 ms after it stops, the API re-plans every open payout on that date.
-	// Only once the demo invoices are loaded (before that the slider just moves), and only when the
-	// server's clock isn't already there.
-	const loaded =
-		!!payouts.data &&
-		payouts.data.length > 0 &&
-		payouts.data.every((p) => p.status !== "draft");
-	const serverAsOf = settings.data?.asOf;
-	const latest = useRef(asOf);
-	latest.current = asOf;
-	useEffect(() => {
-		if (!loaded || !serverAsOf || serverAsOf === asOf) return;
-		const t = setTimeout(async () => {
-			const before = queryClient.getQueryData(payoutsQuery.queryKey);
-			try {
-				const res = await planAll(asOf);
-				if (latest.current !== asOf) return; // a newer move is already on its way
-				announceReroutes(res.reroutes, before);
-			} finally {
-				await actions.refresh();
-			}
-		}, 150);
-		return () => clearTimeout(t);
-	}, [asOf, loaded, serverAsOf, queryClient, actions]);
+  return (
+    <div className="min-h-screen text-bone">
+      {/* Transparent so the ambient glow on the body reads through the masthead. */}
+      <header className="border-b border-edge-soft">
+        <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-4 px-5 py-3">
+          <div className="flex flex-wrap items-center gap-[18px]">
+            {/* The lockup is the way back out to the marketing site. */}
+            <Link
+              to="/"
+              className="brand-link flex items-center gap-3 no-underline"
+              aria-label="Corredor home"
+              title="Back to corredor.com"
+            >
+              <span className="corredor-mark" aria-hidden="true" />
+              <div className="flex flex-col">
+                <span
+                  className="display"
+                  style={{
+                    fontSize: 24,
+                    lineHeight: 1.05,
+                    letterSpacing: '-.01em',
+                  }}
+                >
+                  Corredor
+                </span>
+                <span
+                  className="mono text-ash-dim"
+                  style={{ fontSize: 9.5, letterSpacing: '.22em' }}
+                >
+                  BY TOKEISO
+                </span>
+              </div>
+            </Link>
+            <nav aria-label="Main" className="flex flex-wrap gap-0.5">
+              {TABS.map(([id, label]) => {
+                const on = pathname === VIEW_PATH[id]
+                const text =
+                  id === 'agent' && pending.length ? 'Agent · ' + pending.length : label
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    className={'tab' + (on ? ' tab-on' : '')}
+                    aria-pressed={on}
+                    onClick={() => go(id)}
+                  >
+                    {text}
+                  </button>
+                )
+              })}
+            </nav>
+          </div>
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-ash" style={{ fontSize: 13 }}>
+              Acting as <strong className="font-semibold">{ACTOR}</strong> · Controller
+            </span>
+            <span className="pill p-neutral">
+              {'Rules pack v1 · ' +
+                activeRuleCount(iso(state.day)) +
+                ' of ' +
+                RULES.length +
+                ' active' +
+                (state.registry.ponte ? ' · registry v2' : '')}
+            </span>
+            <span className="pill p-warn">Pending compliance review</span>
+            <span className="pill p-muted">Rail: simulated</span>
+          </div>
+        </div>
 
-	const day = Math.min(Math.max(isoToDay(asOf), 0), SLIDER_DAYS - 1);
+        <AsOfBar />
+      </header>
 
-	return (
-		<div
-			style={st(
-				"min-height:100vh;background:#f3f6f5;color:#13201c;font-family:'IBM Plex Sans',-apple-system,'Segoe UI',sans-serif;font-size:15px;line-height:1.45",
-			)}
-		>
-			<header style={st("background:#ffffff;border-bottom:1px solid #d6dfdb")}>
-				<div
-					style={st(
-						"max-width:1440px;margin:0 auto;padding:12px 20px;display:flex;flex-wrap:wrap;align-items:center;gap:16px;justify-content:space-between",
-					)}
-				>
-					<div
-						style={st(
-							"display:flex;align-items:center;gap:18px;flex-wrap:wrap",
-						)}
-					>
-						<div style={st("display:flex;align-items:baseline;gap:10px")}>
-							<span
-								style={st(
-									"font-family:'Archivo',sans-serif;font-weight:800;font-stretch:86%;font-size:26px;letter-spacing:-.01em",
-								)}
-							>
-								Corredor
-							</span>
-							<span className="lab">Payouts · LatAm</span>
-						</div>
-						<nav
-							aria-label="Main"
-							style={st("display:flex;gap:2px;flex-wrap:wrap")}
-						>
-							{TABS.map((t) => (
-								<Link
-									key={t.to}
-									to={t.to}
-									search={
-										((p: { asOf?: string }) => ({ asOf: p.asOf })) as never
-									}
-									className="tab"
-									activeProps={{ className: "tab tab-on" }}
-									activeOptions={{ exact: true }}
-									style={{
-										display: "inline-flex",
-										alignItems: "center",
-										textDecoration: "none",
-									}}
-								>
-									{t.to === "/agent" && pending > 0
-										? `Agent · ${pending}`
-										: t.label}
-								</Link>
-							))}
-						</nav>
-					</div>
-					<div
-						style={st("display:flex;gap:8px;flex-wrap:wrap;align-items:center")}
-					>
-						<span style={st("font-size:13px;color:#3b4a44")}>
-							Acting as{" "}
-							<strong style={st("font-weight:600")}>Maria Lopez</strong> ·
-							Controller
-						</span>
-						<span className="pill p-neutral">
-							{total
-								? `Rules pack v1 · ${active} of ${total} active${registryV2 ? " · registry v2" : ""}`
-								: "Rules pack v1"}
-						</span>
-						<span className="pill p-warn">Pending compliance review</span>
-						<span className="pill p-muted">
-							{settings.data && settings.data.railMode !== "mock"
-								? `Rail: ${settings.data.railMode} sandbox`
-								: "Rail: simulated"}
-						</span>
-					</div>
-				</div>
+      <TourBar />
+      {children}
+      <Toast />
+    </div>
+  )
+}
 
-				<div style={st("border-top:1px solid #e1e8e5;background:#fbfcfc")}>
-					<div
-						style={st(
-							"max-width:1440px;margin:0 auto;padding:12px 20px;display:flex;flex-wrap:wrap;align-items:center;gap:12px 20px",
-						)}
-					>
-						<div
-							style={st(
-								"display:flex;flex-direction:column;gap:2px;min-width:170px",
-							)}
-						>
-							<label htmlFor="asof" className="lab">
-								As-of date
-							</label>
-							<span
-								style={st(
-									"font:600 20px/1.1 'IBM Plex Mono',monospace;font-variant-numeric:tabular-nums",
-								)}
-							>
-								{formatDate(asOf)}
-							</span>
-						</div>
-						<div
-							style={st(
-								"flex:1 1 320px;min-width:0;display:flex;flex-direction:column;gap:4px",
-							)}
-						>
-							<input
-								id="asof"
-								type="range"
-								min={0}
-								max={SLIDER_DAYS - 1}
-								step={1}
-								value={day}
-								onChange={(e) =>
-									actions.setAsOf(dayToIso(Number(e.target.value)))
-								}
-								style={st("width:100%;accent-color:#0e6b5c;height:28px")}
-								aria-valuetext={formatDate(asOf)}
-							/>
-							<div
-								style={st(
-									"display:flex;justify-content:space-between;font:400 12px/1 'IBM Plex Mono',monospace;color:#56655f",
-								)}
-							>
-								<span>Sep 25</span>
-								<span>Nov 5</span>
-							</div>
-						</div>
-						<div
-							role="group"
-							aria-label="Jump to date"
-							style={st("display:flex;gap:6px;flex-wrap:wrap")}
-						>
-							{JUMP_DATES.map((j) => (
-								<button
-									key={j.value}
-									type="button"
-									className={`jump${asOf === j.value ? " jump-on" : ""}`}
-									aria-pressed={asOf === j.value}
-									onClick={() => actions.setAsOf(j.value)}
-								>
-									{j.label}
-								</button>
-							))}
-						</div>
-					</div>
-				</div>
-			</header>
+/**
+ * The as-of date bar. Moving it re-runs the rules engine for every open payout
+ * — the demo's single most important control.
+ */
+function AsOfBar() {
+  const { state, setDay } = useStore()
+  const label = fmtDate(iso(state.day))
 
-			<TourBar />
-			{children}
+  return (
+    <div className="border-t border-edge-soft bg-panel">
+      <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-x-5 gap-y-3 px-5 py-3">
+        <div className="flex min-w-[170px] flex-col gap-0.5">
+          <label htmlFor="asof" className="lab">
+            As-of date
+          </label>
+          <span
+            className="mono"
+            style={{ fontWeight: 600, fontSize: 20, lineHeight: 1.1, fontVariantNumeric: 'tabular-nums' }}
+          >
+            {label}
+          </span>
+        </div>
+        <div className="flex min-w-0 flex-[1_1_320px] flex-col gap-1">
+          <input
+            id="asof"
+            type="range"
+            min={0}
+            max={41}
+            step={1}
+            value={state.day}
+            onChange={(e) => setDay(parseInt(e.target.value, 10))}
+            className="asof-range"
+            aria-valuetext={label}
+          />
+          <div className="mono flex justify-between text-ash-dim" style={{ fontSize: 12 }}>
+            <span>Sep 25</span>
+            <span>Nov 5</span>
+          </div>
+        </div>
+        <div role="group" aria-label="Jump to date" className="flex flex-wrap gap-1.5">
+          {JUMPS.map(([d, label2]) => (
+            <button
+              key={d}
+              type="button"
+              className={'jump' + (state.day === d ? ' jump-on' : '')}
+              aria-pressed={state.day === d}
+              onClick={() => setDay(d)}
+            >
+              {label2}
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+}
 
-			<div
-				aria-live="polite"
-				style={st(
-					"position:fixed;right:20px;bottom:20px;max-width:440px;z-index:20",
-				)}
-			>
-				{toast && (
-					<div
-						style={st(
-							"background:#13201c;color:#ffffff;border-radius:8px;padding:14px 16px;display:flex;gap:12px;align-items:flex-start;box-shadow:0 8px 24px rgba(19,32,28,.25)",
-						)}
-					>
-						<span style={{ flex: "none", marginTop: 2 }}>
-							<IcSwap />
-						</span>
-						<div
-							style={st(
-								"display:flex;flex-direction:column;gap:4px;min-width:0",
-							)}
-						>
-							{toast.lines.map((l) => (
-								<span key={l.head + l.body} style={st("font-size:14px")}>
-									<strong style={st("font-weight:600")}>{l.head}</strong>{" "}
-									{l.body}
-								</span>
-							))}
-						</div>
-						<button
-							type="button"
-							onClick={() => setDemo({ toast: null })}
-							aria-label="Dismiss"
-							style={st(
-								"border:0;background:transparent;color:#ffffff;padding:2px;min-width:28px;min-height:28px",
-							)}
-						>
-							<IcClose />
-						</button>
-					</div>
-				)}
-			</div>
-		</div>
-	);
+/** The 3-minute guided demo: each step says the line and performs the action. */
+function TourBar() {
+  const { state, tourSteps, tourBack, tourDo, tourExit } = useStore()
+  if (state.tour == null) return null
+  const steps = tourSteps()
+  const i = state.tour
+  const step = steps[i]
+
+  return (
+    <div
+      className="bg-raise text-bone"
+      style={{ borderBlock: '1px solid var(--color-edge)', boxShadow: 'inset 3px 0 0 var(--color-volt)' }}
+      aria-live="polite"
+    >
+      <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-x-5 gap-y-3 px-5 py-3">
+        <div className="flex min-w-0 flex-[1_1_460px] flex-col gap-[3px]">
+          <span
+            className="mono"
+            style={{
+              fontSize: 11,
+              letterSpacing: '.06em',
+              textTransform: 'uppercase',
+              color: 'var(--color-volt)',
+            }}
+          >
+            {'Guided demo · step ' + (i + 1) + ' of ' + steps.length + ' · ' + step.time}
+          </span>
+          <span className="font-semibold" style={{ fontSize: 16 }}>
+            {step.title}
+          </span>
+          <span className="text-ash" style={{ fontSize: 14 }}>{'Say: “' + step.say + '”'}</span>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          <button type="button" className="btn btn-sm" disabled={i === 0} onClick={tourBack}>
+            Previous
+          </button>
+          <button
+            type="button"
+            className="btn btn-primary btn-sm"
+            onClick={tourDo}
+          >
+            {i === steps.length - 1 ? 'Do it and finish' : 'Do it · next step'}
+          </button>
+          <button type="button" className="btn btn-sm" onClick={tourExit}>
+            Exit
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
+/** Names every reroute a change caused, and the rule that caused it. */
+function Toast() {
+  const { state, closeToast } = useStore()
+  return (
+    <div
+      aria-live="polite"
+      className="fixed right-5 bottom-5 z-20 max-w-[440px]"
+    >
+      {state.toast && (
+        <div
+          className="bg-raise text-bone flex items-start gap-3 rounded-[10px] px-4 py-3.5"
+          style={{
+            border: '1px solid var(--color-edge-strong)',
+            boxShadow: '0 12px 32px rgba(0, 0, 0, 0.6)',
+          }}
+        >
+          <Swap color="var(--color-volt)" style={{ flex: 'none', marginTop: 2 }} />
+          <div className="flex min-w-0 flex-col gap-1">
+            {state.toast.lines.map((l, n) => (
+              <span key={n} style={{ fontSize: 14 }}>
+                <strong className="font-semibold">{l.head}</strong> {l.body}
+              </span>
+            ))}
+          </div>
+          <button
+            type="button"
+            onClick={closeToast}
+            aria-label="Dismiss"
+            className="text-ash-dim border-0 bg-transparent p-0.5"
+            style={{ minWidth: 28, minHeight: 28 }}
+          >
+            <Close />
+          </button>
+        </div>
+      )}
+    </div>
+  )
 }
