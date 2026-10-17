@@ -59,6 +59,39 @@ const CURRENCIES: HeroCurrency[] = [
 	},
 ];
 
+/** Matches `.hero-coin-disc` insets (10% 14% 12%) in the 0–100 rail viewBox. */
+const COIN = { cx: 50, cy: 49, rx: 36, ry: 39 };
+
+/** Where the corridor line meets the coin — slightly past the rim so the stroke tucks under the PNG. */
+function rimOnCoin(chipX: number, chipY: number, overshoot = 1.04) {
+	const dx = COIN.cx - chipX;
+	const dy = COIN.cy - chipY;
+	const a =
+		(dx * dx) / (COIN.rx * COIN.rx) + (dy * dy) / (COIN.ry * COIN.ry);
+	const s = (1 - 1 / Math.sqrt(a)) * overshoot;
+	return {
+		x: chipX + dx * s,
+		y: chipY + dy * s,
+	};
+}
+
+function corridorPath(chipX: number, chipY: number) {
+	const rim = rimOnCoin(chipX, chipY);
+	const cx = chipX + (rim.x - chipX) * 0.42;
+	const cy = chipY + (rim.y - chipY) * 0.42;
+	return `M ${chipX} ${chipY} Q ${cx} ${cy} ${rim.x} ${rim.y}`;
+}
+
+/** Chip-side anchor in the rail viewBox (inner edge toward the coin). */
+const RAIL_ANCHORS: Record<string, { x: number; y: number }> = {
+	USD: { x: 7, y: 22 },
+	USDC: { x: 5, y: 42 },
+	MXN: { x: 7, y: 63 },
+	BRL: { x: 93, y: 24 },
+	COP: { x: 95, y: 44 },
+	ARS: { x: 93, y: 63 },
+};
+
 /** Hero coin with corridor currency chips wired into the coverage section. */
 export function HeroCoinStage() {
 	return (
@@ -74,12 +107,10 @@ export function HeroCoinStage() {
 				preserveAspectRatio="none"
 				aria-hidden="true"
 			>
-				<path d="M 4 22 Q 30 28 50 48" />
-				<path d="M 2 42 Q 28 44 50 50" />
-				<path d="M 5 64 Q 30 56 50 52" />
-				<path d="M 96 24 Q 70 30 50 48" />
-				<path d="M 98 44 Q 72 46 50 50" />
-				<path d="M 95 66 Q 70 58 50 52" />
+				{CURRENCIES.map((c) => {
+					const a = RAIL_ANCHORS[c.code];
+					return <path key={c.code} d={corridorPath(a.x, a.y)} />;
+				})}
 			</svg>
 			<div className="hero-coin-coin" aria-hidden="true">
 				<div className="hero-coin-disc" />

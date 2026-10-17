@@ -47,10 +47,14 @@ Install Ollama, run `ollama pull llama3.1:8b`, and start `ollama serve` unless i
 
 ```sh
 docker build -t tic-web .
-docker run -e API_ORIGIN=http://<api-host>:3000 -p 8080:3000 tic-web
+docker run -p 8080:3000 tic-web
 ```
 
 The image runs `bun run start` (srvx serving `dist/`); `API_ORIGIN` tells the server where to proxy `/api/*` and is read at request time (`PUBLIC_API_URL` is baked in at build time, dev only). From the hackathon root, `docker compose up -d --build` (see `../docker-compose.yml`) runs db + api + web at http://localhost:8080.
+
+For this demo, the image and Compose default `API_ORIGIN` to `https://geotropic-preseminal-syble.ngrok-free.dev`, which forwards to the laptop’s Corredor API on port 3000. The API talks to private Ollama on `http://localhost:11434`; Ollama itself is not tunneled. Keep the laptop, API, Ollama and `bun run tunnel:api` running. The proxy skips ngrok’s browser-warning page so browser requests receive API JSON.
+
+Set the API’s `WEB_ORIGIN` to the exact dashboard origin before hosting the web container on a different domain. Keep origin validation and authentication enabled. For a different backend, explicitly override the image’s `API_ORIGIN` at runtime.
 
 ## Screens
 
