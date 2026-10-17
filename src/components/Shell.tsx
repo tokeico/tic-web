@@ -1,19 +1,21 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { type ReactNode, useState } from "react";
 
+import { DEMO_FLEET } from "@/domain/ceo-demo";
 import { RULES } from "@/domain/data";
 import { TOUR_WHY } from "@/domain/demo-guide";
 import { activeRuleCount } from "@/domain/engine";
 import { fmtDate, iso } from "@/domain/format";
 import { seesDemo, signOut } from "@/lib/auth";
 import { useStore, VIEW_PATH, type ViewId } from "@/state/store";
+import { AgentTicker } from "./agents";
 import { FeatureGuide } from "./FeatureGuide";
 import { HelpHint } from "./HelpHint";
 import { Close, More, Swap } from "./icons";
 
 const TABS: [ViewId, string][] = [
 	["dashboard", "Dashboard"],
-	["agent", "Agent"],
+	["agent", "Agents"],
 	["inbox", "Inbox"],
 	["ledger", "Books"],
 ];
@@ -86,7 +88,7 @@ export function Shell({ children }: { children: ReactNode }) {
 								const on = pathname === VIEW_PATH[id];
 								const text =
 									id === "agent" && pending.length
-										? `Agent · ${pending.length}`
+										? `Agents · ${pending.length}`
 										: label;
 								return (
 									<button
@@ -136,6 +138,7 @@ export function Shell({ children }: { children: ReactNode }) {
 						</nav>
 					</div>
 					<div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2">
+						<AgentTicker fleet={DEMO_FLEET} />
 						<span
 							className="hidden max-w-[180px] truncate text-xs text-ash-dim xl:inline"
 							title={user.workspace.name}

@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
+import { count, KpiRow } from "@/components/agents";
 import { DetailPane } from "@/components/DetailPane";
 import { FileUp, More } from "@/components/icons";
 import { ManualInvoiceForm } from "@/components/ManualInvoiceForm";
 import { Card, Cc, RouteTag, StatusPill } from "@/components/ui";
 import { PAYOUTS } from "@/domain/data";
-import { eff, rname, views, warnIds } from "@/domain/engine";
-import { local, usd } from "@/domain/format";
+import { eff, rname, views, warnIds, wireSaving } from "@/domain/engine";
+import { local, usd, usd0 } from "@/domain/format";
 import { payLabel } from "@/domain/holds";
 import type { PayoutView } from "@/domain/types";
 import type { BatchResult } from "@/lib/api";
@@ -311,6 +312,7 @@ export function InboxPage() {
 
 				{s.loaded && (
 					<>
+						<InboxSummary vs={vs} />
 						{eligible.length > 0 && (
 							<div
 								className="flex flex-wrap items-center gap-2"
@@ -639,5 +641,55 @@ export function InboxPage() {
 				</div>
 			)}
 		</main>
+	);
+}
+
+/** What the agents have teed up: counts that tick up, money that rides on them. */
+function InboxSummary({ vs }: { vs: PayoutView[] }) {
+	const of = (...st: string[]) => vs.filter((v) => st.includes(v.status));
+	const sum = (list: PayoutView[]) => list.reduce((t, v) => t + v.p.usd, 0);
+	const ready = of("ready");
+	const second = of("awaiting_second_approver");
+	const stopped = of("security_hold", "blocked");
+	const open = vs.filter(
+		(v) => !["paid", "booked", "rejected"].includes(v.status),
+	);
+	const saving = open.reduce((t, v) => t + wireSaving(v), 0);
+	return (
+		<KpiRow
+			label="Inbox summary"
+			kpis={[
+				{
+					label: "Ready for you",
+					value: ready.length,
+					format: count,
+					sub: `${usd0(sum(ready))} routed and checked by the agents`,
+				},
+				{
+					label: "Awaiting 2nd approver",
+					value: second.length,
+					format: count,
+					sub: second.length
+						? `${usd0(sum(second))} over the approval threshold`
+						: "Nothing over the threshold",
+				},
+				{
+					label: "Stopped by agents",
+					value: stopped.length,
+					format: count,
+					sub: stopped.length
+						? `${usd0(sum(stopped))} held or blocked before release`
+						: "Every payout cleared screening",
+					tone: "coral",
+				},
+				{
+					label: "Routing saves",
+					value: saving,
+					format: usd0,
+					sub: `vs SWIFT on ${open.length} open payouts`,
+					tone: "jade",
+				},
+			]}
+		/>
 	);
 }

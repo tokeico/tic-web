@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { KpiRow } from "@/components/agents";
 import { Check, Swap } from "@/components/icons";
-import { views } from "@/domain/engine";
-import { num, usd } from "@/domain/format";
+import { feeUsd, views, wireSaving } from "@/domain/engine";
+import { num, usd, usd0 } from "@/domain/format";
 import { remotePayouts } from "@/domain/remote";
 import { filterTransactions, transactionsFrom } from "@/domain/transactions";
+import type { PayoutView } from "@/domain/types";
 import { useStore } from "@/state/store";
 
 export function ExplorerSection() {
@@ -52,6 +54,8 @@ export function ExplorerSection() {
 					<Swap /> {refreshing ? "Refreshing..." : "Refresh"}
 				</button>
 			</div>
+
+			<BooksSummary vs={remotePayouts() ? views(state) : []} />
 
 			<p className="explorer-notice">
 				Simulated payments are demo receipts, not on-chain transactions. Bank
@@ -279,5 +283,56 @@ function Reference({ label, value }: { label: string; value: string }) {
 				</span>
 			)}
 		</div>
+	);
+}
+
+/** The books at a glance: what left, what it cost, what routing saved, what matched. */
+function BooksSummary({ vs }: { vs: PayoutView[] }) {
+	const settled = vs.filter((v) => ["paid", "booked"].includes(v.status));
+	const booked = settled.filter((v) => v.status === "booked");
+	const paid = settled.reduce((t, v) => t + v.p.usd, 0);
+	const fees = settled.reduce((t, v) => {
+		const line = v.m.journal?.lines.find(
+			(l) => l.acct === "Bank & network fees",
+		);
+		return (
+			t +
+			(line ? (line.dr ?? 0) : v.plan.rec ? feeUsd(v.p, v.plan.rec.route) : 0)
+		);
+	}, 0);
+	const saved = settled.reduce((t, v) => t + wireSaving(v), 0);
+	return (
+		<KpiRow
+			label="Books summary"
+			kpis={[
+				{
+					label: "Paid out",
+					value: paid,
+					format: usd0,
+					sub: `${settled.length} payments`,
+				},
+				{
+					label: "Fees paid",
+					value: fees,
+					format: usd0,
+					sub: paid
+						? `${((fees / paid) * 100).toFixed(2)}% of volume`
+						: "No payments yet",
+				},
+				{
+					label: "Saved vs SWIFT",
+					value: saved,
+					format: usd0,
+					sub: "chosen by the Router agent",
+					tone: "jade",
+				},
+				{
+					label: "Auto-matched",
+					value: settled.length ? (booked.length / settled.length) * 100 : 0,
+					format: (n) => `${Math.round(n)}%`,
+					sub: `${booked.length} of ${settled.length} reconciled and booked`,
+				},
+			]}
+		/>
 	);
 }

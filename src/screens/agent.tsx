@@ -1,12 +1,14 @@
 import { type ReactNode, useMemo } from "react";
+import { AgentCard, Stream } from "@/components/agents";
 import { ToolArrow } from "@/components/icons";
 import { Card, Lab, RuleRef } from "@/components/ui";
 import { SUGGESTIONS } from "@/domain/agent";
+import { DEMO_FLEET, DEMO_STREAM } from "@/domain/ceo-demo";
 import { cite } from "@/domain/data";
 import { approvedUsd, need, views } from "@/domain/engine";
 import { uniq } from "@/domain/format";
 import type { AgentAction, AgentMessage, PayoutView } from "@/domain/types";
-import { hasMemberApproved } from "@/lib/auth";
+import { hasMemberApproved, seesDemo } from "@/lib/auth";
 import { useStore } from "@/state/store";
 
 const AUTONOMY_LABEL = {
@@ -16,11 +18,13 @@ const AUTONOMY_LABEL = {
 };
 
 /**
- * The agent view. Everything the agent wants done lands in the queue on the
- * right, where a person confirms it — the agent has no tool that moves money.
+ * The agents view: the fleet and what it is doing up top, the conversation
+ * below, and everything the agents want done in the queue on the right, where
+ * a person confirms it. No agent has a tool that moves money.
  */
 export function AgentPage() {
-	const { state: s, go, setInput, ask, startTour, loadDemo } = useStore();
+	const { state: s, go, setInput, ask, startTour, loadDemo, user } = useStore();
+	const demo = seesDemo(user);
 	const pending = s.actions.filter((a) => a.status === "pending");
 	const history = s.actions
 		.filter((a) => a.status !== "pending")
@@ -43,11 +47,11 @@ export function AgentPage() {
 								fontSize: 26,
 							}}
 						>
-							Corredor agent
+							Your agents
 						</h1>
 						<span className="text-ash-dim" style={{ fontSize: 13.5 }}>
-							Reads invoices and the engine’s results, explains with sources,
-							prepares actions. It has no tool that moves money.
+							Six agents read, screen, route and reconcile. They explain with
+							sources and prepare actions; none of them can move money.
 						</span>
 					</div>
 					<div className="flex flex-wrap items-center gap-2">
@@ -82,6 +86,18 @@ export function AgentPage() {
 							Change
 						</button>
 					</div>
+				</div>
+
+				<div
+					role="list"
+					aria-label="The agent fleet"
+					className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3"
+				>
+					{DEMO_FLEET.map((agent, i) => (
+						<div role="listitem" key={agent.id} className="flex min-w-0">
+							<AgentCard agent={agent} index={i} />
+						</div>
+					))}
 				</div>
 
 				<div className="flex flex-col rounded-lg border border-edge bg-panel">
@@ -218,6 +234,16 @@ export function AgentPage() {
 				{pending.map((a) => (
 					<QueueCard key={a.id} a={a} vs={vs} />
 				))}
+
+				{demo && (
+					<Card style={{ gap: 8 }}>
+						<div className="flex items-center justify-between gap-2">
+							<Lab>Live agent activity</Lab>
+							<span className="live-dot" aria-hidden="true" />
+						</div>
+						<Stream items={DEMO_STREAM} loop compact />
+					</Card>
+				)}
 
 				{history.length > 0 && (
 					<Card style={{ gap: 6 }}>

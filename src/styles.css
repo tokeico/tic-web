@@ -1794,6 +1794,8 @@
   }
 
   .agent-card {
+    flex: 1 1 auto;
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -2108,5 +2110,57 @@
   .route-hero-none {
     background: var(--color-sunk);
     border-color: var(--color-edge);
+  }
+}
+
+/* the top bar's agent pulse --------------------------------------------- */
+@layer components {
+  .agent-ticker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    max-width: 420px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in oklab, var(--color-jade) 22%, var(--color-edge));
+    background: color-mix(in oklab, var(--color-jade) 6%, transparent);
+    font-size: 12.5px;
+    color: var(--color-ash);
+    white-space: nowrap;
+  }
+  .agent-ticker-count {
+    color: var(--color-jade);
+    font-weight: 500;
+  }
+  .agent-ticker-now {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 8px;
+    border-left: 1px solid var(--color-edge-strong);
+    font: 12px/1.2 var(--font-mono);
+    color: var(--color-ash-dim);
+    animation: stream-in 0.45s ease-out both;
+  }
+  .agent-ticker-now strong {
+    color: var(--color-bone);
+    font-weight: 600;
+  }
+  @media (max-width: 1279px) {
+    .agent-ticker-now {
+      display: none;
+    }
+  }
+  .stream-compact .stream-row {
+    grid-template-columns: minmax(0, 1fr) 40px;
+  }
+  .stream-compact .stream-row > .act {
+    grid-column: 1 / -1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agent-ticker-now {
+    animation: none;
   }
 }

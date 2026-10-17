@@ -1,9 +1,15 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
+import {
+	AgentCard,
+	type Kpi,
+	KpiTile,
+	Stream,
+	Typewriter,
+} from "@/components/agents";
 import { CorridorMap } from "@/components/CorridorMap";
 import { Lab } from "@/components/ui";
 import { actorOf } from "@/domain/audit";
 import {
-	type AgentKind,
 	DEMO_CORRIDORS,
 	DEMO_ESCALATIONS,
 	DEMO_FLEET,
@@ -32,17 +38,7 @@ import { useStore, type ViewId } from "@/state/store";
  * own workspace, computed live.
  */
 
-type Kpi = {
-	label: string;
-	value: number;
-	format: (n: number) => string;
-	sub: string;
-	spark?: number[];
-	tone?: "jade" | "coral";
-};
 type Escalation = { tag: string; text: string; view: ViewId };
-type StreamItem = StreamTemplate & { key: number };
-
 interface CeoModel {
 	demo: boolean;
 	months: MonthRow[];
@@ -256,74 +252,6 @@ function liveModel(store: ReturnType<typeof useStore>): CeoModel {
 
 /* --- motion helpers -------------------------------------------------- */
 
-function useReducedMotion() {
-	const [reduced, setReduced] = useState(false);
-	useEffect(() => {
-		const q = window.matchMedia("(prefers-reduced-motion: reduce)");
-		setReduced(q.matches);
-		const on = () => setReduced(q.matches);
-		q.addEventListener("change", on);
-		return () => q.removeEventListener("change", on);
-	}, []);
-	return reduced;
-}
-
-function useCountUp(target: number, ms = 1100) {
-	const reduced = useReducedMotion();
-	const [value, setValue] = useState(0);
-	useEffect(() => {
-		if (reduced) {
-			setValue(target);
-			return;
-		}
-		let frame = 0;
-		const start = performance.now();
-		const tick = (now: number) => {
-			const k = Math.min(1, (now - start) / ms);
-			setValue(target * (1 - (1 - k) ** 3));
-			if (k < 1) frame = requestAnimationFrame(tick);
-		};
-		frame = requestAnimationFrame(tick);
-		return () => cancelAnimationFrame(frame);
-	}, [target, ms, reduced]);
-	return value;
-}
-
-/** Types the text out like the agent is writing it now. */
-function Typewriter({ text, speed = 14 }: { text: string; speed?: number }) {
-	const reduced = useReducedMotion();
-	const [n, setN] = useState(0);
-	useEffect(() => {
-		setN(0);
-		if (reduced) {
-			setN(text.length);
-			return;
-		}
-		const id = setInterval(
-			() =>
-				setN((k) => {
-					if (k >= text.length) {
-						clearInterval(id);
-						return k;
-					}
-					return k + 2;
-				}),
-			speed,
-		);
-		return () => clearInterval(id);
-	}, [text, speed, reduced]);
-	const done = n >= text.length;
-	return (
-		<span>
-			<span className="sr-only">{text}</span>
-			<span aria-hidden="true">
-				{text.slice(0, n)}
-				{!done && <span className="caret" />}
-			</span>
-		</span>
-	);
-}
-
 function useWidth<T extends HTMLElement>(fallback: number) {
 	const ref = useRef<T>(null);
 	const [width, setWidth] = useState(fallback);
@@ -340,86 +268,6 @@ function useWidth<T extends HTMLElement>(fallback: number) {
 }
 
 /* --- pieces ------------------------------------------------------------ */
-
-const ACT_CLS: Record<AgentKind | "Human", string> = {
-	AI: "act act-ai",
-	Code: "act act-code",
-	"AI + Code": "act act-ai",
-	Human: "act act-human",
-};
-
-/** Stretches to the room its tile has; the end dot stays round. */
-function Spark({ values, tone }: { values: number[]; tone?: Kpi["tone"] }) {
-	const w = 112;
-	const h = 30;
-	const max = Math.max(...values, 1);
-	const pts = values.map(
-		(v, i) =>
-			[(i / (values.length - 1)) * w, h - 3 - (v / max) * (h - 6)] as const,
-	);
-	const last = pts[pts.length - 1];
-	return (
-		<span className="relative block h-[30px] w-full">
-			<svg
-				width="100%"
-				height={h}
-				viewBox={`0 0 ${w} ${h}`}
-				preserveAspectRatio="none"
-				aria-hidden="true"
-				className="block overflow-visible"
-			>
-				<polyline
-					points={pts.map((p) => p.join(",")).join(" ")}
-					fill="none"
-					stroke="var(--color-ash-faint)"
-					strokeWidth={1.5}
-					strokeLinejoin="round"
-					strokeLinecap="round"
-					vectorEffect="non-scaling-stroke"
-				/>
-			</svg>
-			<span
-				aria-hidden="true"
-				className="absolute size-1.5 rounded-full"
-				style={{
-					right: -3,
-					top: last[1] - 3,
-					background: tone ? `var(--color-${tone})` : "var(--color-bone)",
-				}}
-			/>
-		</span>
-	);
-}
-
-function KpiTile({ kpi }: { kpi: Kpi }) {
-	const shown = useCountUp(kpi.value);
-	return (
-		<div className="kpi ceo-kpi">
-			<Lab>{kpi.label}</Lab>
-			<div className="kpi-val flex items-end justify-between gap-2">
-				<span
-					className="mono flex-none"
-					style={{
-						fontWeight: 600,
-						fontSize: "clamp(18px, 14cqi, 34px)",
-						lineHeight: 1.05,
-						fontVariantNumeric: "tabular-nums",
-					}}
-				>
-					{kpi.format(shown)}
-				</span>
-				{kpi.spark && (
-					<span className="kpi-spark">
-						<Spark values={kpi.spark} tone={kpi.tone} />
-					</span>
-				)}
-			</div>
-			<span className="text-ash-dim" style={{ fontSize: 12.5 }}>
-				{kpi.sub}
-			</span>
-		</div>
-	);
-}
 
 function VolumeChart({ months }: { months: MonthRow[] }) {
 	const [ref, width] = useWidth<HTMLDivElement>(720);
@@ -607,121 +455,147 @@ function VolumeChart({ months }: { months: MonthRow[] }) {
 	);
 }
 
-function AgentCard({ agent, index }: { agent: FleetAgent; index: number }) {
-	const [k, setK] = useState(0);
-	useEffect(() => {
-		if (agent.now.length < 2) return;
-		let id: ReturnType<typeof setInterval> | undefined;
-		const start = setTimeout(() => {
-			id = setInterval(() => setK((n) => n + 1), 4200);
-		}, index * 650);
-		return () => {
-			clearTimeout(start);
-			clearInterval(id);
-		};
-	}, [agent.now.length, index]);
-	const now = agent.now.length ? agent.now[k % agent.now.length] : null;
-	return (
-		<div className="agent-card">
-			<div className="flex items-center justify-between gap-2">
-				<span className="flex items-center gap-2">
-					<span className="agent-dot" aria-hidden="true" />
-					<span className="display" style={{ fontSize: 18 }}>
-						{agent.name}
-					</span>
-				</span>
-				<span className={ACT_CLS[agent.kind]}>{agent.kind}</span>
-			</div>
-			<span className="text-ash-dim" style={{ fontSize: 12.5 }}>
-				{agent.job}
-			</span>
-			{now && (
-				<div className="agent-now" key={k}>
-					<span className="agent-eq" aria-hidden="true">
-						<i />
-						<i />
-						<i />
-					</span>
-					<span>{now}</span>
-				</div>
-			)}
-			{agent.sub && (
-				<div className="mt-auto flex flex-col gap-0.5 border-t border-edge-soft pt-2">
-					<span className="mono" style={{ fontWeight: 600, fontSize: 15 }}>
-						{agent.stat}
-					</span>
-					<span className="text-ash-dim" style={{ fontSize: 12 }}>
-						{agent.sub}
-					</span>
-				</div>
-			)}
-		</div>
+type Intent = { keys: string[]; a: string };
+
+/** What the briefing can answer, keyed by the words a person might use. */
+function intentsFor(m: CeoModel): Intent[] {
+	const qa = (re: RegExp) => m.qa.find((x) => re.test(x.q))?.a;
+	const list: Intent[] = [];
+	const add = (keys: string[], a: string | undefined) => {
+		if (a) list.push({ keys, a });
+	};
+	add(["save", "saving", "swift", "fee", "cost", "cheap"], qa(/save/i));
+	add(
+		[
+			"where",
+			"corridor",
+			"country",
+			"countries",
+			"mexico",
+			"brazil",
+			"colombia",
+			"argentina",
+			"venezuela",
+		],
+		qa(/where/i),
 	);
+	add(
+		[
+			"stop",
+			"fraud",
+			"threat",
+			"sentinel",
+			"protect",
+			"hold",
+			"duplicate",
+			"inject",
+			"scam",
+		],
+		qa(/stop/i),
+	);
+	add(
+		[
+			"expos",
+			"risk",
+			"complian",
+			"sanction",
+			"ofac",
+			"audit",
+			"safe",
+			"regulat",
+			"rule",
+		],
+		qa(/expos/i),
+	);
+	if (m.demo) {
+		const t = DEMO_TOTALS;
+		const [aug, sep, oct] = [DEMO_MONTHS[9], DEMO_MONTHS[10], DEMO_MONTHS[11]];
+		add(
+			[
+				"volume",
+				"paid",
+				"pay",
+				"grow",
+				"trend",
+				"month",
+				"september",
+				"october",
+				"spend",
+			],
+			`${usd0(t.volume)} paid across ${t.payouts.toLocaleString("en-US")} payouts in the last 12 months. September was the biggest month at ${usd0(sep.volume)}, ${delta(sep.volume, aug.volume)} on August, and October is on pace for ${usd0(paceOf(oct))}.`,
+		);
+		add(
+			[
+				"agent",
+				"fleet",
+				"who",
+				"intake",
+				"router",
+				"radar",
+				"reconcil",
+				"automat",
+			],
+			`Six agents run the pipeline: ${DEMO_FLEET.map((a) => `${a.name}, ${a.stat.toLowerCase()}`).join("; ")}. They read, screen, route and reconcile. A person approves every release.`,
+		);
+		add(
+			["wait", "approv", "decision", "pending", "todo", "attention"],
+			m.escalations.length
+				? `${m.escalations.length} decisions are waiting on people: ${m.escalations.map((e) => e.text).join("; ")}.`
+				: "Nothing is waiting on a person right now.",
+		);
+		add(
+			[
+				"cash",
+				"commit",
+				"upcoming",
+				"next week",
+				"release",
+				"runway",
+				"liquid",
+			],
+			`${usd0(t.committed30)} is committed over the next 30 days, ${usd0(t.committed7)} of it in the next 7. Nothing leaves without an approval on record.`,
+		);
+		add(
+			["time", "fast", "settle", "minute", "speed", "quick", "slow"],
+			`Stablecoin routes settle in a median ${DEMO_SETTLE_MIN} minutes, against about 2 days by SWIFT wire. ${pct(oct.stable)} of volume now goes that way.`,
+		);
+	}
+	return list;
 }
 
-const TONE_CLS: Record<StreamTone, string> = {
-	ok: "stream-ok",
-	warn: "stream-warn",
-	bad: "stream-bad",
-	human: "stream-human",
-};
+const FALLBACK =
+	"I answer from this dashboard's numbers: savings, volume, corridors, what Sentinel stopped, compliance exposure, cash committed, settlement time and what's waiting on people. For a specific payout, ask on the Agents page.";
 
-/** In the demo the feed keeps arriving; live, it shows the latest audit events. */
-function Stream({ items, loop }: { items: StreamTemplate[]; loop: boolean }) {
-	const reduced = useReducedMotion();
-	const [feed, setFeed] = useState<StreamItem[]>(() =>
-		items.slice(0, 6).map((t, i) => ({ ...t, key: i })),
-	);
-	const [ages, setAges] = useState<number[]>(() =>
-		loop ? [2, 7, 13, 21, 30, 42] : [],
-	);
-	useEffect(() => {
-		if (!loop || reduced || items.length === 0) return;
-		let n = 6;
-		const id = setInterval(() => {
-			const next = { ...items[n % items.length], key: n };
-			n += 1;
-			setFeed((f) => [next, ...f].slice(0, 7));
-			setAges((a) => [0, ...a.map((s) => s + 3)].slice(0, 7));
-		}, 3000);
-		return () => clearInterval(id);
-	}, [items, loop, reduced]);
-	if (!feed.length)
-		return (
-			<p className="m-0 text-ash-dim" style={{ fontSize: 14 }}>
-				No agent activity yet.
-			</p>
-		);
-	return (
-		<ol className="m-0 flex list-none flex-col p-0" aria-live="off">
-			{feed.map((e, i) => (
-				<li key={e.key} className={`stream-row ${TONE_CLS[e.tone]}`}>
-					<span className={ACT_CLS[e.kind]}>{e.agent}</span>
-					<span className="min-w-0" style={{ fontSize: 13.5 }}>
-						{e.text}
-					</span>
-					<span className="mono text-ash-faint" style={{ fontSize: 11.5 }}>
-						{loop
-							? i < ages.length
-								? ages[i] === 0
-									? "now"
-									: `${ages[i]}s`
-								: "earlier"
-							: ""}
-					</span>
-				</li>
-			))}
-		</ol>
-	);
+/** The topic whose words the question uses most; ties go to the earlier one. */
+function answerFor(q: string, intents: Intent[]) {
+	const text = q.toLowerCase();
+	let best: Intent | null = null;
+	let bestScore = 0;
+	for (const intent of intents) {
+		const score = intent.keys.filter((k) =>
+			new RegExp(`\\b${k}`).test(text),
+		).length;
+		if (score > bestScore) {
+			best = intent;
+			bestScore = score;
+		}
+	}
+	return best ? best.a : FALLBACK;
 }
 
 function Briefing({ model }: { model: CeoModel }) {
-	const [asked, setAsked] = useState<number | null>(null);
+	const intents = useMemo(() => intentsFor(model), [model]);
+	const [answer, setAnswer] = useState<{
+		q: string;
+		a: string;
+		n: number;
+	} | null>(null);
+	const [input, setInput] = useState("");
 	const [thinking, setThinking] = useState(false);
 	const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
 	useEffect(() => () => clearTimeout(timer.current), []);
-	const ask = (i: number) => {
-		setAsked(i);
+	const ask = (q: string, a: string) => {
+		setAnswer((prev) => ({ q, a, n: (prev?.n ?? 0) + 1 }));
 		setThinking(true);
 		clearTimeout(timer.current);
 		timer.current = setTimeout(() => setThinking(false), 900);
@@ -742,27 +616,60 @@ function Briefing({ model }: { model: CeoModel }) {
 			</p>
 			<div className="flex flex-col gap-2 border-t border-edge-soft pt-3">
 				<Lab>Ask your agents</Lab>
+				<form
+					className="flex gap-2"
+					onSubmit={(e) => {
+						e.preventDefault();
+						const q = input.trim();
+						if (!q) return;
+						ask(q, answerFor(q, intents));
+						setInput("");
+					}}
+				>
+					<label htmlFor="ceo-ask" className="sr-only">
+						Ask your agents
+					</label>
+					<input
+						id="ceo-ask"
+						className="inp"
+						value={input}
+						onChange={(e) => setInput(e.target.value)}
+						placeholder="Ask anything about the numbers: savings, risk, cash, corridors…"
+						autoComplete="off"
+						maxLength={200}
+					/>
+					<button
+						type="submit"
+						className="btn btn-primary flex-none"
+						disabled={!input.trim()}
+					>
+						Ask
+					</button>
+				</form>
 				<div className="flex flex-wrap gap-2">
-					{model.qa.map((qa, i) => (
+					{model.qa.map((qa) => (
 						<button
 							key={qa.q}
 							type="button"
-							className={`sugg${asked === i ? " sugg-on" : ""}`}
-							aria-pressed={asked === i}
-							onClick={() => ask(i)}
+							className={`sugg${answer?.q === qa.q ? " sugg-on" : ""}`}
+							aria-pressed={answer?.q === qa.q}
+							onClick={() => ask(qa.q, qa.a)}
 						>
 							{qa.q}
 						</button>
 					))}
 				</div>
-				{asked != null && (
-					<div className="answer" aria-live="polite">
+				{answer && (
+					<div className="answer flex flex-col gap-1.5" aria-live="polite">
+						<span className="text-ash-dim" style={{ fontSize: 12.5 }}>
+							{answer.q}
+						</span>
 						{thinking ? (
 							<span className="shimmer">
 								Consulting Router, Sentinel and the ledger…
 							</span>
 						) : (
-							<Typewriter key={asked} text={model.qa[asked].a} speed={10} />
+							<Typewriter key={answer.n} text={answer.a} speed={10} />
 						)}
 					</div>
 				)}
