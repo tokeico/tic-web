@@ -113,11 +113,11 @@ export function LandingPage() {
 						className="hidden flex-wrap items-center gap-7 md:flex"
 					>
 						<Link
-							to="/app"
+							to="/signin"
 							className="text-ash no-underline hover:text-bone"
 							style={{ fontSize: 14.5 }}
 						>
-							Product
+							Sign in
 						</Link>
 						{["How it works", "Coverage", "Security"].map((l) => (
 							<a
@@ -131,8 +131,8 @@ export function LandingPage() {
 						))}
 					</nav>
 
-					<Link to="/app" className="btn btn-primary lp-pill-cta no-underline">
-						Open the live demo →
+					<Link to="/signup" className="btn btn-primary lp-pill-cta no-underline">
+						Create account
 					</Link>
 				</header>
 

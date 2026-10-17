@@ -53,23 +53,23 @@ export function AuthPage({
 				<Link to="/" className="display text-2xl text-bone no-underline">
 					Corredor
 				</Link>
-				<h1 className="display m-0 text-4xl leading-tight">
+				<h1 className="display m-0 text-3xl leading-tight lg:text-4xl">
 					{registering
 						? "Your compliance workspace starts here."
 						: "Back to your compliance workspace."}
 				</h1>
-				<p className="m-0 max-w-[55ch] text-ash">
+				<p className="m-0 hidden max-w-[55ch] text-ash lg:block">
 					Review who you pay, understand the rules, and keep the evidence behind
 					every decision. Agent explains. A person decides.
 				</p>
-				<p className="m-0 text-sm text-ash">
+				<p className={`m-0 text-sm text-ash${invitation ? "" : " hidden lg:block"}`}>
 					{invitation
 						? "You’ve been invited to an existing workspace. Use the email address on your invitation."
 						: "Each new account gets a separate workspace with fictional demo invoices. Your data and decisions are not shared with other visitors."}
 				</p>
 				<p className="m-0 text-sm text-ash">
-					Creating an account does not verify your identity or business.
-					Payments and identity-verification examples are simulated.
+					Sign-up is account access, not KYC. This sandbox uses fictional data
+					and simulated payments.
 				</p>
 			</section>
 			<section

@@ -1,7 +1,11 @@
 import { createServerOnlyFn } from "@tanstack/react-start";
 
 export const apiOrigin = createServerOnlyFn(() => {
-	const url = new URL(process.env.PUBLIC_API_URL ?? "http://localhost:3000");
+	const url = new URL(
+		process.env.API_ORIGIN ??
+			process.env.PUBLIC_API_URL ??
+			"http://localhost:3000",
+	);
 	if (!["http:", "https:"].includes(url.protocol))
 		throw new Error("Invalid API origin.");
 	return url.origin;
