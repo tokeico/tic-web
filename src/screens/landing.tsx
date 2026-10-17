@@ -11,7 +11,6 @@ import {
 	WarnTriangle,
 } from "@/components/icons";
 import { CoverageGlobe } from "@/components/landing/CoverageGlobe";
-import { HeroCoin } from "@/components/landing/HeroCoin";
 import { payoutById } from "@/domain/data";
 import { type EngineState, plan, rname } from "@/domain/engine";
 import { iso, mins, usd } from "@/domain/format";
@@ -126,10 +125,10 @@ export function LandingPage() {
 					</nav>
 
 					<Link
-						to="/signup"
+						to="/dashboard"
 						className="btn btn-primary lp-pill-cta no-underline"
 					>
-						Create account
+						Get Started →
 					</Link>
 				</header>
 
@@ -158,10 +157,10 @@ export function LandingPage() {
 						</p>
 						<div className="flex flex-wrap gap-3">
 							<Link
-								to="/app"
+								to="/dashboard"
 								className="btn btn-primary lp-pill-cta no-underline"
 							>
-								Open the live demo →
+								Get Started →
 							</Link>
 							<a href="#how-it-works" className="btn lp-pill-cta no-underline">
 								See how it works
@@ -418,10 +417,10 @@ export function LandingPage() {
 								money.
 							</span>
 							<Link
-								to="/app"
+								to="/dashboard"
 								className="btn btn-primary lp-pill-cta no-underline"
 							>
-								Open the live demo →
+								Get Started →
 							</Link>
 						</div>
 					</div>
@@ -457,11 +456,17 @@ export function LandingPage() {
 	);
 }
 
-/** The hero artwork: the Corredor token, lit in the page. */
+/** The hero artwork: the Corredor token with the rails wired into it. */
 function CoinStage() {
 	return (
-		<div className="relative">
-			<HeroCoin />
+		<div className="relative origin-left lg:scale-[1.12]">
+			<img
+				className="hero-art"
+				src="/hero-coin.png"
+				width={888}
+				height={460}
+				alt="The Corredor token, a gold coin struck with a running horse, wired to USD, USDC and MXN on one side and BRL, COP and ARS on the other."
+			/>
 		</div>
 	);
 }

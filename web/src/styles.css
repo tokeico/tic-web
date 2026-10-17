@@ -1,0 +1,783 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Corredor design tokens — black ground, volt accent.
+
+   One rule holds the system together: VOLT marks the engine's chosen path and
+   the action a person takes on it (recommended route, primary buttons, the
+   as-of control). Compliance outcomes never borrow it — pass is jade, warning
+   is amber, blocked is coral — so on any screen the yellow is the thing to act
+   on, and the semantics stay readable next to it.
+--------------------------------------------------------------------------- */
+@theme {
+  --font-sans: "Figtree", -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --font-display: "Poppins", "Figtree", sans-serif;
+
+  /* grounds — near-black, biased a few degrees green so it agrees with volt */
+  --color-void: #080a07;
+  --color-panel: #0f120e;
+  --color-raise: #161a13;
+  --color-head: #12150f;
+  --color-sunk: #0b0d0a;
+
+  /* hairlines */
+  --color-edge-soft: #1c2018;
+  --color-edge: #262b21;
+  --color-edge-strong: #343a2c;
+  --color-edge-input: #3a4131;
+  --color-edge-bright: #4a5340;
+
+  /* text */
+  --color-bone: #f1f4ea;
+  --color-ash: #b6bea9;
+  --color-ash-dim: #8d9683;
+  --color-ash-faint: #6b7463;
+
+  /* accent: the chosen path, and acting on it.
+     Sampled from the Corredor brand artwork (the "Get early access" yellow). */
+  --color-volt: #ecf038;
+  --color-volt-bright: #f6fa73;
+  --color-volt-deep: #a8ad28;
+  --color-volt-ink: #0a0c06;
+
+  /* compliance semantics, kept clear of the accent */
+  --color-jade: #3ddc97;
+  --color-amber: #ffb224;
+  --color-coral: #ff6a5a;
+  --color-coral-solid: #e04a3c;
+  --color-coral-deep: #b8352a;
+
+  /* the Code actor tag */
+  --color-slate: #9fb4d4;
+}
+
+@layer base {
+  :root {
+    /* Dark-committed design: native controls, scrollbars and form widgets
+       follow, and the range slider inherits the accent. */
+    color-scheme: dark;
+    accent-color: var(--color-volt);
+  }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(
+        120% 60% at 50% -10%,
+        color-mix(in oklab, var(--color-volt) 7%, transparent) 0%,
+        transparent 60%
+      ),
+      var(--color-void);
+    background-attachment: fixed;
+    color: var(--color-bone);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: var(--color-volt);
+    text-underline-offset: 2px;
+  }
+  a:hover {
+    color: var(--color-volt-bright);
+  }
+  button {
+    font: inherit;
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid var(--color-volt);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--color-volt) 30%, transparent);
+    color: var(--color-bone);
+  }
+}
+
+@layer components {
+  /* status pills — translucent tints, never flat pastel fills ----------- */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font: 500 12.5px/1.2 var(--font-sans);
+    padding: 5px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+  .p-ok {
+    background: color-mix(in oklab, var(--color-jade) 14%, transparent);
+    color: var(--color-jade);
+    border-color: color-mix(in oklab, var(--color-jade) 24%, transparent);
+  }
+  .p-warn {
+    background: color-mix(in oklab, var(--color-amber) 14%, transparent);
+    color: var(--color-amber);
+    border-color: color-mix(in oklab, var(--color-amber) 24%, transparent);
+  }
+  .p-bad {
+    background: color-mix(in oklab, var(--color-coral) 14%, transparent);
+    color: var(--color-coral);
+    border-color: color-mix(in oklab, var(--color-coral) 26%, transparent);
+  }
+  .p-neutral {
+    background: var(--color-raise);
+    color: var(--color-ash);
+    border-color: var(--color-edge);
+  }
+  .p-muted {
+    background: transparent;
+    color: var(--color-ash-dim);
+    border-color: var(--color-edge);
+  }
+
+  /* mono tags ----------------------------------------------------------- */
+  .chip {
+    display: inline-block;
+    max-width: 100%;
+    font: 500 12px/1.2 var(--font-mono);
+    padding: 4px 7px;
+    border-radius: 4px;
+    background: var(--color-raise);
+    color: var(--color-ash);
+    border: 1px solid var(--color-edge-soft);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tool {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font: 400 11.5px/1.2 var(--font-mono);
+    padding: 3px 7px;
+    border-radius: 4px;
+    background: var(--color-sunk);
+    color: var(--color-ash-dim);
+    border: 1px solid var(--color-edge-soft);
+  }
+  .cc {
+    display: inline-block;
+    font: 600 11.5px/1 var(--font-mono);
+    padding: 4px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--color-edge-bright);
+    color: var(--color-ash);
+    letter-spacing: 0.04em;
+  }
+  .lab {
+    font: 500 11px/1.2 var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ash-dim);
+  }
+  .mono {
+    font-family: var(--font-mono);
+  }
+
+  /* headings and the wordmark: geometric, tight, set in the display face */
+  .display {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+  .display-hero {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.03em;
+  }
+
+  /* who-did-what actor tags — three distinct voices, none of them volt --- */
+  .act {
+    display: inline-block;
+    font: 600 10.5px/1 var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .act-ai {
+    background: color-mix(in oklab, var(--color-jade) 14%, transparent);
+    color: var(--color-jade);
+  }
+  .act-code {
+    background: color-mix(in oklab, var(--color-slate) 14%, transparent);
+    color: var(--color-slate);
+  }
+  .act-human {
+    background: color-mix(in oklab, var(--color-amber) 14%, transparent);
+    color: var(--color-amber);
+  }
+
+  /* rule citation — a reference, not an action, so it stays quiet until hover */
+  .ruleref {
+    display: inline-block;
+    font: 500 12px/1.2 var(--font-mono);
+    padding: 3px 7px;
+    border-radius: 4px;
+    background: var(--color-raise);
+    color: var(--color-bone);
+    border: 1px solid var(--color-edge);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .ruleref:hover {
+    border-color: var(--color-volt);
+    color: var(--color-volt);
+  }
+
+  /* buttons ------------------------------------------------------------- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 8px;
+    border: 1px solid var(--color-edge-strong);
+    background: var(--color-raise);
+    color: var(--color-bone);
+    font-weight: 500;
+    font-size: 14px;
+    text-decoration: none;
+    transition: border-color 0.12s ease, color 0.12s ease, background 0.12s ease;
+  }
+  .btn:hover:not(:disabled) {
+    border-color: var(--color-volt);
+    color: var(--color-volt);
+  }
+  .btn-primary {
+    background: var(--color-volt);
+    border-color: var(--color-volt);
+    color: var(--color-volt-ink);
+    font-weight: 600;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-volt-bright);
+    border-color: var(--color-volt-bright);
+    color: var(--color-volt-ink);
+  }
+  .btn-danger {
+    color: var(--color-coral);
+    border-color: color-mix(in oklab, var(--color-coral) 40%, transparent);
+  }
+  .btn-danger:hover:not(:disabled) {
+    border-color: var(--color-coral);
+    color: var(--color-coral);
+  }
+  .btn-dangerfill {
+    background: var(--color-coral-solid);
+    border-color: var(--color-coral-solid);
+    color: #fff;
+  }
+  .btn-dangerfill:hover:not(:disabled) {
+    background: var(--color-coral-deep);
+    border-color: var(--color-coral-deep);
+    color: #fff;
+  }
+  .btn-sm {
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+
+  /* date jumps — inputs to the engine, so the active one takes volt ------ */
+  .jump {
+    min-height: 36px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: 1px solid var(--color-edge-strong);
+    background: var(--color-raise);
+    color: var(--color-ash);
+    font: 500 12.5px/1 var(--font-mono);
+  }
+  .jump:hover {
+    border-color: var(--color-volt);
+    color: var(--color-volt);
+  }
+  .jump-on {
+    background: var(--color-volt);
+    border-color: var(--color-volt);
+    color: var(--color-volt-ink);
+  }
+  .jump-on:hover {
+    background: var(--color-volt-bright);
+    border-color: var(--color-volt-bright);
+    color: var(--color-volt-ink);
+  }
+
+  .seg {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    text-align: left;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--color-edge);
+    background: var(--color-raise);
+    color: var(--color-bone);
+    min-height: 44px;
+    flex: 1 1 180px;
+  }
+  .seg:hover {
+    border-color: var(--color-edge-bright);
+  }
+  .seg-on {
+    border: 1px solid var(--color-volt);
+    background: color-mix(in oklab, var(--color-volt) 8%, transparent);
+    box-shadow: inset 2px 0 0 var(--color-volt);
+  }
+
+  /* nav: selection is not an action, so it tints rather than fills ------- */
+  .tab {
+    min-height: 40px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-ash-dim);
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .tab:hover {
+    background: var(--color-raise);
+    color: var(--color-bone);
+  }
+  .tab-on {
+    background: color-mix(in oklab, var(--color-volt) 12%, transparent);
+    color: var(--color-volt);
+  }
+  .tab-on:hover {
+    background: color-mix(in oklab, var(--color-volt) 16%, transparent);
+    color: var(--color-volt);
+  }
+
+  .sugg {
+    min-height: 36px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--color-edge);
+    background: var(--color-panel);
+    color: var(--color-ash);
+    font-size: 13.5px;
+    text-align: left;
+  }
+  .sugg:hover:not(:disabled) {
+    border-color: var(--color-volt);
+    color: var(--color-volt);
+  }
+
+  /* containers ---------------------------------------------------------- */
+  .card {
+    background: var(--color-panel);
+    border: 1px solid var(--color-edge);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .stage {
+    background: var(--color-panel);
+    border: 1px solid var(--color-edge);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+  .kpi {
+    background: var(--color-panel);
+    border: 1px solid var(--color-edge);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  /* inbox table rows ---------------------------------------------------- */
+  .row {
+    display: grid;
+    grid-template-columns:
+      minmax(190px, 1.9fr) minmax(120px, 1.2fr) minmax(180px, 1.9fr)
+      minmax(150px, 1.4fr) 76px 78px;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--color-edge-soft);
+  }
+  .row:hover {
+    background: var(--color-raise);
+  }
+  .row-sel,
+  .row-sel:hover {
+    background: color-mix(in oklab, var(--color-volt) 7%, transparent);
+    box-shadow: inset 2px 0 0 var(--color-volt);
+  }
+
+  /* route comparison: the engine's pick wears the accent ----------------- */
+  .route {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 84px 62px minmax(112px, auto);
+    gap: 10px;
+    align-items: center;
+    padding: 11px 12px;
+    border: 1px solid var(--color-edge);
+    border-radius: 8px;
+    background: var(--color-panel);
+  }
+  .route-rec {
+    border-color: var(--color-volt);
+    background: color-mix(in oklab, var(--color-volt) 8%, transparent);
+    box-shadow: inset 3px 0 0 var(--color-volt);
+  }
+  .route-bad {
+    background: var(--color-sunk);
+    border-color: var(--color-edge-soft);
+    color: var(--color-ash-faint);
+  }
+
+  /* extracted fields ---------------------------------------------------- */
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 8px 10px;
+    border: 1px solid var(--color-edge-soft);
+    border-radius: 8px;
+    background: var(--color-sunk);
+  }
+  .field-low {
+    border-color: color-mix(in oklab, var(--color-amber) 45%, transparent);
+    background: color-mix(in oklab, var(--color-amber) 7%, transparent);
+  }
+  .inp {
+    min-height: 38px;
+    padding: 6px 10px;
+    border: 1px solid var(--color-edge-input);
+    border-radius: 8px;
+    font: 400 14px/1.3 var(--font-sans);
+    color: var(--color-bone);
+    background: var(--color-void);
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .inp::placeholder {
+    color: var(--color-ash-faint);
+  }
+
+  /* rules checklist ----------------------------------------------------- */
+  .check {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid var(--color-edge-soft);
+    scroll-margin-top: 16px;
+  }
+  .ic-ok { color: var(--color-jade); }
+  .ic-warn { color: var(--color-amber); }
+  .ic-bad { color: var(--color-coral); }
+  .ic-muted { color: var(--color-ash-faint); }
+
+  /* audit event rows ---------------------------------------------------- */
+  .ev {
+    /* Six columns: #, actor, event type, detail, hash, time. */
+    display: grid;
+    grid-template-columns: 44px 76px 170px minmax(0, 1fr) 120px 60px;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--color-edge-soft);
+    font-size: 14px;
+  }
+  .ev:hover {
+    background: var(--color-raise);
+  }
+
+  /* acknowledgment block ------------------------------------------------ */
+  .ack {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: color-mix(in oklab, var(--color-amber) 8%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-amber) 30%, transparent);
+    font-size: 14px;
+  }
+  .ack input {
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    accent-color: var(--color-volt);
+    flex: none;
+  }
+
+  .secrow {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 10px;
+    font-size: 14px;
+    align-items: start;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* brand mark — masked, so the horse always takes a token colour and a real
+   SVG can replace the asset without touching any component. */
+.brand-link {
+  color: inherit;
+  border-radius: 8px;
+}
+.brand-link:hover {
+  color: inherit;
+}
+.brand-link:hover .corredor-mark {
+  background: var(--color-volt-bright);
+}
+
+.corredor-mark {
+  display: inline-block;
+  width: 40px;
+  height: 23px;
+  flex: none;
+  /* Faces left, matching the horse struck on the coin. */
+  transform: scaleX(-1);
+  background: var(--color-volt);
+  -webkit-mask: url(/corredor-mark.png) center / contain no-repeat;
+  mask: url(/corredor-mark.png) center / contain no-repeat;
+}
+
+/* the as-of control: the demo's signature input, so it gets the accent ---- */
+.asof-range {
+  width: 100%;
+  height: 28px;
+  appearance: none;
+  background: transparent;
+}
+.asof-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-edge-strong);
+}
+.asof-range::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-edge-strong);
+}
+.asof-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--color-volt);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-volt) 20%, transparent);
+}
+.asof-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-volt);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-volt) 20%, transparent);
+}
+
+/* motion ----------------------------------------------------------------- */
+/* A reroute is the engine changing its mind: flash it in the accent. */
+.flash {
+  animation: flash 1.2s ease-out;
+}
+@keyframes flash {
+  0% {
+    background: color-mix(in oklab, var(--color-volt) 22%, transparent);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+.skel {
+  background: linear-gradient(
+    90deg,
+    var(--color-raise) 0%,
+    var(--color-edge) 50%,
+    var(--color-raise) 100%
+  );
+  background-size: 200% 100%;
+  animation: sh 1.2s linear infinite;
+  border-radius: 4px;
+  height: 12px;
+}
+@keyframes sh {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.dots span {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-volt);
+  margin-right: 4px;
+  animation: bl 1s infinite;
+}
+.dots span:nth-child(2) { animation-delay: 0.15s; }
+.dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes bl {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flash,
+  .skel,
+  .dots span {
+    animation: none;
+  }
+}
+
+/* ===========================================================================
+   Landing page
+   The hero's coin is composed from the brand mark and gold gradients rather
+   than a bitmap, so it stays sharp at any size. Swap `.coin-face`'s mask for
+   the real 3D render when the asset lands.
+   ========================================================================= */
+.lp-glow {
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 720px;
+  pointer-events: none;
+  background: radial-gradient(
+    60% 55% at 62% 35%,
+    color-mix(in oklab, var(--color-volt) 18%, transparent) 0%,
+    transparent 70%
+  );
+  filter: blur(10px);
+}
+
+/* Hero artwork. The crop is rectangular, so its edges are feathered into the
+   page ground rather than stopping on a hard line. */
+.hero-art {
+  display: block;
+  width: 100%;
+  height: auto;
+  /* Screen blending drops the artwork's near-black ground into the page, and
+     the feathered mask removes what is left of the crop's rectangle. */
+  mix-blend-mode: screen;
+  /* Fade only the outer edges, so the rails and flag chips stay at full
+     strength while the crop's rectangle disappears. */
+  -webkit-mask-image:
+    linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 6%, #000 92%, transparent 100%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(to right, transparent 0, #000 7%, #000 93%, transparent 100%),
+    linear-gradient(to bottom, transparent 0, #000 6%, #000 92%, transparent 100%);
+  mask-composite: intersect;
+}
+
+.lp-flag {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  font-size: 17px;
+  line-height: 1;
+}
+
+/* Same feathering as the hero, so the crop has no visible edge. */
+.coverage-map {
+  display: block;
+  width: 100%;
+  height: auto;
+  -webkit-mask: radial-gradient(100% 78% at 46% 50%, #000 48%, transparent 86%);
+  mask: radial-gradient(100% 78% at 46% 50%, #000 48%, transparent 86%);
+}
+
+.lp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-edge-strong);
+  background: color-mix(in oklab, var(--color-panel) 86%, transparent);
+  backdrop-filter: blur(6px);
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.lp-pill-cta {
+  border-radius: 999px;
+  padding: 0 22px;
+  min-height: 48px;
+  font-size: 15px;
+}
+
+.lp-section {
+  border-top: 1px solid var(--color-edge-soft);
+}
+
+.lp-step {
+  position: relative;
+  background: linear-gradient(180deg, var(--color-panel) 0%, var(--color-void) 100%);
+  border: 1px solid var(--color-edge);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.lp-stat {
+  border-left: 2px solid var(--color-volt);
+  padding-left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wire-dot {
+    animation: wire 3.2s linear infinite;
+  }
+  @keyframes wire {
+    to {
+      offset-distance: 100%;
+    }
+  }
+}
