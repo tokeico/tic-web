@@ -558,21 +558,23 @@ function ApprovalCard({ v }: { v: PayoutView }) {
 					)}
 
 					<div className="flex flex-wrap gap-2">
-						{APPROVERS.map((who) => (
-							<button
-								key={who}
-								type="button"
-								className="btn btn-primary"
-								disabled={
-									overCap ||
-									(needAck && !m.ack) ||
-									m.approvals.some((a) => a.who === who)
-								}
-								onClick={() => approve(p.id, who)}
-							>
-								{`Approve as ${who}`}
-							</button>
-						))}
+						<button
+							type="button"
+							className="btn btn-primary"
+							disabled={
+								overCap ||
+								(needAck && !m.ack) ||
+								APPROVERS.every((who) => m.approvals.some((a) => a.who === who))
+							}
+							onClick={() => {
+								const who = APPROVERS.find(
+									(person) => !m.approvals.some((a) => a.who === person),
+								);
+								if (who) approve(p.id, who);
+							}}
+						>
+							Approve
+						</button>
 						<button
 							type="button"
 							className="btn btn-danger"

@@ -1,4 +1,5 @@
 import { Check, Lock } from "@/components/icons";
+import { ScreeningSandbox } from "@/components/ScreeningSandbox";
 import { Card, Lab, RuleRef } from "@/components/ui";
 import { radarImpact } from "@/domain/agent";
 import { verify } from "@/domain/audit";
@@ -131,6 +132,8 @@ export function TrustPage() {
 				</p>
 			</div>
 
+			<ScreeningSandbox />
+
 			{/* radar ----------------------------------------------------------- */}
 			<Card>
 				<div className="flex flex-wrap items-center justify-between gap-2.5">
@@ -230,7 +233,7 @@ export function TrustPage() {
 								className="btn btn-primary btn-sm"
 								onClick={() => radarDecide(true)}
 							>
-								{`Approve as ${COMPLIANCE} · Compliance`}
+								Approve
 							</button>
 							<button
 								type="button"

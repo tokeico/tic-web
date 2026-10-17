@@ -2,9 +2,11 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { type ReactNode, useState } from "react";
 
 import { RULES } from "@/domain/data";
+import { TOUR_WHY } from "@/domain/demo-guide";
 import { activeRuleCount } from "@/domain/engine";
 import { fmtDate, iso } from "@/domain/format";
 import { ACTOR, useStore, VIEW_PATH, type ViewId } from "@/state/store";
+import { FeatureGuide } from "./FeatureGuide";
 import { Close, More, Swap } from "./icons";
 
 const TABS: [ViewId, string][] = [
@@ -144,7 +146,8 @@ export function Shell({ children }: { children: ReactNode }) {
 				<AsOfBar />
 			</header>
 
-			<TourBar />
+			<TourBar key={state.tour ?? "off"} />
+			<FeatureGuide key={pathname} pathname={pathname} />
 			{children}
 			<Toast />
 		</div>
@@ -196,6 +199,7 @@ function AsOfBar() {
 						<div className="flex min-w-0 flex-[1_1_320px] flex-col gap-1">
 							<input
 								id="asof"
+								aria-label="As-of date"
 								type="range"
 								min={0}
 								max={41}
@@ -239,21 +243,30 @@ function AsOfBar() {
 
 /** The guided demo runs actions step-by-step without presenter script copy. */
 function TourBar() {
-	const { state, tourSteps, tourBack, tourDo, tourExit } = useStore();
+	const { state, tourSteps, tourBack, tourDo, tourNext, tourExit, reset } =
+		useStore();
 	const [advancing, setAdvancing] = useState(false);
+	const [performed, setPerformed] = useState(false);
+	const [failed, setFailed] = useState(false);
 	if (state.tour == null) return null;
 	const steps = tourSteps();
 	const i = state.tour;
 	const step = steps[i];
+	const complete = step.ready ?? performed;
+	const frozen =
+		i < 5 &&
+		Object.values(state.mut).some(
+			(m) => m.final && ["approved", "paid", "booked"].includes(m.final),
+		);
 
 	return (
 		<div
-			className="bg-raise text-bone"
+			className="bg-raise text-bone border-y border-edge"
 			style={{
-				borderBlock: "1px solid var(--color-edge)",
-				boxShadow: "inset 3px 0 0 var(--color-volt)",
+				scrollMarginTop: 12,
 			}}
-			aria-live="polite"
+			aria-label="Interactive guided demo"
+			role="region"
 		>
 			<div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-x-5 gap-y-3 px-5 py-3">
 				<div className="flex min-w-0 flex-[1_1_460px] flex-col gap-[3px]">
@@ -276,6 +289,47 @@ function TourBar() {
 					<span className="font-semibold" style={{ fontSize: 16 }}>
 						{step.title}
 					</span>
+					<p className="m-0 max-w-[75ch] text-sm text-ash">{step.task}</p>
+					<details className="max-w-[75ch] text-sm">
+						<summary className="cursor-pointer text-volt">
+							Why this matters
+						</summary>
+						<p className="mb-0 mt-2 text-ash">{TOUR_WHY[step.title]}</p>
+					</details>
+					<div
+						className="mt-2 flex flex-wrap items-center gap-2"
+						role="status"
+						aria-live="polite"
+					>
+						<span className={`pill ${complete ? "p-ok" : "p-neutral"}`}>
+							{advancing
+								? "Working..."
+								: complete
+									? "Step complete · inspect the result, then continue"
+									: "Your turn · use the controls or the action below"}
+						</span>
+						{failed && (
+							<span className="text-sm text-coral">
+								The action did not finish. Try again or check the error message.
+							</span>
+						)}
+					</div>
+					{frozen && (
+						<div className="mt-2 flex flex-wrap items-center gap-2 text-sm text-amber">
+							<span>
+								Existing approvals freeze routes. Reset before replaying the
+								date changes.
+							</span>
+							<button
+								type="button"
+								className="btn btn-sm"
+								disabled={advancing}
+								onClick={reset}
+							>
+								Reset demo
+							</button>
+						</div>
+					)}
 				</div>
 				<div className="flex flex-wrap gap-2">
 					<button
@@ -286,24 +340,33 @@ function TourBar() {
 					>
 						Previous
 					</button>
+					{!complete && (
+						<button
+							type="button"
+							className="btn btn-primary btn-sm"
+							disabled={advancing}
+							onClick={async () => {
+								setAdvancing(true);
+								setFailed(false);
+								try {
+									const ok = await tourDo();
+									setPerformed(ok);
+									setFailed(!ok);
+								} finally {
+									setAdvancing(false);
+								}
+							}}
+						>
+							{advancing ? "Working..." : (step.actionLabel ?? "Try this step")}
+						</button>
+					)}
 					<button
 						type="button"
-						className="btn btn-primary btn-sm"
-						disabled={advancing}
-						onClick={async () => {
-							setAdvancing(true);
-							try {
-								await tourDo();
-							} finally {
-								setAdvancing(false);
-							}
-						}}
+						className={`btn ${complete ? "btn-primary" : ""} btn-sm`}
+						disabled={advancing || !complete}
+						onClick={tourNext}
 					>
-						{advancing
-							? "Working..."
-							: i === steps.length - 1
-								? "Finish"
-								: "Continue"}
+						{i === steps.length - 1 ? "Finish demo" : "Next step"}
 					</button>
 					<button type="button" className="btn btn-sm" onClick={tourExit}>
 						Exit

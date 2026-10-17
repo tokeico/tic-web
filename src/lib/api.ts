@@ -9,6 +9,7 @@ import {
 	type ApproveRequest,
 	AuditEvent,
 	AuditVerifyResult,
+	DemoScreening,
 	Health,
 	type InvoicePatch,
 	LedgerEntry,
@@ -84,6 +85,9 @@ async function request<S extends z.ZodType>(
 }
 
 const enc = encodeURIComponent;
+
+export const screenDemoName = (name: string) =>
+	request(DemoScreening, `/api/demo/screen?name=${enc(name)}`);
 
 /** Every payout with its plan, memo, approvals, payment and journal in one request. */
 export const payoutsQuery = {

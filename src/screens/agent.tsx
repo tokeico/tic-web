@@ -436,21 +436,25 @@ function QueueCard({ a, vs }: { a: AgentAction; vs: PayoutView[] }) {
 						</label>
 					)}
 					<div className="flex flex-wrap gap-1.5">
-						{APPROVERS.map((who) => (
-							<button
-								key={who}
-								type="button"
-								className="btn btn-primary btn-sm"
-								disabled={
-									overCapNow ||
-									(needAck && !v.m.ack) ||
-									v.m.approvals.some((x) => x.who === who)
-								}
-								onClick={() => execAction(a.id, who)}
-							>
-								{`Approve as ${who}`}
-							</button>
-						))}
+						<button
+							type="button"
+							className="btn btn-primary btn-sm"
+							disabled={
+								overCapNow ||
+								(needAck && !v.m.ack) ||
+								APPROVERS.every((who) =>
+									v.m.approvals.some((x) => x.who === who),
+								)
+							}
+							onClick={() => {
+								const who = APPROVERS.find(
+									(person) => !v.m.approvals.some((x) => x.who === person),
+								);
+								if (who) execAction(a.id, who);
+							}}
+						>
+							Approve
+						</button>
 					</div>
 				</div>
 			)}

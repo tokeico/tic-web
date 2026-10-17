@@ -21,7 +21,7 @@ import {
 	rerouteLines,
 	syncServer,
 } from "@/domain/api-bridge";
-import { append, appendFor } from "@/domain/audit";
+import { append, appendFor, verify } from "@/domain/audit";
 import { payoutById, visiblePayouts } from "@/domain/data";
 import {
 	approvedUsd,
@@ -114,6 +114,7 @@ export const initialState = (): AppState => ({
 	verified: {},
 	replay: null,
 	tour: null,
+	screeningDemo: false,
 	reroutes: 0,
 	autoRuns: 0,
 });
@@ -122,6 +123,10 @@ export interface TourStep {
 	title: string;
 	say: string;
 	time: string;
+	actionLabel?: string;
+	task?: string;
+	ready?: boolean;
+	dates?: [number, string][];
 	act: () => undefined | boolean | Promise<boolean | undefined>;
 }
 
@@ -130,10 +135,10 @@ export interface Store {
 	go: (view: ViewId) => void;
 	open: (pid: string) => void;
 	closeDetail: () => void;
-	loadDemo: () => void;
+	loadDemo: () => Promise<boolean>;
 	reset: () => void;
 	refresh: () => Promise<void>;
-	setDay: (day: number) => void;
+	setDay: (day: number) => Promise<boolean>;
 	setSetting: <K extends keyof Settings>(
 		key: K,
 		val: Settings[K],
@@ -177,7 +182,9 @@ export interface Store {
 	tourSteps: () => TourStep[];
 	startTour: () => void;
 	tourBack: () => void;
-	tourDo: () => Promise<void>;
+	tourDo: () => Promise<boolean>;
+	tourNext: () => void;
+	markScreeningDemo: () => void;
 	tourExit: () => void;
 }
 
@@ -442,10 +449,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 			closeDetail: () =>
 				set({ selected: null, overrideDraft: null, editDraft: null }),
 
-			loadDemo: () => {},
+			loadDemo: async () => false,
 			reset: () => {},
 			refresh: async () => {},
-			setDay: () => {},
+			setDay: async () => false,
 			setSetting: () => {},
 			toggleProvider: () => {},
 			approve: () => {},
@@ -616,16 +623,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 			},
 
 			startTour: () => set({ tour: 0 }),
+			markScreeningDemo: () => set({ screeningDemo: true }),
 			tourBack: () => set({ tour: Math.max(0, (get().tour ?? 0) - 1) }),
-			tourDo: async () => {
+			tourNext: () => {
 				const i = get().tour;
 				if (i == null || tourRunning.current) return;
 				const steps = api.tourSteps();
+				if (steps[i].ready === false) return;
+				set({ tour: i + 1 < steps.length ? i + 1 : null });
+			},
+			tourDo: async () => {
+				const i = get().tour;
+				if (i == null || tourRunning.current) return false;
+				const steps = api.tourSteps();
 				tourRunning.current = true;
 				try {
-					const result = await steps[i].act();
-					if (result !== false && get().tour === i)
-						set({ tour: i + 1 < steps.length ? i + 1 : null });
+					return (await steps[i].act()) !== false;
+				} catch (e) {
+					fail(e);
+					return false;
 				} finally {
 					tourRunning.current = false;
 				}
@@ -660,26 +676,26 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 		const countryId = (c: string) =>
 			remotePayouts()?.find((p) => p.c === c)?.id;
 
-		api.loadDemo = () => {
+		api.loadDemo = async () => {
 			const s0 = get();
-			if (s0.loaded || s0.loading) return;
+			if (s0.loaded || s0.loading) return s0.loaded;
 			set({ loading: true });
-			void (async () => {
-				try {
-					await http.planAll(iso(get().day));
-					const patch = await syncServer(get());
-					const s = get();
-					set({
-						...patch,
-						loading: false,
-						loaded: true,
-						chat: s.chat.concat([loadSummaryMessage(iso(patch.day ?? s.day))]),
-					});
-				} catch (e) {
-					set({ loading: false });
-					fail(e);
-				}
-			})();
+			try {
+				await http.planAll(iso(get().day));
+				const patch = await syncServer(get());
+				const s = get();
+				set({
+					...patch,
+					loading: false,
+					loaded: true,
+					chat: s.chat.concat([loadSummaryMessage(iso(patch.day ?? s.day))]),
+				});
+				return true;
+			} catch (e) {
+				set({ loading: false });
+				fail(e);
+				return false;
+			}
 		};
 
 		api.reset = () => {
@@ -699,33 +715,34 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 			})();
 		};
 
-		api.setDay = (day) => {
+		api.setDay = async (day) => {
 			const s = get();
-			if (day === s.day) return;
+			if (day === s.day) return true;
 			set({ day });
-			if (!s.loaded) return;
-			void (async () => {
-				try {
-					const res = await http.planAll(iso(day));
-					const lines = rerouteLines(res.reroutes);
-					const key = Date.now();
-					const patch = await syncServer(get());
-					set({
-						...patch,
-						day,
-						...(lines.length
-							? {
-									toast: { lines, key },
-									flashId: res.reroutes[0]?.payoutId ?? null,
-									reroutes: s.reroutes + lines.length,
-								}
-							: {}),
-					});
-					if (lines.length) toastLater(key, res.reroutes[0]?.payoutId ?? null);
-				} catch (e) {
-					fail(e);
-				}
-			})();
+			if (!s.loaded) return true;
+			try {
+				const res = await http.planAll(iso(day));
+				const lines = rerouteLines(res.reroutes);
+				const key = Date.now();
+				const patch = await syncServer(get());
+				set({
+					...patch,
+					day,
+					...(lines.length
+						? {
+								toast: { lines, key },
+								flashId: res.reroutes[0]?.payoutId ?? null,
+								reroutes: s.reroutes + lines.length,
+							}
+						: {}),
+				});
+				if (lines.length) toastLater(key, res.reroutes[0]?.payoutId ?? null);
+				return true;
+			} catch (e) {
+				set({ day: s.day });
+				fail(e);
+				return false;
+			}
 		};
 
 		api.setSetting = (key, val, summary) => {
@@ -1177,15 +1194,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 				title: "Load four invoices from four countries",
 				say: "Corredor gives your compliance officer a cited, versioned recommendation as of a date. Your officer decides.",
 				time: "0:00",
+				actionLabel: "Load invoices",
+				task: "Load the four demo invoices, then compare which need a person. If you have already paid them, reset the demo in Inbox before rehearsing.",
+				get ready() {
+					return get().loaded && !get().loading;
+				},
 				act: () => {
 					go("inbox");
-					api.loadDemo();
+					return api.loadDemo();
 				},
 			},
 			{
 				title: "Open the Brazil payout",
 				say: "Every decision shows the rule, the date it took effect and a source link.",
 				time: "0:30",
+				actionLabel: "Open Brazil",
+				task: "Open the Brazil payout. Expand the route comparison and inspect a dated source before continuing.",
 				act: () => {
 					const id = countryId("BR");
 					if (id) set({ selected: id });
@@ -1196,106 +1220,92 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 				title: "Rewind to Sep 30",
 				say: "Before Resolution 561, the cheapest compliant provider was an eFX house.",
 				time: "0:50",
+				actionLabel: "Set Sep 30",
+				task: "Rewind to Sep 30 and find PagaFX. Use the timeline to compare dates; the tour waits for the API’s plan.",
+				get ready() {
+					const br = countryId("BR");
+					return get().day === 5 && !!br && remoteHit(br)?.asOf === iso(5);
+				},
 				act: () => {
 					const id = countryId("BR");
 					if (id) set({ selected: id });
 					go("inbox");
-					api.setDay(5);
+					return api.setDay(5);
 				},
 			},
 			{
 				title: "Oct 1: BR-561-EFX takes effect",
 				say: "The law changes, the route changes, and the app names the rule that did it.",
 				time: "1:00",
+				actionLabel: "Set Oct 1",
+				task: "Move to Oct 1. Look for the reroute to Ponte and BR-561-EFX in the checklist.",
+				get ready() {
+					const br = countryId("BR");
+					return get().day === 6 && !!br && remoteHit(br)?.asOf === iso(6);
+				},
 				act: () => {
-					api.setDay(6);
+					return api.setDay(6);
 				},
 			},
 			{
 				title: "Oct 31: providers that didn’t file drop out",
 				say: "Oct 30 was the filing deadline. Corredor blocks non-filers from Oct 31 and reroutes to Sol, a fictional provider whose authorization is hypothetical.",
 				time: "1:10",
+				actionLabel: "Set Oct 31",
+				task: "Move to Oct 31. Compare Sol with Ponte: providers that didn’t file drop out under Corredor policy. Sol’s authorization is fictional.",
+				get ready() {
+					const br = countryId("BR");
+					return get().day === 36 && !!br && remoteHit(br)?.asOf === iso(36);
+				},
 				act: () => {
-					api.setDay(36);
+					return api.setDay(36);
 				},
 			},
 			{
 				title: "Back to today, ask the agent",
 				say: "The agent reads and explains, with sources. It has no tool that moves money.",
 				time: "1:20",
-				act: () => {
-					api.setDay(22);
-					later(() => api.ask("What needs my attention today?", true), 400);
+				actionLabel: "Ask the agent",
+				task: "Return to Oct 17 and ask what needs attention. Read the answer and its sources; the agent cannot approve or pay.",
+				get ready() {
+					return (
+						get().day === 22 &&
+						!get().busy &&
+						get().chat.at(-1)?.role === "agent" &&
+						get().chat.some(
+							(m) =>
+								m.role === "user" &&
+								m.text === "What needs my attention today?",
+						)
+					);
+				},
+				act: async () => {
+					if (!(await api.setDay(22))) return false;
+					api.ask("What needs my attention today?", true);
 				},
 			},
 			{
-				title: "Approve Brazil and Mexico",
-				say: "Warnings must be acknowledged, and over fifty thousand dollars needs two different people.",
+				title: "Try a fictional screening check",
+				say: "The matching algorithm is real; the presentation names and aliases are invented.",
 				time: "1:40",
-				act: async () => {
-					const br = countryId("BR");
-					const mx = countryId("MX");
-					try {
-						if (br) {
-							const current = await http.getPayout(br);
-							if (
-								!["approved", "paid", "booked"].includes(current.status) &&
-								!current.approvals.some((a) => a.approver === ACTOR)
-							) {
-								set(ackP(get(), br, true));
-								await http.approvePayout(br, {
-									approver: ACTOR,
-									decision: "approved",
-								});
-							}
-						}
-						if (mx) {
-							for (const approver of APPROVERS) {
-								const current = await http.getPayout(mx);
-								if (["approved", "paid", "booked"].includes(current.status))
-									break;
-								if (!current.approvals.some((a) => a.approver === approver)) {
-									await http.approvePayout(mx, {
-										approver,
-										decision: "approved",
-									});
-								}
-							}
-						}
-						await refresh({ selected: br ?? null });
-						go("inbox");
-					} catch (e) {
-						fail(e);
-						return false;
-					}
+				actionLabel: "Open name checks",
+				task: "Choose Demo Lumen Trading and run a fictional check. Then try Estúdio Paulista to compare a clear result. No real organizations are used in this sandbox.",
+				get ready() {
+					return get().screeningDemo;
 				},
-			},
-			{
-				title: "Pay on the simulated rail",
-				say: "Payment only follows human approval. The rail is a mock, and the app says so.",
-				time: "1:55",
 				act: () => {
-					const br = countryId("BR");
-					if (!br) return;
-					set({ selected: br });
-					go("inbox");
-					return api.pay(br);
-				},
-			},
-			{
-				title: "Reconcile and show the matched journal entry",
-				say: "Match the invoice to the simulated payment references, then book AP, fees, cash and FX. The Ledger shows the balanced entry.",
-				time: "2:10",
-				act: async () => {
-					const br = countryId("BR");
-					if (!br || !(await api.reconcile(br))) return false;
-					go("ledger");
+					go("trust");
 				},
 			},
 			{
 				title: "Catch an invoice-fraud attempt",
 				say: "A resubmitted invoice hides instructions for the AI and swaps the bank details. We treat it as data and freeze it.",
-				time: "2:20",
+				time: "1:50",
+				actionLabel: "Stage suspicious invoice",
+				task: "Stage the fictional resubmission. Inspect the hidden instructions and changed bank details in the security hold; nothing is paid.",
+				get ready() {
+					return get().sus;
+				},
 				act: () => {
 					addSuspicious();
 				},
@@ -1303,7 +1313,12 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 			{
 				title: "Regulatory radar",
 				say: "An agent watches the sources, proposes changes with an impact analysis, and compliance approves.",
-				time: "2:25",
+				time: "2:00",
+				actionLabel: "Open radar",
+				task: "Review the simulated registry update and its impact. Approve or reject it in Trust; the tour waits for your decision.",
+				get ready() {
+					return get().radar !== "pending";
+				},
 				act: () => {
 					go("trust");
 				},
@@ -1311,9 +1326,98 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 			{
 				title: "Prove it: the audit chain",
 				say: "AI reads and explains, code decides, a person approves, and every step is hash-chained.",
-				time: "2:40",
+				time: "2:10",
+				actionLabel: "Open audit",
+				task: "Open the audit log and inspect the human, agent and code events. Next, try changing a past event.",
 				act: () => {
 					go("audit");
+				},
+			},
+			{
+				title: "Try tampering with the evidence",
+				say: "The simulation changes verification inputs, not stored events.",
+				time: "2:15",
+				actionLabel: "Simulate tampering",
+				task: "Simulate tampering and find the broken event in the audit log. The next step restores the original verification before approval.",
+				get ready() {
+					const s = get();
+					return s.tamperSeq !== null && !verify(s.events, s.tamperSeq).ok;
+				},
+				act: () => {
+					go("audit");
+					api.toggleTamper(Math.min(3, get().events.length));
+				},
+			},
+			{
+				title: "Approve Brazil",
+				say: "A person reviews the warning and makes the final decision.",
+				time: "2:25",
+				actionLabel: "Review Brazil",
+				task: "The checks are complete. Review any warnings, acknowledge them if shown, then click Approve in the payout panel. No approval is made by the tour.",
+				get ready() {
+					const br = countryId("BR");
+					return (
+						!!br &&
+						["approved", "paid", "booked"].includes(mOf(get(), br).final ?? "")
+					);
+				},
+				act: () => {
+					if (get().tamperSeq !== null) api.toggleTamper(get().tamperSeq!);
+					const br = countryId("BR");
+					if (br) api.open(br);
+				},
+			},
+			{
+				title: "Approve Mexico",
+				say: "Above fifty thousand dollars, two distinct approvals are required.",
+				time: "2:35",
+				actionLabel: "Review Mexico",
+				task: "Open Mexico and click Approve. If a second approval is needed, click Approve again for the next demo approver. Identities remain recorded in the audit trail.",
+				get ready() {
+					const mx = countryId("MX");
+					return (
+						!!mx &&
+						["approved", "paid", "booked"].includes(mOf(get(), mx).final ?? "")
+					);
+				},
+				act: () => {
+					const mx = countryId("MX");
+					if (mx) api.open(mx);
+				},
+			},
+			{
+				title: "Pay on the simulated rail",
+				say: "Payment only follows human approval. The rail is a mock, and the app says so.",
+				time: "2:45",
+				actionLabel: "Pay Brazil · simulated",
+				task: "Send the approved Brazil payout on the simulated rail, then inspect its payment references. No real money moves.",
+				get ready() {
+					const br = countryId("BR");
+					return (
+						!!br && ["paid", "booked"].includes(mOf(get(), br).final ?? "")
+					);
+				},
+				act: () => {
+					const br = countryId("BR");
+					if (!br) return false;
+					api.open(br);
+					return api.pay(br);
+				},
+			},
+			{
+				title: "Reconcile and show the matched journal entry",
+				say: "Match the invoice to the simulated payment references, then book AP, fees, cash and FX. The Ledger shows the balanced entry.",
+				time: "2:55",
+				actionLabel: "Reconcile Brazil",
+				task: "Book the matched entry and inspect AP, fees, cash and FX in the Ledger. Finish only after the entry appears.",
+				get ready() {
+					const br = countryId("BR");
+					return !!br && !!mOf(get(), br).journal;
+				},
+				act: async () => {
+					const br = countryId("BR");
+					if (!br || !(await api.reconcile(br))) return false;
+					go("ledger");
 				},
 			},
 		];

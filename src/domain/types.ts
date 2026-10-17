@@ -327,6 +327,7 @@ export interface AppState {
 	verified: Record<string, boolean>;
 	replay: { pid: string; fp: string; text: string } | null;
 	tour: number | null;
+	screeningDemo: boolean;
 	reroutes: number;
 	autoRuns: number;
 }

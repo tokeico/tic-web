@@ -31,7 +31,11 @@ bun --bun run dev
 
 Before presenting, check http://localhost:3000/api/health for `"db": true`. Open http://localhost:8080, click **Open the live demo**, then go to Overview (under **More views**) and click **Start the 3-minute guided demo**. **Reset demo** (Inbox) restores the four draft invoices.
 
-The tour compares Sep 30 → Oct 1 → **Oct 31**, then returns to Oct 17. Oct 30 is still a valid filing day; Corredor blocks providers that didn't file from Oct 31. Sol's authorization is hypothetical and all demo providers are fictional. After payment, the tour reconciles Brazil and opens its matched journal entry in **Books → Ledger**, before the staged fraud example.
+The interactive tour compares Sep 30 → Oct 1 → **Oct 31**, then returns to Oct 17. Oct 30 is still a valid filing day; Corredor blocks providers that didn't file from Oct 31. Sol's authorization is hypothetical and all demo providers are fictional. Each screen explains what it does, why it matters and what to try. Steps remain open for inspection and use a separate **Next step** button. Fictional screening, staged invoice fraud, radar and audit exploration come first; manual approvals, simulated payment and the matched Ledger entry form the closing sequence.
+
+The fictional name-check sandbox in Trust uses `data/presentation/sdn.csv` and `data/presentation/alt.csv` in `tic-api` through `GET /api/demo/screen`. It is explicitly simulated and cannot clear a payout. Normal payout screening still uses the separate OFAC snapshot.
+
+The current API demo state is shared. Do not expose it as an independent multi-visitor sandbox until visitor isolation is implemented; **Reset demo** currently resets the shared dataset.
 
 ### Optional: live agent and invoice reading
 
