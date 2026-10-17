@@ -1,8 +1,15 @@
 import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
-import { Cc, Lab } from "@/components/ui";
+import {
+	AgentCard,
+	type Kpi,
+	KpiTile,
+	Stream,
+	Typewriter,
+} from "@/components/agents";
+import { CorridorMap } from "@/components/CorridorMap";
+import { Lab } from "@/components/ui";
 import { actorOf } from "@/domain/audit";
 import {
-	type AgentKind,
 	DEMO_CORRIDORS,
 	DEMO_ESCALATIONS,
 	DEMO_FLEET,
@@ -13,15 +20,15 @@ import {
 	DEMO_TOTALS,
 	type FleetAgent,
 	type MonthRow,
+	paceOf,
 	type StreamTemplate,
 	type StreamTone,
-	paceOf,
 	savedOf,
 } from "@/domain/ceo-demo";
 import { WIRE_FEE_PCT } from "@/domain/data";
-import { views } from "@/domain/engine";
+import { views, wireFeePct, wireSaving } from "@/domain/engine";
 import { fmtDate, iso, usd0 } from "@/domain/format";
-import { isDemoAdmin } from "@/lib/auth";
+import { seesDemo } from "@/lib/auth";
 import { useStore, type ViewId } from "@/state/store";
 
 /**
@@ -31,17 +38,7 @@ import { useStore, type ViewId } from "@/state/store";
  * own workspace, computed live.
  */
 
-type Kpi = {
-	label: string;
-	value: number;
-	format: (n: number) => string;
-	sub: string;
-	spark?: number[];
-	tone?: "volt" | "jade" | "coral";
-};
 type Escalation = { tag: string; text: string; view: ViewId };
-type StreamItem = StreamTemplate & { key: number };
-
 interface CeoModel {
 	demo: boolean;
 	months: MonthRow[];
@@ -79,10 +76,9 @@ function demoModel(): CeoModel {
 				format: compact,
 				sub: `${delta(sep.volume, aug.volume)} Sep vs Aug · ${t.payouts.toLocaleString("en-US")} payouts`,
 				spark: DEMO_MONTHS.map((m) => m.volume),
-				tone: "volt",
 			},
 			{
-				label: "Saved vs SWIFT",
+				label: "Saved vs bank wire",
 				value: t.saved,
 				format: compact,
 				sub: `${pct(oct.stable)} of volume on stablecoin rails at ${DEMO_STABLE_FEE}%`,
@@ -117,11 +113,11 @@ function demoModel(): CeoModel {
 		fleet: DEMO_FLEET,
 		stream: DEMO_STREAM,
 		escalations: DEMO_ESCALATIONS,
-		briefing: `Here's where things stand. In the last 12 months your agents moved ${compact(t.volume)} across ${t.payouts.toLocaleString("en-US")} payouts in four corridors and saved ${compact(t.saved)} versus SWIFT. This month Sentinel stopped ${usd0(oct.stopped)}: a duplicate Estúdio Paulista invoice with swapped bank details, held before anyone approved it. Sanctions kept every Venezuela payout blocked under the OFAC program. Two decisions are waiting on people: a ${usd0(64_865)} Mexico payout needs a second approver, and Radar's BCB Res. 561 update needs compliance sign-off.`,
+		briefing: `Here's where things stand. In the last 12 months your agents moved ${compact(t.volume)} across ${t.payouts.toLocaleString("en-US")} payouts in four corridors and saved ${compact(t.saved)} versus an unnegotiated bank wire. This month Sentinel stopped ${usd0(oct.stopped)}: a duplicate Estúdio Paulista invoice with swapped bank details, held before anyone approved it. Sanctions kept every Venezuela payout blocked under the OFAC program. Two decisions are waiting on people: a ${usd0(64_865)} Mexico payout needs a second approver, and Radar's BCB Res. 561 update needs compliance sign-off.`,
 		qa: [
 			{
 				q: "How much did we save this year?",
-				a: `${usd0(t.saved)} versus sending the same volume by SWIFT wire. ${pct(oct.stable)} of volume now settles over stablecoin rails at an average ${DEMO_STABLE_FEE}% fee, against ${WIRE_FEE_PCT}% by wire, in a median ${DEMO_SETTLE_MIN} minutes instead of about 2 days. September was the best month: ${usd0(savedOf(sep))}.`,
+				a: `${usd0(t.saved)} versus sending the same volume by an unnegotiated bank wire. ${pct(oct.stable)} of volume now settles over stablecoin rails at an average ${DEMO_STABLE_FEE}% fee, against ~${WIRE_FEE_PCT}% by wire, in a median ${DEMO_SETTLE_MIN} minutes instead of about 2 days. September was the best month: ${usd0(savedOf(sep))}.`,
 			},
 			{
 				q: "Where is the money going?",
@@ -163,10 +159,9 @@ function liveModel(store: ReturnType<typeof useStore>): CeoModel {
 		["ready", "awaiting_second_approver", "approved"].includes(v.status),
 	);
 	const total = (list: typeof vs) => list.reduce((t, v) => t + v.p.usd, 0);
-	const saved = routed.reduce(
-		(t, v) => t + (v.p.usd * (WIRE_FEE_PCT - v.plan.rec!.route.fee)) / 100,
-		0,
-	);
+	// Against each plan's own wire quote, never a constant.
+	const saved = routed.reduce((t, v) => t + wireSaving(v), 0);
+	const wirePct = wireFeePct(routed.length ? routed : vs);
 	const clear = vs.length ? (vs.length - stopped.length) / vs.length : 1;
 	const byC = new Map<string, { c: string; name: string; usd: number }>();
 	for (const v of vs) {
@@ -186,10 +181,9 @@ function liveModel(store: ReturnType<typeof useStore>): CeoModel {
 				value: total(paid),
 				format: compact,
 				sub: `${paid.length} of ${vs.length} payouts paid`,
-				tone: "volt",
 			},
 			{
-				label: "Saved vs SWIFT",
+				label: "Saved vs bank wire",
 				value: saved,
 				format: compact,
 				sub: `projected on ${routed.length} stablecoin routes`,
@@ -239,12 +233,12 @@ function liveModel(store: ReturnType<typeof useStore>): CeoModel {
 				]
 			: [],
 		briefing: vs.length
-			? `Your agents have read ${vs.length} invoices worth ${compact(total(vs))}. ${paid.length} are paid; ${stopped.length} ${stopped.length === 1 ? "was" : "were"} stopped before release, and routing is set to save ${compact(saved)} versus SWIFT. ${waiting.length ? `${waiting.length} ${waiting.length === 1 ? "decision is" : "decisions are"} waiting on a person.` : "Nothing is waiting on a person."}`
+			? `Your agents have read ${vs.length} invoices worth ${compact(total(vs))}. ${paid.length} are paid; ${stopped.length} ${stopped.length === 1 ? "was" : "were"} stopped before release, and routing is set to save ${compact(saved)} versus an unnegotiated bank wire. ${waiting.length ? `${waiting.length} ${waiting.length === 1 ? "decision is" : "decisions are"} waiting on a person.` : "Nothing is waiting on a person."}`
 			: "Your agents are standing by. Load the demo invoices or upload one, and they'll read, screen, route and explain it here.",
 		qa: [
 			{
 				q: "How much will routing save?",
-				a: `${usd0(saved)} versus SWIFT on ${routed.length} stablecoin routes, at fees between the off-ramps' quotes and ${WIRE_FEE_PCT}% by wire.`,
+				a: `${usd0(saved)} versus an unnegotiated bank wire (~${wirePct}%) on ${routed.length} stablecoin routes, measured against each payout's own wire quote.`,
 			},
 			{
 				q: "What did the agents stop?",
@@ -257,74 +251,6 @@ function liveModel(store: ReturnType<typeof useStore>): CeoModel {
 }
 
 /* --- motion helpers -------------------------------------------------- */
-
-function useReducedMotion() {
-	const [reduced, setReduced] = useState(false);
-	useEffect(() => {
-		const q = window.matchMedia("(prefers-reduced-motion: reduce)");
-		setReduced(q.matches);
-		const on = () => setReduced(q.matches);
-		q.addEventListener("change", on);
-		return () => q.removeEventListener("change", on);
-	}, []);
-	return reduced;
-}
-
-function useCountUp(target: number, ms = 1100) {
-	const reduced = useReducedMotion();
-	const [value, setValue] = useState(0);
-	useEffect(() => {
-		if (reduced) {
-			setValue(target);
-			return;
-		}
-		let frame = 0;
-		const start = performance.now();
-		const tick = (now: number) => {
-			const k = Math.min(1, (now - start) / ms);
-			setValue(target * (1 - (1 - k) ** 3));
-			if (k < 1) frame = requestAnimationFrame(tick);
-		};
-		frame = requestAnimationFrame(tick);
-		return () => cancelAnimationFrame(frame);
-	}, [target, ms, reduced]);
-	return value;
-}
-
-/** Types the text out like the agent is writing it now. */
-function Typewriter({ text, speed = 14 }: { text: string; speed?: number }) {
-	const reduced = useReducedMotion();
-	const [n, setN] = useState(0);
-	useEffect(() => {
-		setN(0);
-		if (reduced) {
-			setN(text.length);
-			return;
-		}
-		const id = setInterval(
-			() =>
-				setN((k) => {
-					if (k >= text.length) {
-						clearInterval(id);
-						return k;
-					}
-					return k + 2;
-				}),
-			speed,
-		);
-		return () => clearInterval(id);
-	}, [text, speed, reduced]);
-	const done = n >= text.length;
-	return (
-		<span>
-			<span className="sr-only">{text}</span>
-			<span aria-hidden="true">
-				{text.slice(0, n)}
-				{!done && <span className="caret" />}
-			</span>
-		</span>
-	);
-}
 
 function useWidth<T extends HTMLElement>(fallback: number) {
 	const ref = useRef<T>(null);
@@ -343,80 +269,25 @@ function useWidth<T extends HTMLElement>(fallback: number) {
 
 /* --- pieces ------------------------------------------------------------ */
 
-const ACT_CLS: Record<AgentKind | "Human", string> = {
-	AI: "act act-ai",
-	Code: "act act-code",
-	"AI + Code": "act act-ai",
-	Human: "act act-human",
-};
-
-function Spark({ values, tone }: { values: number[]; tone?: Kpi["tone"] }) {
-	const w = 112;
-	const h = 30;
-	const max = Math.max(...values, 1);
-	const pts = values.map(
-		(v, i) =>
-			[(i / (values.length - 1)) * w, h - 3 - (v / max) * (h - 6)] as const,
-	);
-	const last = pts[pts.length - 1];
-	return (
-		<svg
-			width={w}
-			height={h}
-			viewBox={`0 0 ${w} ${h}`}
-			aria-hidden="true"
-			className="overflow-visible"
-		>
-			<polyline
-				points={pts.map((p) => p.join(",")).join(" ")}
-				fill="none"
-				stroke="var(--color-ash-faint)"
-				strokeWidth={1.5}
-				strokeLinejoin="round"
-				strokeLinecap="round"
-			/>
-			<circle
-				cx={last[0]}
-				cy={last[1]}
-				r={3}
-				fill={tone ? `var(--color-${tone})` : "var(--color-bone)"}
-			/>
-		</svg>
-	);
-}
-
-function KpiTile({ kpi }: { kpi: Kpi }) {
-	const shown = useCountUp(kpi.value);
-	return (
-		<div className="kpi ceo-kpi">
-			<Lab>{kpi.label}</Lab>
-			<div className="flex items-end justify-between gap-2">
-				<span
-					className="mono"
-					style={{
-						fontWeight: 600,
-						fontSize: 28,
-						lineHeight: 1.05,
-						fontVariantNumeric: "tabular-nums",
-						color: kpi.tone === "volt" ? "var(--color-volt)" : undefined,
-					}}
-				>
-					{kpi.format(shown)}
-				</span>
-				{kpi.spark && <Spark values={kpi.spark} tone={kpi.tone} />}
-			</div>
-			<span className="text-ash-dim" style={{ fontSize: 12.5 }}>
-				{kpi.sub}
-			</span>
-		</div>
-	);
-}
-
 function VolumeChart({ months }: { months: MonthRow[] }) {
 	const [ref, width] = useWidth<HTMLDivElement>(720);
 	const [hover, setHover] = useState<number | null>(null);
-	const h = 240;
-	const pad = { l: 52, r: 18, t: 14, b: 28 };
+	// Height follows the width so the line keeps its slope, and the chart
+	// grows to fill its card when a taller neighbour (the map) stretches the
+	// row. Fewer month labels on narrow widths so they never run together.
+	const minH = Math.round(Math.min(320, Math.max(200, width * 0.42)));
+	const [fill, setFill] = useState(0);
+	useEffect(() => {
+		const el = ref.current;
+		if (!el) return;
+		const ro = new ResizeObserver(([entry]) =>
+			setFill(Math.round(entry.contentRect.height)),
+		);
+		ro.observe(el);
+		return () => ro.disconnect();
+	}, [ref]);
+	const h = Math.max(minH, fill);
+	const pad = { l: width < 480 ? 44 : 52, r: 18, t: 14, b: 28 };
 	const step = 500_000;
 	const top = Math.ceil(Math.max(...months.map(paceOf)) / step) * step;
 	const ticks = Array.from({ length: top / step + 1 }, (_, i) => i * step);
@@ -433,10 +304,18 @@ function VolumeChart({ months }: { months: MonthRow[] }) {
 			.join(" ");
 	const area = `${line(0, pts.length)} L${x(pts.length - 1)},${y(0)} L${x(0)},${y(0)} Z`;
 	const hv = hover == null ? null : months[hover];
+	const gap = (width - pad.l - pad.r) / Math.max(1, months.length - 1);
+	const every = Math.max(1, Math.ceil(34 / gap));
+	const showLabel = (i: number) => (months.length - 1 - i) % every === 0;
 
 	return (
-		<div ref={ref} className="relative min-w-0 overflow-hidden">
+		<div
+			ref={ref}
+			className="relative min-w-0 flex-1 overflow-hidden"
+			style={{ minHeight: minH }}
+		>
 			<svg
+				className="absolute inset-0"
 				width={width}
 				height={h}
 				role="img"
@@ -455,10 +334,10 @@ function VolumeChart({ months }: { months: MonthRow[] }) {
 					<linearGradient id="vol-fill" x1="0" x2="0" y1="0" y2="1">
 						<stop
 							offset="0%"
-							stopColor="var(--color-volt)"
-							stopOpacity={0.22}
+							stopColor="var(--color-bone)"
+							stopOpacity={0.12}
 						/>
-						<stop offset="100%" stopColor="var(--color-volt)" stopOpacity={0} />
+						<stop offset="100%" stopColor="var(--color-bone)" stopOpacity={0} />
 					</linearGradient>
 				</defs>
 				{ticks.map((t) => (
@@ -482,24 +361,28 @@ function VolumeChart({ months }: { months: MonthRow[] }) {
 						</text>
 					</g>
 				))}
-				{months.map((m, i) => (
-					<text
-						key={m.label}
-						x={x(i)}
-						y={h - 8}
-						textAnchor="middle"
-						className="mono"
-						fontSize={11}
-						fill={hover === i ? "var(--color-bone)" : "var(--color-ash-faint)"}
-					>
-						{m.label}
-					</text>
-				))}
+				{months.map((m, i) =>
+					!showLabel(i) && hover !== i ? null : (
+						<text
+							key={m.label}
+							x={x(i)}
+							y={h - 8}
+							textAnchor="middle"
+							className="mono"
+							fontSize={11}
+							fill={
+								hover === i ? "var(--color-bone)" : "var(--color-ash-faint)"
+							}
+						>
+							{m.label}
+						</text>
+					),
+				)}
 				<path d={area} fill="url(#vol-fill)" className="ceo-fade" />
 				<path
 					d={line(0, solidTo)}
 					fill="none"
-					stroke="var(--color-volt)"
+					stroke="var(--color-bone)"
 					strokeWidth={2}
 					strokeLinejoin="round"
 					pathLength={1}
@@ -509,7 +392,7 @@ function VolumeChart({ months }: { months: MonthRow[] }) {
 					<path
 						d={line(full - 1, pts.length)}
 						fill="none"
-						stroke="var(--color-volt)"
+						stroke="var(--color-bone)"
 						strokeWidth={2}
 						strokeDasharray="4 4"
 						className="ceo-fade"
@@ -531,10 +414,10 @@ function VolumeChart({ months }: { months: MonthRow[] }) {
 						cy={py}
 						r={hover === i ? 5 : i === pts.length - 1 ? 4 : 0}
 						fill={
-							months[i].partial ? "var(--color-panel)" : "var(--color-volt)"
+							months[i].partial ? "var(--color-panel)" : "var(--color-bone)"
 						}
 						stroke={
-							months[i].partial ? "var(--color-volt)" : "var(--color-panel)"
+							months[i].partial ? "var(--color-bone)" : "var(--color-panel)"
 						}
 						strokeWidth={2}
 					/>
@@ -572,165 +455,147 @@ function VolumeChart({ months }: { months: MonthRow[] }) {
 	);
 }
 
-function Corridors({ rows }: { rows: CeoModel["corridors"] }) {
-	const max = Math.max(...rows.map((r) => r.usd), 1);
-	const total = rows.reduce((t, r) => t + r.usd, 0) || 1;
-	return (
-		<ul className="m-0 flex list-none flex-col gap-3 p-0">
-			{rows.map((r, i) => (
-				<li
-					key={r.c}
-					className="flex flex-col gap-1.5"
-					title={
-						r.blocked
-							? `${r.name}: ${usd0(r.blocked)} blocked (OFAC)`
-							: `${r.name}: ${usd0(r.usd)} · ${pct(r.usd / total)} of volume`
-					}
-				>
-					<div className="flex items-center justify-between gap-2">
-						<span className="flex items-center gap-2" style={{ fontSize: 14 }}>
-							<Cc code={r.c} label={r.name} />
-							{r.name}
-						</span>
-						{r.blocked ? (
-							<span className="pill p-bad">Blocked · OFAC</span>
-						) : (
-							<span className="mono text-ash" style={{ fontSize: 13 }}>
-								{compact(r.usd)}{" "}
-								<span className="text-ash-faint">{pct(r.usd / total)}</span>
-							</span>
-						)}
-					</div>
-					<div className="ceo-track">
-						<div
-							className={r.blocked ? "ceo-bar ceo-bar-blocked" : "ceo-bar"}
-							style={{
-								width: r.blocked ? "100%" : `${(r.usd / max) * 100}%`,
-								animationDelay: `${i * 90}ms`,
-							}}
-						/>
-					</div>
-				</li>
-			))}
-		</ul>
-	);
-}
+type Intent = { keys: string[]; a: string };
 
-function AgentCard({ agent, index }: { agent: FleetAgent; index: number }) {
-	const [k, setK] = useState(0);
-	useEffect(() => {
-		if (agent.now.length < 2) return;
-		let id: ReturnType<typeof setInterval> | undefined;
-		const start = setTimeout(() => {
-			id = setInterval(() => setK((n) => n + 1), 4200);
-		}, index * 650);
-		return () => {
-			clearTimeout(start);
-			clearInterval(id);
-		};
-	}, [agent.now.length, index]);
-	const now = agent.now.length ? agent.now[k % agent.now.length] : null;
-	return (
-		<div className="agent-card">
-			<div className="flex items-center justify-between gap-2">
-				<span className="flex items-center gap-2">
-					<span className="agent-dot" aria-hidden="true" />
-					<span className="display" style={{ fontSize: 18 }}>
-						{agent.name}
-					</span>
-				</span>
-				<span className={ACT_CLS[agent.kind]}>{agent.kind}</span>
-			</div>
-			<span className="text-ash-dim" style={{ fontSize: 12.5 }}>
-				{agent.job}
-			</span>
-			{now && (
-				<div className="agent-now" key={k}>
-					<span className="agent-eq" aria-hidden="true">
-						<i />
-						<i />
-						<i />
-					</span>
-					<span>{now}</span>
-				</div>
-			)}
-			{agent.sub && (
-				<div className="mt-auto flex flex-col gap-0.5 border-t border-edge-soft pt-2">
-					<span className="mono" style={{ fontWeight: 600, fontSize: 15 }}>
-						{agent.stat}
-					</span>
-					<span className="text-ash-dim" style={{ fontSize: 12 }}>
-						{agent.sub}
-					</span>
-				</div>
-			)}
-		</div>
+/** What the briefing can answer, keyed by the words a person might use. */
+function intentsFor(m: CeoModel): Intent[] {
+	const qa = (re: RegExp) => m.qa.find((x) => re.test(x.q))?.a;
+	const list: Intent[] = [];
+	const add = (keys: string[], a: string | undefined) => {
+		if (a) list.push({ keys, a });
+	};
+	add(["save", "saving", "swift", "fee", "cost", "cheap"], qa(/save/i));
+	add(
+		[
+			"where",
+			"corridor",
+			"country",
+			"countries",
+			"mexico",
+			"brazil",
+			"colombia",
+			"argentina",
+			"venezuela",
+		],
+		qa(/where/i),
 	);
-}
-
-const TONE_CLS: Record<StreamTone, string> = {
-	ok: "stream-ok",
-	warn: "stream-warn",
-	bad: "stream-bad",
-	human: "stream-human",
-};
-
-/** In the demo the feed keeps arriving; live, it shows the latest audit events. */
-function Stream({ items, loop }: { items: StreamTemplate[]; loop: boolean }) {
-	const reduced = useReducedMotion();
-	const [feed, setFeed] = useState<StreamItem[]>(() =>
-		items.slice(0, 6).map((t, i) => ({ ...t, key: i })),
+	add(
+		[
+			"stop",
+			"fraud",
+			"threat",
+			"sentinel",
+			"protect",
+			"hold",
+			"duplicate",
+			"inject",
+			"scam",
+		],
+		qa(/stop/i),
 	);
-	const [ages, setAges] = useState<number[]>(() =>
-		loop ? [2, 7, 13, 21, 30, 42] : [],
+	add(
+		[
+			"expos",
+			"risk",
+			"complian",
+			"sanction",
+			"ofac",
+			"audit",
+			"safe",
+			"regulat",
+			"rule",
+		],
+		qa(/expos/i),
 	);
-	useEffect(() => {
-		if (!loop || reduced || items.length === 0) return;
-		let n = 6;
-		const id = setInterval(() => {
-			const next = { ...items[n % items.length], key: n };
-			n += 1;
-			setFeed((f) => [next, ...f].slice(0, 7));
-			setAges((a) => [0, ...a.map((s) => s + 3)].slice(0, 7));
-		}, 3000);
-		return () => clearInterval(id);
-	}, [items, loop, reduced]);
-	if (!feed.length)
-		return (
-			<p className="m-0 text-ash-dim" style={{ fontSize: 14 }}>
-				No agent activity yet.
-			</p>
+	if (m.demo) {
+		const t = DEMO_TOTALS;
+		const [aug, sep, oct] = [DEMO_MONTHS[9], DEMO_MONTHS[10], DEMO_MONTHS[11]];
+		add(
+			[
+				"volume",
+				"paid",
+				"pay",
+				"grow",
+				"trend",
+				"month",
+				"september",
+				"october",
+				"spend",
+			],
+			`${usd0(t.volume)} paid across ${t.payouts.toLocaleString("en-US")} payouts in the last 12 months. September was the biggest month at ${usd0(sep.volume)}, ${delta(sep.volume, aug.volume)} on August, and October is on pace for ${usd0(paceOf(oct))}.`,
 		);
-	return (
-		<ol className="m-0 flex list-none flex-col p-0" aria-live="off">
-			{feed.map((e, i) => (
-				<li key={e.key} className={`stream-row ${TONE_CLS[e.tone]}`}>
-					<span className={ACT_CLS[e.kind]}>{e.agent}</span>
-					<span className="min-w-0" style={{ fontSize: 13.5 }}>
-						{e.text}
-					</span>
-					<span className="mono text-ash-faint" style={{ fontSize: 11.5 }}>
-						{loop
-							? i < ages.length
-								? ages[i] === 0
-									? "now"
-									: `${ages[i]}s`
-								: "earlier"
-							: ""}
-					</span>
-				</li>
-			))}
-		</ol>
-	);
+		add(
+			[
+				"agent",
+				"fleet",
+				"who",
+				"intake",
+				"router",
+				"radar",
+				"reconcil",
+				"automat",
+			],
+			`Six agents run the pipeline: ${DEMO_FLEET.map((a) => `${a.name}, ${a.stat.toLowerCase()}`).join("; ")}. They read, screen, route and reconcile. A person approves every release.`,
+		);
+		add(
+			["wait", "approv", "decision", "pending", "todo", "attention"],
+			m.escalations.length
+				? `${m.escalations.length} decisions are waiting on people: ${m.escalations.map((e) => e.text).join("; ")}.`
+				: "Nothing is waiting on a person right now.",
+		);
+		add(
+			[
+				"cash",
+				"commit",
+				"upcoming",
+				"next week",
+				"release",
+				"runway",
+				"liquid",
+			],
+			`${usd0(t.committed30)} is committed over the next 30 days, ${usd0(t.committed7)} of it in the next 7. Nothing leaves without an approval on record.`,
+		);
+		add(
+			["time", "fast", "settle", "minute", "speed", "quick", "slow"],
+			`Stablecoin routes settle in a median ${DEMO_SETTLE_MIN} minutes, against about 2 days by SWIFT wire. ${pct(oct.stable)} of volume now goes that way.`,
+		);
+	}
+	return list;
+}
+
+const FALLBACK =
+	"I answer from this dashboard's numbers: savings, volume, corridors, what Sentinel stopped, compliance exposure, cash committed, settlement time and what's waiting on people. For a specific payout, ask on the Agents page.";
+
+/** The topic whose words the question uses most; ties go to the earlier one. */
+function answerFor(q: string, intents: Intent[]) {
+	const text = q.toLowerCase();
+	let best: Intent | null = null;
+	let bestScore = 0;
+	for (const intent of intents) {
+		const score = intent.keys.filter((k) =>
+			new RegExp(`\\b${k}`).test(text),
+		).length;
+		if (score > bestScore) {
+			best = intent;
+			bestScore = score;
+		}
+	}
+	return best ? best.a : FALLBACK;
 }
 
 function Briefing({ model }: { model: CeoModel }) {
-	const [asked, setAsked] = useState<number | null>(null);
+	const intents = useMemo(() => intentsFor(model), [model]);
+	const [answer, setAnswer] = useState<{
+		q: string;
+		a: string;
+		n: number;
+	} | null>(null);
+	const [input, setInput] = useState("");
 	const [thinking, setThinking] = useState(false);
 	const timer = useRef<ReturnType<typeof setTimeout>>(undefined);
 	useEffect(() => () => clearTimeout(timer.current), []);
-	const ask = (i: number) => {
-		setAsked(i);
+	const ask = (q: string, a: string) => {
+		setAnswer((prev) => ({ q, a, n: (prev?.n ?? 0) + 1 }));
 		setThinking(true);
 		clearTimeout(timer.current);
 		timer.current = setTimeout(() => setThinking(false), 900);
@@ -751,27 +616,60 @@ function Briefing({ model }: { model: CeoModel }) {
 			</p>
 			<div className="flex flex-col gap-2 border-t border-edge-soft pt-3">
 				<Lab>Ask your agents</Lab>
+				<form
+					className="flex gap-2"
+					onSubmit={(e) => {
+						e.preventDefault();
+						const q = input.trim();
+						if (!q) return;
+						ask(q, answerFor(q, intents));
+						setInput("");
+					}}
+				>
+					<label htmlFor="ceo-ask" className="sr-only">
+						Ask your agents
+					</label>
+					<input
+						id="ceo-ask"
+						className="inp"
+						value={input}
+						onChange={(e) => setInput(e.target.value)}
+						placeholder="Ask anything about the numbers: savings, risk, cash, corridors…"
+						autoComplete="off"
+						maxLength={200}
+					/>
+					<button
+						type="submit"
+						className="btn btn-primary flex-none"
+						disabled={!input.trim()}
+					>
+						Ask
+					</button>
+				</form>
 				<div className="flex flex-wrap gap-2">
-					{model.qa.map((qa, i) => (
+					{model.qa.map((qa) => (
 						<button
 							key={qa.q}
 							type="button"
-							className={`sugg${asked === i ? " sugg-on" : ""}`}
-							aria-pressed={asked === i}
-							onClick={() => ask(i)}
+							className={`sugg${answer?.q === qa.q ? " sugg-on" : ""}`}
+							aria-pressed={answer?.q === qa.q}
+							onClick={() => ask(qa.q, qa.a)}
 						>
 							{qa.q}
 						</button>
 					))}
 				</div>
-				{asked != null && (
-					<div className="answer" aria-live="polite">
+				{answer && (
+					<div className="answer flex flex-col gap-1.5" aria-live="polite">
+						<span className="text-ash-dim" style={{ fontSize: 12.5 }}>
+							{answer.q}
+						</span>
 						{thinking ? (
 							<span className="shimmer">
 								Consulting Router, Sentinel and the ledger…
 							</span>
 						) : (
-							<Typewriter key={asked} text={model.qa[asked].a} speed={10} />
+							<Typewriter key={answer.n} text={answer.a} speed={10} />
 						)}
 					</div>
 				)}
@@ -806,13 +704,13 @@ function Section({
 
 export function DashboardPage() {
 	const store = useStore();
-	const demo = isDemoAdmin(store.user);
+	const demo = seesDemo(store.user);
 	const live = demo ? null : liveModel(store);
 	const model = useMemo(() => (demo ? demoModel() : null), [demo]) ?? live!;
 	const online = model.fleet.length;
 
 	return (
-		<main className="mx-auto flex max-w-[1280px] flex-col gap-5 px-5 py-6">
+		<main className="page flex flex-col gap-5 py-6">
 			<section className="flex flex-wrap items-center gap-2">
 				<h1 className="sr-only">Dashboard</h1>
 				<span className="pill p-ok">
@@ -826,15 +724,14 @@ export function DashboardPage() {
 
 			<section
 				aria-label="Key numbers"
-				className="grid gap-3"
-				style={{ gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}
+				className="grid grid-cols-2 gap-3 max-sm:[&>:last-child:nth-child(odd)]:col-span-2 sm:grid-cols-5"
 			>
 				{model.kpis.map((k) => (
 					<KpiTile key={k.label} kpi={k} />
 				))}
 			</section>
 
-			<div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+			<div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_var(--rail)]">
 				<Briefing model={model} />
 				<Section
 					title="Waiting on people"
@@ -869,7 +766,7 @@ export function DashboardPage() {
 				</Section>
 			</div>
 
-			<div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
+			<div className="grid grid-cols-[minmax(0,1fr)] gap-4 xl:grid-cols-2">
 				<Section
 					title="Volume paid"
 					aside={
@@ -897,7 +794,7 @@ export function DashboardPage() {
 					}
 				>
 					{model.corridors.length ? (
-						<Corridors rows={model.corridors} />
+						<CorridorMap rows={model.corridors} />
 					) : (
 						<p className="m-0 text-ash-dim" style={{ fontSize: 14 }}>
 							No payouts yet.

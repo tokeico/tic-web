@@ -31,6 +31,7 @@ import {
 	plan,
 	pv,
 	rname,
+	warnIds,
 } from "@/domain/engine";
 import { iso, usd0 } from "@/domain/format";
 import { runPaymentAction } from "@/domain/payment-actions";
@@ -46,7 +47,12 @@ import type {
 	Settings,
 	ToastLine,
 } from "@/domain/types";
-import { ApiRequestError } from "@/lib/api";
+import {
+	ApiRequestError,
+	type BatchAction,
+	type BatchResult,
+	type ManualInvoice,
+} from "@/lib/api";
 import type { AuthUser } from "@/lib/auth";
 
 /**
@@ -95,6 +101,7 @@ export const initialState = (): AppState => ({
 	paying: null,
 	copied: null,
 	uploading: [],
+	manualEntry: null,
 	settings: {
 		threshold: 50000,
 		cap: 150000,
@@ -173,6 +180,19 @@ export interface Store {
 	addSuspicious: () => void;
 	/** Drop invoice PDFs: the API reads each one, scans for injections and plans it. */
 	upload: (files: File[]) => void;
+	/** Open the "Enter invoice by hand" form; reason says why it was offered. */
+	openManual: (reason?: string | null) => void;
+	closeManual: () => void;
+	/** Create a payout from typed-in fields. Resolves to an error message, or null on success. */
+	submitManual: (invoice: ManualInvoice) => Promise<string | null>;
+	/** Record a call-back check of the vendor's bank details. */
+	verifyBank: (pid: string, note: string) => void;
+	/** Approve, pay or reconcile several payouts at once; null when the request itself failed. */
+	batch: (
+		action: BatchAction,
+		ids: string[],
+		acknowledgedWarnings?: Record<string, string[]>,
+	) => Promise<BatchResult[] | null>;
 	radarDecide: (ok: boolean) => void;
 	markVerified: (ruleId: string) => void;
 	toggleTamper: (target: number) => void;
@@ -574,6 +594,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 				),
 			releaseSanctions: () => {},
 			upload: () => {},
+			openManual: (reason = null) => set({ manualEntry: { reason } }),
+			closeManual: () => set({ manualEntry: null }),
+			submitManual: async () => null,
+			verifyBank: () => {},
+			batch: async () => null,
 
 			addSuspicious,
 
@@ -808,12 +833,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 			})();
 		};
 
+		/** Warnings on the API's recommended route, sent once the approver ticked the box. */
+		const ackFor = (pid: string) =>
+			mOf(get(), pid).ack ? warnIds(remoteHit(pid)?.plan.engine ?? null) : [];
+
 		api.approve = (pid, who) => {
 			void (async () => {
 				try {
 					await http.approvePayout(pid, {
 						approver: who,
 						decision: "approved",
+						acknowledgedWarnings: ackFor(pid),
 					});
 					await refresh();
 				} catch (e) {
@@ -828,6 +858,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 					await http.approvePayout(pid, {
 						approver: ACTOR,
 						decision: "rejected",
+						acknowledgedWarnings: [],
 					});
 					await refresh();
 				} catch (e) {
@@ -885,6 +916,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 						await http.approvePayout(pid, {
 							approver: ACTOR,
 							decision: "rejected",
+							acknowledgedWarnings: [],
 						});
 						await refresh();
 					} catch (e) {
@@ -972,7 +1004,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 						});
 						toastLater(key, d.id);
 					} catch (e) {
-						fail(e);
+						if (
+							e instanceof ApiRequestError &&
+							e.status === 503 &&
+							e.code === "llm_unavailable"
+						)
+							// The PDF reader (local model) is down: offer the typed-in path.
+							set({
+								manualEntry: {
+									reason: `Couldn’t read ${f.name}: the PDF reader is offline. ${e.message}`,
+								},
+							});
+						else fail(e);
 					}
 					set({ uploading: get().uploading.filter((n) => n !== f.name) });
 				}
@@ -982,6 +1025,59 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 					go("inbox");
 				}
 			})();
+		};
+
+		api.submitManual = async (invoice) => {
+			try {
+				const d = await http.enterInvoiceManually(invoice);
+				await refresh({ manualEntry: null, selected: d.id });
+				const key = Date.now();
+				set({
+					toast: {
+						key,
+						lines: [
+							{
+								head: "Invoice entered by hand:",
+								body: `${d.payeeName} ${d.invoice.invoiceNumber} · planned, ready for review`,
+							},
+						],
+					},
+					flashId: d.id,
+				});
+				toastLater(key, d.id);
+				go("inbox");
+				return null;
+			} catch (e) {
+				if (e instanceof ApiRequestError) return e.message;
+				return e instanceof Error ? e.message : "Something went wrong";
+			}
+		};
+
+		api.verifyBank = (pid, note) => {
+			void (async () => {
+				try {
+					await http.verifyBankDetails(pid, { note });
+					await refresh();
+				} catch (e) {
+					fail(e);
+				}
+			})();
+		};
+
+		api.batch = async (action, ids, acknowledgedWarnings) => {
+			try {
+				const res = await http.batchPayouts({
+					action,
+					ids,
+					...(acknowledgedWarnings ? { acknowledgedWarnings } : {}),
+				});
+				await refresh().catch(() => {});
+				return res.results;
+			} catch (e) {
+				fail(e);
+				await refresh().catch(() => {});
+				return null;
+			}
 		};
 
 		const paymentAction = (action: "pay" | "reconcile", id: string) => {
@@ -1164,7 +1260,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 				set({ actions: doneList(get().actions, id, result) });
 			if (a.kind === "approve" && a.pid) {
 				void http
-					.approvePayout(a.pid, { approver: who, decision: "approved" })
+					.approvePayout(a.pid, {
+						approver: who,
+						decision: "approved",
+						acknowledgedWarnings: ackFor(a.pid),
+					})
 					.then(() => refresh())
 					.then(() => finish(`Approved · ${who}`))
 					.catch(fail);

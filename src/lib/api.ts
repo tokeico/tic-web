@@ -9,8 +9,10 @@ import {
 	type ApproveRequest,
 	AuditEvent,
 	AuditVerifyResult,
+	type BankVerificationRequest,
 	DemoScreening,
 	Health,
+	type Invoice,
 	type InvoicePatch,
 	LedgerEntry,
 	OfframpListing,
@@ -30,6 +32,9 @@ import {
 
 export const API_URL = "";
 
+/** POST /api/invoices/manual body: the invoice fields a person typed in. */
+export type ManualInvoice = Omit<Invoice, "lowConfidence">;
+
 /** `{ error: { code, message } }` from the API, or a network failure. */
 export class ApiRequestError extends Error {
 	constructor(
@@ -45,7 +50,11 @@ export class ApiRequestError extends Error {
 export async function request<S extends z.ZodType>(
 	schema: S,
 	path: string,
-	init: { method?: string; body?: unknown } = {},
+	init: {
+		method?: string;
+		body?: unknown;
+		headers?: Record<string, string>;
+	} = {},
 ): Promise<z.infer<S>> {
 	let res: Response;
 	const form = init.body instanceof FormData;
@@ -53,10 +62,12 @@ export async function request<S extends z.ZodType>(
 		res = await fetch(`${API_URL}${path}`, {
 			credentials: "same-origin",
 			method: init.method ?? "GET",
-			headers:
-				init.body === undefined || form
-					? undefined
-					: { "content-type": "application/json" },
+			headers: {
+				...(init.body === undefined || form
+					? {}
+					: { "content-type": "application/json" }),
+				...init.headers,
+			},
 			body:
 				init.body === undefined
 					? undefined
@@ -238,3 +249,59 @@ export const uploadInvoice = (file: File) => {
 /** Have the model write the memo for the current plan (citations checked against the plan). */
 export const writeMemo = (id: string) =>
 	request(PayoutDetail, `/api/payouts/${enc(id)}/memo`, { method: "POST" });
+
+/** Type an invoice in by hand (the PDF reader is down, or there is no PDF). 409 duplicate_invoice when the
+ *  same supplier tax ID + invoice number already exists. */
+export const enterInvoiceManually = (body: ManualInvoice) =>
+	request(PayoutDetail, "/api/invoices/manual", { method: "POST", body });
+
+/** Record that a person called the vendor back and confirmed the bank details (vendor master). */
+export const verifyBankDetails = (id: string, body: BankVerificationRequest) =>
+	request(PayoutDetail, `/api/payouts/${enc(id)}/bank-verification`, {
+		method: "POST",
+		body,
+	});
+
+// ---- Batch actions and remittance advice ------------------------------------------------
+// Not in contracts.ts yet: these mirror the endpoint contracts the API team agreed.
+
+export const BatchAction = z.enum(["approve", "pay", "reconcile"]);
+export type BatchAction = z.infer<typeof BatchAction>;
+
+export const BatchResult = z.object({
+	id: z.string(),
+	ok: z.boolean(),
+	status: z.string().optional(),
+	error: z.object({ code: z.string(), message: z.string() }).optional(),
+});
+export type BatchResult = z.infer<typeof BatchResult>;
+
+/** Approve, pay or reconcile several payouts in one request; each row succeeds or fails on its own. */
+export const batchPayouts = (body: {
+	action: BatchAction;
+	ids: string[];
+	/** Approving: warning rule ids on each payout's recommended route that the approver accepted. */
+	acknowledgedWarnings?: Record<string, string[]>;
+}) =>
+	request(z.object({ results: z.array(BatchResult) }), "/api/payouts/batch", {
+		method: "POST",
+		body,
+	});
+
+export const RemittanceLanguage = z.enum(["pt", "es", "en"]);
+export type RemittanceLanguage = z.infer<typeof RemittanceLanguage>;
+
+export const RemittanceAdvice = z.object({
+	language: z.string(),
+	subject: z.string(),
+	body: z.string(),
+	reference: z.string(),
+});
+export type RemittanceAdvice = z.infer<typeof RemittanceAdvice>;
+
+/** A remittance advice for a paid payout, drafted for a person to send (nothing is emailed). */
+export const getRemittance = (id: string, lang: RemittanceLanguage) =>
+	request(
+		RemittanceAdvice,
+		`/api/payouts/${enc(id)}/remittance?lang=${enc(lang)}`,
+	);

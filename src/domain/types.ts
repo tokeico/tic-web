@@ -85,6 +85,29 @@ export interface Payout {
 	usd: number;
 	hidden?: boolean;
 	security?: SecurityFlags;
+	/** From the API: which safety checks actually ran. Absent means unknown, never "passed". */
+	checks?: PayoutChecks;
+	/** From the API plan: the invoice's bank details vs. the verified vendor record. */
+	bankCheck?: {
+		status: "verified" | "changed" | "unverified";
+		verifiedBy: string | null;
+		verifiedAt: string | null;
+	};
+	/** From the API plan: name screening against the OFAC SDN list. */
+	screening?: {
+		status: "clear" | "possible_match" | "hit";
+		match?: string;
+		score?: number;
+	};
+	/** From the API plan: why the payout has the status it has, in plain words. */
+	reasons?: string[];
+}
+
+/** Which safety checks ran on a payout, as the API reports them. */
+export interface PayoutChecks {
+	injectionScan: "passed" | "flagged" | "not_run";
+	bankDetails: "verified" | "changed" | "unverified";
+	duplicatePdf: "passed" | "not_run";
 }
 
 /** A payout with human edits and a recorded license folded in. */
@@ -113,6 +136,8 @@ export interface Route {
 	fee: number;
 	min: number;
 	label: string;
+	/** The API's quoted fee in USD for this route, when the plan came from the API. */
+	feeUsd?: number;
 }
 
 export interface Rule {
@@ -308,6 +333,8 @@ export interface AppState {
 	copied: string | null;
 	/** File names currently being read by the API (upload skeleton rows). */
 	uploading: string[];
+	/** The "Enter invoice by hand" form is open; reason says why it was offered (PDF reader down). */
+	manualEntry: { reason: string | null } | null;
 	settings: Settings;
 	chat: ChatMessage[];
 	input: string;

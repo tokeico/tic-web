@@ -1,6 +1,6 @@
 import { Check, Lock } from "@/components/icons";
 import { ScreeningSandbox } from "@/components/ScreeningSandbox";
-import { Card, Lab, PAGE_MAX_W, RuleRef } from "@/components/ui";
+import { Card, Lab, RuleRef } from "@/components/ui";
 import { radarImpact } from "@/domain/agent";
 import { verify } from "@/domain/audit";
 import { cite, RULES, SOURCES } from "@/domain/data";
@@ -36,6 +36,7 @@ export function TrustPage() {
 	const chk = verify(s.events, s.tamperSeq);
 	const flagged = vs.filter((v) => v.p.security).length;
 	const impact = radarImpact(s);
+	const flaggedRules = RULES.filter((r) => r.verify);
 
 	const proposals = s.events.filter((e) => e.type === "agent_proposed").length;
 	const confirmed = s.actions.filter((a) => a.status === "done").length;
@@ -113,7 +114,7 @@ export function TrustPage() {
 	];
 
 	return (
-		<main className={`mx-auto flex ${PAGE_MAX_W["/trust"]} flex-col gap-4 p-5`}>
+		<main className="page flex flex-col gap-4 py-5">
 			<div className="flex flex-col gap-1">
 				<h1
 					className="display m-0"
@@ -141,7 +142,10 @@ export function TrustPage() {
 						<h2 className="m-0" style={{ fontSize: 18 }}>
 							Regulatory radar
 						</h2>
-						<span className="text-ash-dim" style={{ fontSize: 13.5 }}>
+						<span
+							className="text-ash-dim"
+							style={{ fontSize: 13.5, maxWidth: "80ch" }}
+						>
 							The agent watches the rules pack’s sources and the provider
 							registry, and proposes changes with an impact analysis. Compliance
 							approves every change.
@@ -154,7 +158,7 @@ export function TrustPage() {
 					{Object.keys(SOURCES).map((k) => (
 						<a
 							key={k}
-							className="chip"
+							className="chip chip-wrap"
 							href={SOURCES[k].url}
 							target="_blank"
 							rel="noopener"
@@ -246,45 +250,49 @@ export function TrustPage() {
 					)}
 				</div>
 
-				<div className="flex flex-col gap-1.5">
-					<Lab>Rules flagged for verification</Lab>
-					{RULES.filter((r) => r.verify).map((r) => (
-						<div
-							key={r.id}
-							className="flex flex-wrap items-center justify-between gap-2.5 border-t border-edge-soft py-2.5"
-						>
-							<div className="flex min-w-0 flex-[1_1_380px] flex-col gap-[3px]">
-								<div className="flex flex-wrap items-center gap-2">
-									<RuleRef id={r.id} url={r.src.url} />
-									<span className="font-semibold" style={{ fontSize: 14 }}>
-										{r.title}
+				{/* only when something is flagged — otherwise the label sat alone */}
+				{flaggedRules.length > 0 && (
+					<div className="flex flex-col gap-1.5">
+						<Lab>Rules flagged for verification</Lab>
+						{flaggedRules.map((r) => (
+							<div
+								key={r.id}
+								className="flex flex-wrap items-center justify-between gap-2.5 border-t border-edge-soft py-2.5"
+							>
+								<div className="flex min-w-0 flex-[1_1_380px] flex-col gap-[3px]">
+									<div className="flex flex-wrap items-center gap-2">
+										<RuleRef id={r.id} url={r.src.url} />
+										<span className="font-semibold" style={{ fontSize: 14 }}>
+											{r.title}
+										</span>
+									</div>
+									<span className="text-ash" style={{ fontSize: 13.5 }}>
+										{"Effective date is marked “verify” in rules pack v1 (" +
+											(r.from ? fmtDate(r.from) : "no date") +
+											"). The agent linked the source; a person has to confirm it."}
 									</span>
 								</div>
-								<span className="text-ash" style={{ fontSize: 13.5 }}>
-									{"Effective date is marked “verify” in rules pack v1 (" +
-										(r.from ? fmtDate(r.from) : "no date") +
-										"). The agent linked the source; a person has to confirm it."}
-								</span>
+								{s.verified[r.id] ? (
+									<span className="pill p-ok">{`Reviewed by ${COMPLIANCE}`}</span>
+								) : (
+									<button
+										type="button"
+										className="btn btn-sm"
+										onClick={() => markVerified(r.id)}
+									>
+										{`Mark source reviewed · ${COMPLIANCE}`}
+									</button>
+								)}
 							</div>
-							{s.verified[r.id] ? (
-								<span className="pill p-ok">{`Reviewed by ${COMPLIANCE}`}</span>
-							) : (
-								<button
-									type="button"
-									className="btn btn-sm"
-									onClick={() => markVerified(r.id)}
-								>
-									{`Mark source reviewed · ${COMPLIANCE}`}
-								</button>
-							)}
-						</div>
-					))}
-				</div>
+						))}
+					</div>
+				)}
 			</Card>
 
-			{/* permissions + guardrails ---------------------------------------- */}
-			<div className="flex flex-wrap items-start gap-4">
-				<Card className="min-w-0 flex-[1_1_440px]">
+			{/* permissions + guardrails: stacked below ~1000px, then side by side at equal height;
+			    on wide screens the guardrails flow two-up so the cards balance */}
+			<div className="flex flex-wrap items-stretch gap-4">
+				<Card className="min-w-0 flex-[1_1_400px]">
 					<div className="flex flex-col gap-0.5">
 						<h2 className="m-0" style={{ fontSize: 18 }}>
 							Agent permissions
@@ -298,7 +306,8 @@ export function TrustPage() {
 					<div
 						className="grid gap-3"
 						style={{
-							gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))",
+							gridTemplateColumns:
+								"repeat(auto-fit,minmax(min(100%,200px),1fr))",
 						}}
 					>
 						<div className="flex flex-col gap-1.5">
@@ -306,7 +315,10 @@ export function TrustPage() {
 							{TOOLS_ALLOWED.map((t) => (
 								<div key={t} className="flex items-center gap-2">
 									<Check color="var(--color-volt)" style={{ flex: "none" }} />
-									<span className="mono" style={{ fontSize: 13 }}>
+									<span
+										className="mono min-w-0 [overflow-wrap:anywhere]"
+										style={{ fontSize: 13 }}
+									>
 										{t}
 									</span>
 								</div>
@@ -317,7 +329,10 @@ export function TrustPage() {
 							{TOOLS_HUMAN.map((t) => (
 								<div key={t} className="flex items-center gap-2">
 									<Lock color="var(--color-amber)" style={{ flex: "none" }} />
-									<span className="mono" style={{ fontSize: 13 }}>
+									<span
+										className="mono min-w-0 [overflow-wrap:anywhere]"
+										style={{ fontSize: 13 }}
+									>
 										{t}
 									</span>
 								</div>
@@ -326,7 +341,7 @@ export function TrustPage() {
 					</div>
 
 					<div
-						className="grid gap-2 border-t border-edge-soft pt-2.5"
+						className="mt-auto grid gap-2 border-t border-edge-soft pt-2.5"
 						style={{
 							gridTemplateColumns: "repeat(auto-fit,minmax(110px,1fr))",
 						}}
@@ -351,23 +366,40 @@ export function TrustPage() {
 					</div>
 				</Card>
 
-				<Card className="min-w-0 flex-[1_1_440px]">
+				<Card className="min-w-0 flex-[1.6_1_560px]">
 					<h2 className="m-0" style={{ fontSize: 18 }}>
 						Guardrails
 					</h2>
-					{guards.map((g) => (
-						<div key={g.name} className="flex flex-col gap-1">
-							<div className="flex flex-wrap items-center justify-between gap-2">
-								<span className="font-semibold" style={{ fontSize: 14 }}>
+					{/* title and status share a row (title wraps, pill stays top-right),
+					    so every pill lines up; two-up once the card is wide enough */}
+					<div
+						className="grid gap-x-8 gap-y-3"
+						style={{
+							gridTemplateColumns:
+								"repeat(auto-fill,minmax(min(100%,320px),1fr))",
+						}}
+					>
+						{guards.map((g) => (
+							<div
+								key={g.name}
+								className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-2.5 gap-y-1"
+							>
+								<span
+									className="font-semibold"
+									style={{ fontSize: 14, lineHeight: 1.4, paddingTop: 4 }}
+								>
 									{g.name}
 								</span>
 								<span className={g.cls}>{g.status}</span>
+								<span
+									className="col-span-2 text-ash-dim"
+									style={{ fontSize: 13 }}
+								>
+									{g.detail}
+								</span>
 							</div>
-							<span className="text-ash-dim" style={{ fontSize: 13 }}>
-								{g.detail}
-							</span>
-						</div>
-					))}
+						))}
+					</div>
 				</Card>
 			</div>
 		</main>

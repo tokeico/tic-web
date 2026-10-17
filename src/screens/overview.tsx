@@ -1,8 +1,10 @@
 import { Play } from "@/components/icons";
-import { Card, Disclosure, Lab, PAGE_MAX_W } from "@/components/ui";
+import { Card, Disclosure, Lab } from "@/components/ui";
 import { actorOf } from "@/domain/audit";
-import { views } from "@/domain/engine";
+import { views, wireFeePct, wireSaving } from "@/domain/engine";
 import { fmtDate, iso, usd0 } from "@/domain/format";
+import { blockReason } from "@/domain/holds";
+import { hasMemberApproved } from "@/lib/auth";
 import { useStore } from "@/state/store";
 
 /**
@@ -11,7 +13,7 @@ import { useStore } from "@/state/store";
  * opens this screen to act, not to read about the machine.
  */
 export function OverviewPage() {
-	const { state, go, open, loadDemo, startTour } = useStore();
+	const { state, go, open, loadDemo, startTour, user } = useStore();
 	const s = state;
 	const asOf = iso(s.day);
 	const L = s.loaded;
@@ -26,10 +28,9 @@ export function OverviewPage() {
 				v.status,
 			),
 	);
-	const savings = routed.reduce(
-		(t, v) => t + (v.p.usd * (4.5 - v.plan.rec!.route.fee)) / 100,
-		0,
-	);
+	// Measured against each plan's own wire quote, never a constant.
+	const savings = routed.reduce((t, v) => t + wireSaving(v), 0);
+	const wirePct = wireFeePct(routed.length ? routed : vs);
 	const avgMin = routed.length
 		? Math.round(
 				routed.reduce((t, v) => t + v.plan.rec!.route.min, 0) / routed.length,
@@ -66,7 +67,9 @@ export function OverviewPage() {
 			"Sanctions screen",
 			"Code",
 			"OFAC SDN fuzzy match",
-			L ? `${vs.length} clear` : "—",
+			L
+				? `${vs.filter((v) => v.p.screening?.status === "clear").length} clear`
+				: "—",
 		],
 		[
 			"Rules engine",
@@ -123,11 +126,25 @@ export function OverviewPage() {
 				cta: "Review",
 				go: openIt,
 			});
+		else if (v.status === "blocked")
+			needs.push({
+				tag: "Blocked",
+				cls: "pill p-bad",
+				text: `${v.p.payee} ${num}: ${blockReason(v)}`,
+				cta: "Review",
+				go: openIt,
+			});
 		else if (v.status === "awaiting_second_approver")
 			needs.push({
 				tag: "Approve",
 				cls: "pill p-warn",
-				text: `${v.p.payee} needs a second approver`,
+				// Over the threshold two different people approve; say where it stands.
+				text:
+					v.m.approvals.length === 0
+						? `${v.p.payee} needs approval: over ${usd0(s.settings.threshold)}, so two different people approve`
+						: hasMemberApproved(v.m.approvals, user)
+							? `${v.p.payee} has your approval: waiting on a second, different approver`
+							: `${v.p.payee} has ${v.m.approvals.length} of 2 approvals: needs a second, different approver`,
 				cta: "Open",
 				go: openIt,
 			});
@@ -193,13 +210,11 @@ export function OverviewPage() {
 		.map((e) => ({ ...e, ...actorOf(e.type) }));
 
 	return (
-		<main
-			className={`mx-auto flex ${PAGE_MAX_W["/app"]} flex-col gap-6 px-5 py-6`}
-		>
+		<main className="page flex flex-col gap-6 py-6">
 			<section className="flex flex-wrap items-end justify-between gap-4">
 				<div className="flex max-w-[760px] flex-col gap-2">
 					<h1
-						className="display-hero m-0"
+						className="display-hero m-0 [text-wrap:balance]"
 						style={{
 							fontSize: 34,
 							lineHeight: 1.08,
@@ -225,46 +240,113 @@ export function OverviewPage() {
 				</div>
 			</section>
 
-			<section aria-label="Needs a person">
-				<Card>
-					<div className="flex items-baseline justify-between gap-2">
-						<h2 className="m-0" style={{ fontSize: 17 }}>
-							Needs a person
-						</h2>
-						<span className="text-ash-dim" style={{ fontSize: 13 }}>
-							{needs.length ? `${needs.length} items` : ""}
-						</span>
-					</div>
-					{needs.length === 0 && (
-						<p className="m-0 text-ash-dim" style={{ fontSize: 14 }}>
-							{L
-								? "Nothing waiting. Approve, pay and reconcile from the inbox."
-								: "Load the demo invoices to start."}
-						</p>
-					)}
-					{needs.map((nd) => (
-						<div
-							key={nd.tag + nd.text}
-							className="flex items-center justify-between gap-2.5 border-t border-edge-soft py-2"
-						>
-							<div className="flex min-w-0 items-center gap-2.5">
-								<span className={nd.cls}>{nd.tag}</span>
-								<span style={{ fontSize: 14 }}>{nd.text}</span>
-							</div>
-							<button type="button" className="btn btn-sm" onClick={nd.go}>
-								{nd.cta}
-							</button>
+			{/* What needs me, next to what just happened: side by side (equal
+			    height) from 1280px, stacked with the to-dos first below that. */}
+			<div className="grid items-stretch gap-4 xl:grid-cols-2">
+				<section aria-label="Needs a person" className="flex min-w-0 flex-col">
+					<Card className="flex-1">
+						<div className="flex items-baseline justify-between gap-2">
+							<h2 className="m-0" style={{ fontSize: 17 }}>
+								Needs a person
+							</h2>
+							<span className="text-ash-dim" style={{ fontSize: 13 }}>
+								{needs.length ? `${needs.length} items` : ""}
+							</span>
 						</div>
-					))}
-				</Card>
-			</section>
+						{needs.length === 0 && (
+							<p className="m-0 text-ash-dim" style={{ fontSize: 14 }}>
+								{L
+									? "Nothing waiting. Approve, pay and reconcile from the inbox."
+									: "Load the demo invoices to start."}
+							</p>
+						)}
+						{needs.length > 0 && (
+							// From 640px the rows share three columns (subgrid), so tags,
+							// text and buttons line up; on phones the tag sits above the
+							// text and the button keeps the right edge.
+							<div className="grid sm:grid-cols-[max-content_minmax(0,1fr)_max-content]">
+								{needs.map((nd) => (
+									<div
+										key={nd.tag + nd.text}
+										className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-3 border-t border-edge-soft py-2 sm:col-span-3 sm:grid-cols-subgrid"
+									>
+										<div className="flex min-w-0 flex-col items-start gap-1.5 sm:contents">
+											<span className={`${nd.cls} justify-self-start`}>
+												{nd.tag}
+											</span>
+											<span className="min-w-0" style={{ fontSize: 14 }}>
+												{nd.text}
+											</span>
+										</div>
+										<button
+											type="button"
+											className="btn btn-sm"
+											onClick={nd.go}
+										>
+											{nd.cta}
+										</button>
+									</div>
+								))}
+							</div>
+						)}
+					</Card>
+				</section>
 
+				<section aria-label="Who did what" className="flex min-w-0 flex-col">
+					<Card className="flex-1">
+						<div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-0.5">
+							<h2 className="m-0" style={{ fontSize: 17 }}>
+								Who did what
+							</h2>
+							<span className="text-ash-dim" style={{ fontSize: 13 }}>
+								Latest from the audit chain
+							</span>
+						</div>
+						{feed.length === 0 && (
+							<p className="m-0 text-ash-dim" style={{ fontSize: 14 }}>
+								No activity yet.
+							</p>
+						)}
+						{feed.length > 0 && (
+							<div className="flex flex-col">
+								{feed.map((e) => (
+									<div
+										key={e.seq}
+										className="grid items-center gap-2.5 border-t border-edge-soft py-2"
+										style={{
+											gridTemplateColumns: "62px minmax(0,1fr) 44px",
+											fontSize: 13.5,
+										}}
+									>
+										<span className={e.cls} style={{ justifySelf: "start" }}>
+											{e.actor}
+										</span>
+										<span className="min-w-0">
+											<strong className="font-semibold">{e.payee}</strong> ·{" "}
+											{e.summary}
+										</span>
+										<span
+											className="mono text-right text-ash-dim"
+											style={{ fontSize: 12 }}
+										>
+											{e.time}
+										</span>
+									</div>
+								))}
+							</div>
+						)}
+					</Card>
+				</section>
+			</div>
+
+			{/* Pitch numbers: KPIs top-aligned; the demo-data note sits on the
+			    captions' line, or wraps under them on phones. */}
 			<section
 				aria-label="Key numbers"
-				className="flex flex-wrap items-baseline gap-x-12 gap-y-4"
+				className="flex flex-wrap items-start gap-x-8 gap-y-4 sm:gap-x-12"
 			>
-				<div className="flex flex-col gap-0.5">
-					<Lab>Fees saved vs. SWIFT</Lab>
+				<div className="flex min-w-[140px] flex-col gap-0.5">
+					<Lab>{`Fees saved vs. an unnegotiated bank wire (~${wirePct}%)`}</Lab>
 					<span
 						className="mono"
 						style={{
@@ -283,7 +365,7 @@ export function OverviewPage() {
 							: "load the demo invoices"}
 					</span>
 				</div>
-				<div className="flex flex-col gap-0.5">
+				<div className="flex min-w-[140px] flex-col gap-0.5">
 					<Lab>Settlement time</Lab>
 					<span
 						className="mono"
@@ -301,7 +383,7 @@ export function OverviewPage() {
 					</span>
 				</div>
 				{L && (
-					<div className="flex flex-col gap-0.5">
+					<div className="flex min-w-[140px] flex-col gap-0.5">
 						<Lab>Stops</Lab>
 						<span
 							className="mono"
@@ -316,64 +398,21 @@ export function OverviewPage() {
 							{String(stops)}
 						</span>
 						<span className="text-ash-dim" style={{ fontSize: 12.5 }}>
-							security holds and sanctions blocks
+							security, sanctions and bank-detail holds
 						</span>
 					</div>
 				)}
-				<span className="text-ash-faint" style={{ fontSize: 12 }}>
+				<span className="self-end text-ash-faint" style={{ fontSize: 12 }}>
 					Demo data: fictional providers, snapshot FX rates.
 				</span>
 			</section>
 
-			<section
-				aria-label="Who did what"
-				className="flex flex-wrap items-start gap-4"
-			>
-				<Card className="min-w-0 flex-[1_1_420px]">
-					<div className="flex items-baseline justify-between gap-2">
-						<h2 className="m-0" style={{ fontSize: 17 }}>
-							Who did what
-						</h2>
-						<span className="text-ash-dim" style={{ fontSize: 13 }}>
-							Latest from the audit chain
-						</span>
-					</div>
-					{feed.length === 0 && (
-						<p className="m-0 text-ash-dim" style={{ fontSize: 14 }}>
-							No activity yet.
-						</p>
-					)}
-					{feed.map((e) => (
-						<div
-							key={e.seq}
-							className="grid items-center gap-2.5 border-t border-edge-soft py-[7px]"
-							style={{
-								gridTemplateColumns: "62px minmax(0,1fr) 44px",
-								fontSize: 13.5,
-							}}
-						>
-							<span className={e.cls} style={{ justifySelf: "start" }}>
-								{e.actor}
-							</span>
-							<span className="min-w-0">
-								<strong className="font-semibold">{e.payee}</strong> ·{" "}
-								{e.summary}
-							</span>
-							<span className="mono text-ash-dim" style={{ fontSize: 12 }}>
-								{e.time}
-							</span>
-						</div>
-					))}
-				</Card>
-
-				<div className="min-w-0 flex-[1_1_420px]">
-					<Disclosure summary="The pipeline · 8 steps · who owns each one">
-						<ol
-							className="m-0 grid list-none gap-2 p-0"
-							style={{
-								gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))",
-							}}
-						>
+			{/* The pipeline spans the page: 2 → 4 → 8 steps across as it widens
+			    (stage-wrap / stage-grid in styles.css). */}
+			<section aria-label="The pipeline" className="min-w-0">
+				<Disclosure summary="The pipeline · 8 steps · who owns each one">
+					<div className="stage-wrap">
+						<ol className="stage-grid">
 							{stages.map(([name, actor, sub, count], i) => (
 								<li key={name} className="stage">
 									<div className="flex items-center justify-between gap-1.5">
@@ -416,8 +455,8 @@ export function OverviewPage() {
 								</li>
 							))}
 						</ol>
-					</Disclosure>
-				</div>
+					</div>
+				</Disclosure>
 			</section>
 		</main>
 	);

@@ -54,7 +54,7 @@ export function AuditSection() {
 
 			<p
 				className="m-0 text-ash-dim"
-				style={{ fontSize: 14, maxWidth: "90ch" }}
+				style={{ fontSize: 14, maxWidth: "80ch" }}
 			>
 				Append-only and hash-chained. Each event’s hash covers the previous hash
 				plus its payload, so editing any past event breaks verification from
@@ -71,9 +71,10 @@ export function AuditSection() {
 			)}
 
 			{s.events.length > 0 && (
-				<div className="overflow-x-auto rounded-lg border border-edge bg-panel">
-					<div role="table" aria-label="Audit events" style={{ minWidth: 900 }}>
-						<div role="row" className="ev bg-head">
+				<div className="overflow-hidden rounded-lg border border-edge bg-panel">
+					{/* ev-table: below 760px the rows reflow (styles.css), no sideways scroll */}
+					<div role="table" aria-label="Audit events" className="ev-table">
+						<div role="row" className="ev ev-head bg-head">
 							<span role="columnheader">
 								<Lab>#</Lab>
 							</span>

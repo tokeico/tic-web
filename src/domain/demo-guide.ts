@@ -10,12 +10,19 @@ export const PAGE_GUIDES: Record<
 > = {
 	"/dashboard": {
 		title: "The CEO view: what the agents did and what it was worth.",
-		what: "Dashboard rolls the whole payment operation into a few numbers: volume paid, savings versus SWIFT, money protected, and where it goes. Agents write the briefing and stream what they are doing.",
+		what: "Dashboard rolls the whole payment operation into a few numbers: volume paid, savings versus an unnegotiated bank wire, money protected, and where it goes. Agents write the briefing and stream what they are doing.",
 		why: "A CEO needs the outcome, not the queue. The day-to-day work (approving, paying, triaging) stays on Inbox and Agent, one click away.",
-		tryIt: "Ask your agents a question under the briefing, then hover the volume chart to see a month's numbers.",
+		tryIt:
+			"Ask your agents a question under the briefing, then hover the volume chart to see a month's numbers.",
 		terms: [
-			["Saved vs SWIFT", "The fees avoided by routing over stablecoin rails instead of a 4.5% wire."],
-			["Straight-through", "Payouts that went from intake to booked without a person editing a field."],
+			[
+				"Saved vs bank wire",
+				"The fees avoided by routing over stablecoin rails instead of an unnegotiated bank wire (~2.5%), measured against each payout's own wire quote.",
+			],
+			[
+				"Straight-through",
+				"Payouts that went from intake to booked without a person editing a field.",
+			],
 		],
 	},
 	"/overview": {

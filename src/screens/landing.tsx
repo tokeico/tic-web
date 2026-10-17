@@ -1,7 +1,4 @@
 import { Link } from "@tanstack/react-router";
-import Lenis from "lenis";
-import { useEffect } from "react";
-import "lenis/dist/lenis.css";
 import { Check, CheckCircle, ShieldCheck } from "@/components/icons";
 import { CoverageGlobe } from "@/components/landing/CoverageGlobe";
 import { HeroCoinStage } from "@/components/landing/HeroCoinStage";
@@ -41,16 +38,6 @@ const CORRIDORS = [
 ];
 
 export function LandingPage() {
-	// Brand feel: long marketing scroll glides (Lenis). Only here — the app is a
-	// working surface, not a story. Native for anyone who prefers reduced motion.
-	useEffect(() => {
-		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-		const lenis = new Lenis({
-			autoRaf: true,
-			anchors: true, // the "#how-it-works" CTA glides to its section too
-		});
-		return () => lenis.destroy();
-	}, []);
 	return (
 		<div className="lp-page min-h-screen text-bone">
 			<div className="lp-hero-band relative">
@@ -71,7 +58,7 @@ export function LandingPage() {
 								className="mono text-ash-dim"
 								style={{ fontSize: 9.5, letterSpacing: ".22em" }}
 							>
-								BY TOKEISO
+								BY TOKEICO
 							</span>
 						</div>
 					</div>
@@ -312,7 +299,7 @@ export function LandingPage() {
 							className="mono text-ash-dim"
 							style={{ fontSize: 9.5, letterSpacing: ".22em" }}
 						>
-							BY TOKEISO
+							BY TOKEICO
 						</span>
 					</div>
 					<span className="text-ash-dim" style={{ fontSize: 13 }}>

@@ -70,79 +70,81 @@ export function LedgerSection() {
 				</Card>
 			)}
 
-			{journal.map((je) => (
-				<Card key={je.id}>
-					<div className="flex flex-wrap items-start justify-between gap-2.5">
-						<div className="flex flex-col gap-0.5">
-							<span className="font-semibold" style={{ fontSize: 16 }}>
-								{je.payee}
-							</span>
-							<span className="mono text-ash-dim" style={{ fontSize: 12.5 }}>
-								{`${je.id} · ${je.date} · ${je.route}`}
-							</span>
-						</div>
-						<span className="pill p-ok">
-							<Check />
-							Matched
-						</span>
-					</div>
-
-					<div className="overflow-x-auto">
-						<div
-							role="table"
-							aria-label="Journal lines"
-							style={{ minWidth: 520 }}
-						>
-							<div
-								role="row"
-								className="grid gap-2.5 border-b border-edge-soft pb-1.5"
-								style={{ gridTemplateColumns: "minmax(0,1fr) 130px 130px" }}
-							>
-								<span role="columnheader">
-									<Lab>Account</Lab>
-								</span>
-								<span role="columnheader" className="text-right">
-									<Lab>Debit (USD)</Lab>
-								</span>
-								<span role="columnheader" className="text-right">
-									<Lab>Credit (USD)</Lab>
-								</span>
-							</div>
-							{je.lines.map((ln) => (
-								<div
-									key={ln.acct}
-									role="row"
-									className="grid gap-2.5 border-b border-edge-soft py-2"
-									style={{
-										gridTemplateColumns: "minmax(0,1fr) 130px 130px",
-										fontSize: 14,
-									}}
-								>
-									<span role="cell">{ln.acct}</span>
-									<span
-										role="cell"
-										className="mono text-right"
-										style={{ fontVariantNumeric: "tabular-nums" }}
-									>
-										{ln.dr == null ? "" : num(ln.dr)}
+			{journal.length > 0 && (
+				<div className="ledger-list">
+					{journal.map((je) => (
+						<Card key={je.id}>
+							<div className="flex flex-wrap items-start justify-between gap-2.5">
+								<div className="flex min-w-0 flex-col gap-0.5">
+									<span className="font-semibold" style={{ fontSize: 16 }}>
+										{je.payee}
 									</span>
 									<span
-										role="cell"
-										className="mono text-right"
-										style={{ fontVariantNumeric: "tabular-nums" }}
+										className="mono text-ash-dim [overflow-wrap:anywhere]"
+										style={{ fontSize: 12.5 }}
 									>
-										{ln.cr == null ? "" : num(ln.cr)}
+										{`${je.id} · ${je.date} · ${je.route}`}
 									</span>
 								</div>
-							))}
-						</div>
-					</div>
+								<span className="pill p-ok">
+									<Check />
+									Matched
+								</span>
+							</div>
 
-					<span className="text-ash-dim" style={{ fontSize: 13 }}>
-						{je.match}
-					</span>
-				</Card>
-			))}
+							{/* je-table / je-row: columns live in styles.css so the
+							    lines reflow on a narrow card instead of scrolling */}
+							<div role="table" aria-label="Journal lines" className="je-table">
+								<div
+									role="row"
+									className="je-row border-b border-edge-soft pb-1.5"
+								>
+									<span role="columnheader">
+										<Lab>Account</Lab>
+									</span>
+									<span role="columnheader" className="text-right">
+										<Lab>Debit (USD)</Lab>
+									</span>
+									<span role="columnheader" className="text-right">
+										<Lab>Credit (USD)</Lab>
+									</span>
+								</div>
+								{je.lines.map((ln) => (
+									<div
+										key={ln.acct}
+										role="row"
+										className="je-row border-b border-edge-soft py-2"
+										style={{ fontSize: 14 }}
+									>
+										<span role="cell">{ln.acct}</span>
+										<span
+											role="cell"
+											className="mono text-right"
+											style={{ fontVariantNumeric: "tabular-nums" }}
+										>
+											{ln.dr == null ? "" : num(ln.dr)}
+										</span>
+										<span
+											role="cell"
+											className="mono text-right"
+											style={{ fontVariantNumeric: "tabular-nums" }}
+										>
+											{ln.cr == null ? "" : num(ln.cr)}
+										</span>
+									</div>
+								))}
+							</div>
+
+							<span
+								className="mt-auto text-ash-dim [overflow-wrap:anywhere]"
+								style={{ fontSize: 13 }}
+							>
+								{je.match}
+							</span>
+						</Card>
+					))}
+				</div>
+			)}
 		</section>
 	);
 }

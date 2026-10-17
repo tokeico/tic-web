@@ -22,4 +22,6 @@ Run `bun test src/domain/demo.test.ts` for demo date and tour-action regressions
 
 The protected `/_app` layout loads the signed-in member through `src/server/session.ts`. Browser API calls use same-origin `/api/*`; `src/server/api.ts` forwards cookies to runtime `API_ORIGIN` (with `PUBLIC_API_URL` as a local fallback). `/mcp` uses the same server-side proxy. Never move session tokens into browser storage or treat the frontend route guard as API authorization.
 
+The "Connect your agent" panel (`src/components/ConnectAgent.tsx`, on the Account page) builds per-client MCP configs for `/mcp` and reads the tool list live via `tools/list`; the tools themselves are defined in `tic-api/src/mcp.ts`.
+
 Account controls live in `src/screens/account.tsx`; new workspaces and invitation acceptance use real database memberships. Workspace switching rotates the session and reloads the app to clear workspace-local UI state. Sign-up is not KYC verification.

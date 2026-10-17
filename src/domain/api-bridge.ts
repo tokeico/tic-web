@@ -6,7 +6,9 @@ import {
 	approvePayout,
 	askAgentApi,
 	auditQuery,
+	batchPayouts,
 	editInvoice,
+	enterInvoiceManually,
 	getPayout,
 	ledgerQuery,
 	offrampsQuery,
@@ -22,6 +24,7 @@ import {
 	settingsQuery,
 	updateSettings,
 	uploadInvoice,
+	verifyBankDetails,
 	verifyQuery,
 } from "@/lib/api";
 import type {
@@ -166,6 +169,7 @@ function toRoute(route: ApiRoute, country: Corridor) {
 		fee: route.feePct,
 		min: route.minutes,
 		label,
+		feeUsd: route.feeUsd,
 	};
 }
 
@@ -260,6 +264,11 @@ function toPayout(detail: PayoutDetail): Payout {
 			desc: inv.description,
 		},
 		usd: detail.amountUsd,
+		...(detail.checks ? { checks: detail.checks } : {}),
+		...(detail.plan?.bankDetails ? { bankCheck: detail.plan.bankDetails } : {}),
+		...(detail.plan
+			? { screening: detail.plan.screening, reasons: detail.plan.reasons }
+			: {}),
 		...(hold
 			? {
 					security: {
@@ -439,6 +448,8 @@ function describe(
 			? `Route ${p.recommendedRouteId}`
 			: "Plan updated";
 	if (e.type === "memo") return "Memo drafted";
+	if (e.type === "bank_verified")
+		return `Bank details verified by call-back${by ? ` · by ${by}` : ""}`;
 	if (e.type === "approved") return `Approved${by ? ` by ${by}` : ""}`;
 	if (e.type === "rejected") return `Rejected${by ? ` by ${by}` : ""}`;
 	if (e.type === "paid") return `Sent${by ? ` · confirmed by ${by}` : ""}`;
@@ -647,6 +658,9 @@ export const api = {
 	reviewSanctions,
 	reviewSecurityHold,
 	uploadInvoice,
+	enterInvoiceManually,
+	verifyBankDetails,
+	batchPayouts,
 	verify: (tamper?: number) => verifyQuery(tamper).queryFn(),
 	iso,
 };

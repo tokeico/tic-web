@@ -80,8 +80,9 @@ export function ScreeningSandbox() {
 						</button>
 					))}
 				</div>
+				{/* capped so the input and its button stay together on wide screens */}
 				<form
-					className="flex flex-wrap items-end gap-2"
+					className="flex max-w-[760px] flex-wrap items-end gap-2"
 					onSubmit={(event) => {
 						event.preventDefault();
 						void check();

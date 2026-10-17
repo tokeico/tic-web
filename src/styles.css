@@ -64,6 +64,26 @@
        follow, and the range slider inherits the accent. */
     color-scheme: dark;
     accent-color: var(--color-volt);
+
+    /* One page frame for the masthead and every screen, so their edges line
+       up. The gutter breathes with the viewport; the frame widens on large
+       monitors instead of leaving the content in a narrow strip. */
+    --gutter: clamp(16px, 2.6vw, 40px);
+    --page-max: 1440px;
+    /* the right rail beside a main column (dashboard, inbox detail) */
+    --rail: 360px;
+  }
+  @media (min-width: 1800px) {
+    :root {
+      --page-max: 1680px;
+      --rail: 400px;
+    }
+  }
+  @media (min-width: 2300px) {
+    :root {
+      --page-max: 1960px;
+      --rail: 440px;
+    }
   }
 
   body {
@@ -81,6 +101,12 @@
     font-size: 15px;
     line-height: 1.45;
     -webkit-font-smoothing: antialiased;
+    overflow-wrap: break-word;
+  }
+  @media (min-width: 1800px) {
+    body {
+      font-size: 16px;
+    }
   }
 
   a {
@@ -112,6 +138,20 @@
 }
 
 @layer components {
+  /* the shared page frame ------------------------------------------------ */
+  .page {
+    box-sizing: border-box;
+    width: 100%;
+    max-width: calc(var(--page-max) + 2 * var(--gutter));
+    margin-inline: auto;
+    padding-inline: var(--gutter);
+  }
+  /* a reading-width column inside the frame, left-aligned with the masthead */
+  .page-narrow {
+    width: 100%;
+    max-width: 1040px;
+  }
+
   /* status pills — translucent tints, never flat pastel fills ----------- */
   .pill {
     display: inline-flex;
@@ -188,6 +228,7 @@
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--color-ash-dim);
+    text-wrap: balance;
   }
   .mono {
     font-family: var(--font-mono);
@@ -364,6 +405,13 @@
     background: var(--color-raise);
     color: var(--color-bone);
   }
+  /* phones: the four tabs, overflow and help fit on one row */
+  @media (max-width: 479px) {
+    .tab,
+    .more-menu > summary {
+      padding: 0 8px;
+    }
+  }
   .tab-on {
     background: color-mix(in oklab, var(--color-volt) 12%, transparent);
     color: var(--color-volt);
@@ -382,6 +430,8 @@
     color: var(--color-ash);
     font-size: 13.5px;
     text-align: left;
+    /* chips never squash; on phones the row scrolls sideways (agent.tsx) */
+    flex: none;
   }
   .sugg:hover:not(:disabled) {
     border-color: var(--color-volt);
@@ -527,18 +577,69 @@
   .more-pop .tab {
     text-align: left;
     justify-content: flex-start;
+    white-space: nowrap;
   }
 
-  /* route comparison: the engine's pick wears the accent ----------------- */
-  .route {
+  /* route comparison: the engine's pick wears the accent -----------------
+     The rows share one set of columns (subgrid on .routes), so fee, time
+     and status line up from row to row. In a narrow detail pane each row
+     reflows (container queries below) instead of scrolling sideways. */
+  .routes {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 84px 62px minmax(112px, auto);
-    gap: 10px;
+    grid-template-columns: minmax(0, 1fr) auto auto minmax(112px, auto);
+    column-gap: 14px;
+    row-gap: 6px;
+  }
+  .route {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: subgrid;
+    column-gap: 14px;
+    row-gap: 8px;
     align-items: center;
     padding: 11px 12px;
     border: 1px solid var(--color-edge);
     border-radius: 8px;
     background: var(--color-panel);
+  }
+  .route-fee,
+  .route-time {
+    text-align: right;
+    white-space: nowrap;
+  }
+  .route-act {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 6px;
+  }
+  /* pane under 560px: name · fee · time on one line, status + action below */
+  @container detail (max-width: 560px) {
+    .routes {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .route {
+      grid-template-columns: minmax(0, 1fr) auto auto;
+      column-gap: 12px;
+    }
+    .route-act {
+      grid-column: 1 / -1;
+    }
+  }
+  /* phone-narrow pane: the name gets its own line, the numbers sit under it */
+  @container detail (max-width: 340px) {
+    .route {
+      grid-template-columns: auto auto minmax(0, 1fr);
+    }
+    .route-name {
+      grid-column: 1 / -1;
+    }
+    .route-fee,
+    .route-time {
+      text-align: left;
+    }
   }
   .route-rec {
     border-color: var(--color-volt);
@@ -607,6 +708,38 @@
   }
   .ev:hover {
     background: var(--color-raise);
+  }
+  /* the event chip sits on the row's centre line, not a text baseline */
+  .ev .chip {
+    display: block;
+    width: fit-content;
+  }
+  /* the table measures its own width (it lives inside a disclosure) */
+  .ev-table {
+    container-type: inline-size;
+  }
+  /* Narrow: each event becomes a small card — #, actor, event and time on
+     one line, the detail under it, the hash last — so nothing scrolls
+     sideways on a phone. */
+  @container (max-width: 760px) {
+    .ev {
+      grid-template-columns: auto auto minmax(0, 1fr) auto;
+      grid-template-areas:
+        "seq actor event time"
+        "detail detail detail detail"
+        "hash hash hash hash";
+      gap: 6px 10px;
+      padding: 12px 14px;
+    }
+    .ev > :nth-child(1) { grid-area: seq; }
+    .ev > :nth-child(2) { grid-area: actor; }
+    .ev > :nth-child(3) { grid-area: event; min-width: 0; }
+    .ev > :nth-child(4) { grid-area: detail; }
+    .ev > :nth-child(5) { grid-area: hash; color: var(--color-ash-dim); }
+    .ev > :nth-child(6) { grid-area: time; text-align: right; }
+    .ev-head {
+      display: none;
+    }
   }
 
   /* acknowledgment block ------------------------------------------------ */
@@ -819,8 +952,41 @@
 
 .hero-coin-frame {
   position: relative;
+  z-index: 2;
   width: 100%;
   aspect-ratio: 1024 / 682;
+  overflow: visible;
+}
+
+/* Volt wash aligned to the coin disc (matches coverage globe language). */
+.hero-coin-frame::before {
+  content: "";
+  position: absolute;
+  inset: -4% 2% 0%;
+  z-index: 0;
+  pointer-events: none;
+  border-radius: 50%;
+  background: radial-gradient(
+    72% 78% at 50% 48%,
+    color-mix(in oklab, var(--color-volt) 14%, transparent) 0%,
+    color-mix(in oklab, var(--color-volt) 6%, transparent) 55%,
+    transparent 88%
+  );
+  filter: blur(36px);
+}
+
+.hero-coin-glow {
+  position: absolute;
+  inset: -28% -24% -22%;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    78% 84% at 50% 48%,
+    color-mix(in oklab, var(--color-volt) 11%, transparent) 0%,
+    color-mix(in oklab, var(--color-volt) 4%, transparent) 50%,
+    transparent 90%
+  );
+  filter: blur(48px);
 }
 
 @container (max-width: 26rem) {
@@ -839,32 +1005,6 @@
   }
 }
 
-.hero-coin-glow {
-  position: absolute;
-  inset: 4% 6% 8%;
-  pointer-events: none;
-  z-index: 0;
-  background: radial-gradient(
-    70% 72% at 50% 48%,
-    color-mix(in oklab, var(--color-volt) 28%, transparent) 0%,
-    color-mix(in oklab, var(--color-volt) 8%, transparent) 42%,
-    transparent 72%
-  );
-  filter: blur(26px);
-}
-
-.hero-coin-glow--core {
-  inset: 14% 18% 16%;
-  z-index: 0;
-  background: radial-gradient(
-    58% 62% at 50% 48%,
-    color-mix(in oklab, var(--color-volt) 38%, transparent) 0%,
-    transparent 68%
-  );
-  filter: blur(18px);
-  opacity: 0.9;
-}
-
 .hero-coin-rails {
   position: absolute;
   inset: 0;
@@ -878,21 +1018,24 @@
 
 .hero-coin-rails path {
   fill: none;
-  stroke: color-mix(in oklab, var(--color-volt) 62%, transparent);
-  stroke-width: 3;
+  stroke: color-mix(in oklab, var(--color-volt) 48%, transparent);
+  stroke-width: 2;
   stroke-linecap: round;
-  opacity: 0.78;
+  opacity: 0.48;
 }
 
 .hero-coin-art {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: 100%;
   object-fit: contain;
   pointer-events: none;
+  /* Halo follows PNG alpha — visible on black even when div gradients do not read. */
+  filter: drop-shadow(0 0 28px color-mix(in oklab, var(--color-volt) 26%, transparent))
+    drop-shadow(0 0 64px color-mix(in oklab, var(--color-volt) 14%, transparent))
+    drop-shadow(0 0 120px color-mix(in oklab, var(--color-volt) 8%, transparent));
 }
 
 .hero-currency-chip {
@@ -1204,6 +1347,9 @@
 }
 
 .explorer-columns {
+  /* same right inset as the rows' summary, which reserves room for the
+     chevron, so the headings sit over their columns */
+  padding-right: 36px;
   padding-block: 10px;
   color: var(--color-ash);
   font-size: 12px;
@@ -1231,6 +1377,8 @@
 .explorer-transaction > summary::after {
   content: "";
   position: absolute;
+  top: 50%;
+  margin-top: -4px;
   right: 16px;
   width: 7px;
   height: 7px;
@@ -1273,6 +1421,13 @@
 
 .explorer-receipt {
   border-top: 1px solid var(--color-edge-strong);
+}
+
+/* On wide screens the receipt reads as one document column: Copy buttons
+   and "Open invoice" stay near the values instead of 1500px away. */
+.explorer-receipt > * {
+  width: 100%;
+  max-width: 880px;
 }
 
 .explorer-references {
@@ -1324,15 +1479,96 @@
   .explorer-row {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     gap: 18px 12px;
-    padding-left: 0;
+    /* a small inset so the open/hover fill never touches the text */
+    padding-left: 12px;
+  }
+  /* two-line rows: the chevron sits on the payee line, not between lines */
+  .explorer-transaction > summary::after {
+    top: 30px;
+    margin-top: 0;
   }
   .explorer-receipt {
-    padding-inline: 0;
+    padding-inline: 12px;
   }
   .explorer-activity li {
     grid-template-columns: minmax(0, 1fr);
     gap: 5px;
   }
+}
+
+/* Books · ledger: journal cards tile two-up on wide screens; each card's
+   lines are a table that reflows on narrow cards instead of scrolling. */
+.ledger-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 640px), 1fr));
+  gap: 16px;
+}
+.je-table {
+  container-type: inline-size;
+}
+.je-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 130px 130px;
+  gap: 10px;
+}
+.je-row > :first-child {
+  overflow-wrap: anywhere;
+}
+@container (max-width: 520px) {
+  /* account on its own line; debit and credit keep their columns under it */
+  .je-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 104px) minmax(0, 104px);
+    row-gap: 4px;
+  }
+  .je-row > :first-child {
+    grid-column: 1 / -1;
+  }
+  .je-row > :nth-child(2) {
+    grid-column: 2;
+  }
+  .je-row > :nth-child(3) {
+    grid-column: 3;
+  }
+}
+
+/* Overview · pipeline: 2 → 4 → 8 across as its disclosure widens; each
+   step's name / count / caption share row tracks (subgrid) so they line up. */
+.stage-wrap {
+  container-type: inline-size;
+}
+.stage-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+@container (min-width: 600px) {
+  .stage-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+@container (min-width: 1400px) {
+  .stage-grid {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+}
+.stage-grid > .stage {
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid;
+  row-gap: 6px;
+  align-content: start;
+}
+
+/* Trust · source chips: the citation is the content, so it wraps on phones
+   instead of truncating to "BCB Res. 521/2025 (Res. 277 art. 29, I…". */
+.chip-wrap {
+  white-space: normal;
+  overflow-wrap: anywhere;
+  text-overflow: clip;
+  line-height: 1.35;
 }
 
 @media (prefers-reduced-motion: no-preference) {
@@ -1375,7 +1611,7 @@
     height: 1.05em;
     margin-left: 2px;
     vertical-align: -0.15em;
-    background: var(--color-volt);
+    background: var(--color-jade);
     animation: caret-blink 0.9s steps(1) infinite;
   }
   .answer {
@@ -1390,7 +1626,7 @@
     background: linear-gradient(
       90deg,
       var(--color-ash-faint) 0%,
-      var(--color-volt) 50%,
+      var(--color-jade) 50%,
       var(--color-ash-faint) 100%
     );
     background-size: 200% 100%;
@@ -1427,8 +1663,36 @@
     animation: agent-ping 1.8s cubic-bezier(0, 0, 0.2, 1) infinite;
   }
 
+  /* Tiles share their row's label / value / caption tracks (subgrid), so a
+     label that wraps to two lines never pushes its number below the others. */
   .ceo-kpi {
+    display: grid;
+    grid-row: span 3;
+    grid-template-rows: subgrid;
+    row-gap: 4px;
     transition: border-color 0.2s;
+  }
+  /* five across from 640px, so tiles run narrow on tablets: tighter inset */
+  @media (max-width: 1023px) {
+    .ceo-kpi {
+      padding: 12px;
+    }
+  }
+  /* The value row is the size container (a container can't also be a
+     subgrid): the value scales with it and the sparkline shows only when
+     there is room for it beside the value. */
+  .kpi-val {
+    container-type: inline-size;
+  }
+  .kpi-spark {
+    display: none;
+    flex: 0 1 112px;
+    min-width: 56px;
+  }
+  @container (min-width: 190px) {
+    .kpi-spark {
+      display: block;
+    }
   }
   .ceo-kpi:hover {
     border-color: var(--color-edge-bright);
@@ -1447,7 +1711,7 @@
     text-align: left;
   }
   .escalation:hover {
-    border-color: var(--color-amber);
+    border-color: var(--color-volt);
   }
 
   .ceo-track {
@@ -1503,6 +1767,8 @@
   }
 
   .agent-card {
+    flex: 1 1 auto;
+    width: 100%;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -1581,6 +1847,123 @@
   }
 }
 
+/* A payout named in an agent reply: an inline link that opens it. */
+.agent-ref {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-bone);
+  font: inherit;
+  text-align: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--color-volt) 55%, transparent);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.agent-ref:hover {
+  color: var(--color-volt);
+  text-decoration-color: var(--color-volt);
+}
+
+/* Corridor map: map above its legend in the rail; side by side whenever the
+   card itself is wide enough (tablet, or full-width on mid screens). */
+@layer components {
+  .corridor-map {
+    container-type: inline-size;
+    min-width: 0;
+  }
+  .cm-inner {
+    display: grid;
+    gap: 14px;
+  }
+  @container (min-width: 560px) {
+    .cm-inner {
+      grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+      align-items: center;
+      gap: 24px;
+    }
+    .corridor-svg {
+      max-height: 380px;
+    }
+  }
+  .corridor-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-height: 420px;
+    overflow: visible;
+  }
+  .cm-label {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    paint-order: stroke;
+    stroke: var(--color-panel);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+  }
+  .cm-corridor {
+    cursor: default;
+    transition: opacity 0.15s ease;
+  }
+  .cm-draw {
+    stroke-dasharray: 1;
+    stroke-dashoffset: 1;
+    animation: line-draw 1.2s cubic-bezier(0.3, 0.7, 0.2, 1) forwards;
+  }
+  .corridor-legend {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .cm-row {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 6px 10px;
+    width: 100%;
+    padding: 7px 8px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-bone);
+    font-size: 14px;
+    text-align: left;
+  }
+  .cm-row:hover,
+  .cm-row-on {
+    background: var(--color-raise);
+    border-color: var(--color-edge);
+  }
+  .cm-share {
+    grid-column: 1 / -1;
+    height: 4px;
+    border-radius: 2px;
+    background: var(--color-sunk);
+    overflow: hidden;
+  }
+  .cm-share > span {
+    display: block;
+    height: 100%;
+    border-radius: 2px;
+    background: color-mix(in oklab, var(--color-volt) 70%, var(--color-ash));
+    transform-origin: left;
+    animation: bar-grow 0.9s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  .cm-share > .cm-share-blocked {
+    background: repeating-linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--color-coral) 55%, transparent) 0 6px,
+      transparent 6px 10px
+    );
+  }
+}
+
 @keyframes caret-blink {
   50% {
     opacity: 0;
@@ -1648,13 +2031,109 @@
   .ceo-fade,
   .agent-now,
   .agent-eq i,
-  .stream-row {
+  .stream-row,
+  .cm-draw,
+  .cm-share > span {
     animation: none;
   }
-  .ceo-draw {
+  .ceo-draw,
+  .cm-draw {
     stroke-dashoffset: 0;
   }
   .shimmer {
     color: var(--color-ash);
+  }
+}
+
+/* the chosen route: volt is the engine's path ------------------------------ */
+@layer components {
+  .route-tag {
+    display: inline-flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 0;
+  }
+  .route-tag-name {
+    font-weight: 600;
+    font-size: 14px;
+    color: var(--color-volt);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .route-tag-wire {
+    color: var(--color-ash);
+  }
+  .route-tag-meta {
+    font: 12px/1.3 var(--font-mono);
+    color: var(--color-ash-dim);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .route-hero {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding: 12px 14px;
+    border-radius: 10px;
+    background: color-mix(in oklab, var(--color-volt) 5%, var(--color-sunk));
+    border: 1px solid color-mix(in oklab, var(--color-volt) 28%, var(--color-edge));
+  }
+  .route-hero-none {
+    background: var(--color-sunk);
+    border-color: var(--color-edge);
+  }
+}
+
+/* the top bar's agent pulse --------------------------------------------- */
+@layer components {
+  .agent-ticker {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    max-width: 420px;
+    padding: 5px 10px;
+    border-radius: 999px;
+    border: 1px solid color-mix(in oklab, var(--color-jade) 22%, var(--color-edge));
+    background: color-mix(in oklab, var(--color-jade) 6%, transparent);
+    font-size: 12.5px;
+    color: var(--color-ash);
+    white-space: nowrap;
+  }
+  .agent-ticker-count {
+    color: var(--color-jade);
+    font-weight: 500;
+  }
+  .agent-ticker-now {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    padding-left: 8px;
+    border-left: 1px solid var(--color-edge-strong);
+    font: 12px/1.2 var(--font-mono);
+    color: var(--color-ash-dim);
+    animation: stream-in 0.45s ease-out both;
+  }
+  .agent-ticker-now strong {
+    color: var(--color-bone);
+    font-weight: 600;
+  }
+  @media (max-width: 1279px) {
+    .agent-ticker-now {
+      display: none;
+    }
+  }
+  .stream-compact .stream-row {
+    grid-template-columns: minmax(0, 1fr) 40px;
+  }
+  .stream-compact .stream-row > .act {
+    grid-column: 1 / -1;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .agent-ticker-now {
+    animation: none;
   }
 }

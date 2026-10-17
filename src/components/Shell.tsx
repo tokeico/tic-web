@@ -1,19 +1,21 @@
 import { Link, useLocation } from "@tanstack/react-router";
 import { type ReactNode, useState } from "react";
 
+import { DEMO_FLEET } from "@/domain/ceo-demo";
 import { RULES } from "@/domain/data";
 import { TOUR_WHY } from "@/domain/demo-guide";
 import { activeRuleCount } from "@/domain/engine";
 import { fmtDate, iso } from "@/domain/format";
-import { isDemoAdmin, signOut } from "@/lib/auth";
+import { seesDemo, signOut } from "@/lib/auth";
 import { useStore, VIEW_PATH, type ViewId } from "@/state/store";
+import { AgentTicker } from "./agents";
 import { FeatureGuide } from "./FeatureGuide";
 import { HelpHint } from "./HelpHint";
 import { Close, More, Swap } from "./icons";
 
 const TABS: [ViewId, string][] = [
 	["dashboard", "Dashboard"],
-	["agent", "Agent"],
+	["agent", "Agents"],
 	["inbox", "Inbox"],
 	["ledger", "Books"],
 ];
@@ -47,12 +49,14 @@ export function Shell({ children }: { children: ReactNode }) {
 		<div className="min-h-screen text-bone">
 			{/* Transparent so the ambient glow on the body reads through the masthead. */}
 			<header className="border-b border-edge-soft">
-				<div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-4 px-5 py-3">
-					<div className="flex flex-wrap items-center gap-[18px]">
+				{/* Phones: lockup and account on the first row, the nav on its own
+				    row below. From lg the three sit on one line. */}
+				<div className="page flex flex-wrap items-center gap-x-4 gap-y-2 py-3 lg:flex-nowrap">
+					<div className="contents lg:flex lg:min-w-0 lg:flex-1 lg:items-center lg:gap-[18px]">
 						{/* The lockup is the way back out to the marketing site. */}
 						<Link
 							to="/"
-							className="brand-link flex items-center gap-3 no-underline"
+							className="brand-link flex flex-none items-center gap-3 no-underline"
 							aria-label="Corredor home"
 							title="Back to corredor.com"
 						>
@@ -72,19 +76,19 @@ export function Shell({ children }: { children: ReactNode }) {
 									className="mono text-ash-dim"
 									style={{ fontSize: 9.5, letterSpacing: ".22em" }}
 								>
-									BY TOKEISO
+									BY TOKEICO
 								</span>
 							</div>
 						</Link>
 						<nav
 							aria-label="Main"
-							className="flex flex-wrap items-center gap-0.5"
+							className="order-last -mx-1.5 flex w-full flex-wrap items-center gap-0.5 sm:mx-0 lg:order-none lg:w-auto"
 						>
 							{TABS.map(([id, label]) => {
 								const on = pathname === VIEW_PATH[id];
 								const text =
 									id === "agent" && pending.length
-										? `Agent · ${pending.length}`
+										? `Agents · ${pending.length}`
 										: label;
 								return (
 									<button
@@ -133,14 +137,18 @@ export function Shell({ children }: { children: ReactNode }) {
 							<FeatureGuide key={pathname} pathname={pathname} />
 						</nav>
 					</div>
-					<div className="flex flex-wrap items-center gap-2">
+					<div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2">
+						<AgentTicker fleet={DEMO_FLEET} />
 						<span
-							className="max-w-[180px] truncate text-xs text-ash-dim"
+							className="hidden max-w-[180px] truncate text-xs text-ash-dim xl:inline"
 							title={user.workspace.name}
 						>
 							{user.workspace.name}
 						</span>
-						<span className="text-ash" style={{ fontSize: 13 }}>
+						<span
+							className="max-w-[40vw] truncate text-ash sm:max-w-none"
+							style={{ fontSize: 13 }}
+						>
 							<Link
 								to="/account"
 								aria-current={pathname === "/account" ? "page" : undefined}
@@ -148,7 +156,9 @@ export function Shell({ children }: { children: ReactNode }) {
 							>
 								{user.name}
 							</Link>
-							<span className="ml-2 text-ash-dim">{user.role}</span>
+							<span className="ml-2 hidden text-ash-dim sm:inline">
+								{user.role}
+							</span>
 						</span>
 						<button
 							type="button"
@@ -174,7 +184,7 @@ export function Shell({ children }: { children: ReactNode }) {
 							</span>
 						)}
 						<span
-							className="pill p-muted"
+							className="pill p-muted hidden sm:inline-flex"
 							title={
 								"Rules pack v1 · " +
 								activeRuleCount(iso(state.day)) +
@@ -188,7 +198,7 @@ export function Shell({ children }: { children: ReactNode }) {
 					</div>
 				</div>
 
-				{isDemoAdmin(user) && TIMELINE_PATHS.includes(pathname) && <AsOfBar />}
+				{seesDemo(user) && TIMELINE_PATHS.includes(pathname) && <AsOfBar />}
 			</header>
 
 			<TourBar key={state.tour ?? "off"} />
@@ -209,7 +219,7 @@ function AsOfBar() {
 
 	return (
 		<div className="border-t border-edge-soft bg-panel">
-			<div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-5 py-3">
+			<div className="page flex flex-col gap-2 py-3">
 				<div className="flex flex-wrap items-center justify-between gap-2">
 					<div className="flex min-w-[170px] items-center gap-2.5">
 						<span className="lab">As-of date</span>
@@ -312,8 +322,8 @@ function TourBar() {
 			aria-label="Interactive guided demo"
 			role="region"
 		>
-			<div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-x-5 gap-y-3 px-5 py-3">
-				<div className="flex min-w-0 flex-[1_1_460px] flex-col gap-[3px]">
+			<div className="page flex flex-wrap items-center justify-between gap-x-5 gap-y-3 py-3">
+				<div className="flex min-w-0 flex-[1_1_300px] flex-col gap-[3px]">
 					<span
 						className="mono"
 						style={{
@@ -425,11 +435,11 @@ function Toast() {
 	return (
 		<div
 			aria-live="polite"
-			className="fixed right-5 bottom-5 z-20 max-w-[440px]"
+			className="pointer-events-none fixed right-4 bottom-4 left-4 z-20 flex justify-end sm:right-5 sm:bottom-5 sm:left-auto sm:max-w-[440px]"
 		>
 			{state.toast && (
 				<div
-					className="bg-raise text-bone flex items-start gap-3 rounded-[10px] px-4 py-3.5"
+					className="pointer-events-auto bg-raise text-bone flex items-start gap-3 rounded-[10px] px-4 py-3.5"
 					style={{
 						border: "1px solid var(--color-edge-strong)",
 						boxShadow: "0 12px 32px rgba(0, 0, 0, 0.6)",

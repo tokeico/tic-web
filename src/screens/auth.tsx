@@ -60,12 +60,16 @@ export function AuthPage({
 	const inputClass =
 		"w-full rounded-md border border-edge-bright bg-panel px-3 py-3 text-base text-bone";
 	return (
-		<main className="mx-auto grid min-h-screen max-w-[1100px] items-center gap-12 px-6 py-12 lg:grid-cols-[1fr_420px]">
-			<section className="flex max-w-[32rem] flex-col gap-5">
+		// Phones/tablets: one centered column no wider than a comfortable form.
+		// lg: intro beside the card. ≥1800px the composition and type scale up
+		// so it doesn't float as a small island on a 2560px screen.
+		// (written as 112.5rem: a px arbitrary breakpoint sorts before lg in v4)
+		<main className="mx-auto box-border grid min-h-dvh w-full max-w-[34rem] content-center items-center gap-10 px-[var(--gutter)] py-12 lg:max-w-[1100px] lg:grid-cols-[minmax(0,1fr)_420px] lg:gap-16 min-[112.5rem]:max-w-[1360px] min-[112.5rem]:grid-cols-[minmax(0,1fr)_480px] min-[112.5rem]:gap-24">
+			<section className="flex max-w-[32rem] flex-col gap-5 min-[112.5rem]:max-w-[40rem]">
 				<Link to="/" className="display text-2xl text-bone no-underline">
 					Corredor
 				</Link>
-				<h1 className="display m-0 text-3xl leading-tight lg:text-4xl">
+				<h1 className="display m-0 text-3xl leading-tight text-balance lg:text-4xl min-[112.5rem]:text-5xl">
 					{registering
 						? "Your compliance workspace starts here."
 						: "Back to your compliance workspace."}
@@ -87,7 +91,7 @@ export function AuthPage({
 				</p>
 			</section>
 			<section
-				className="rounded-lg border border-edge bg-panel p-6"
+				className="min-w-0 rounded-lg border border-edge bg-panel p-5 sm:p-6 min-[112.5rem]:p-8"
 				aria-labelledby="auth-title"
 			>
 				<h2 id="auth-title" className="display mb-6 mt-0 text-2xl">
