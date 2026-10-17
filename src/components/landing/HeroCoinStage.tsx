@@ -245,10 +245,6 @@ export function HeroCoinStage() {
 			role="img"
 			aria-label="The Corredor token with payment corridors to USD, USDC, MXN, BRL, COP and ARS."
 		>
-			<div
-				className="lp-glow-coverage hero-coin-glow-plate"
-				aria-hidden="true"
-			/>
 			<svg
 				className="hero-coin-rails"
 				viewBox={`0 0 ${stageSize.w} ${stageSize.h}`}
@@ -259,6 +255,8 @@ export function HeroCoinStage() {
 				))}
 			</svg>
 			<div ref={frameRef} className="hero-coin-frame">
+				<div className="hero-coin-glow" aria-hidden="true" />
+				<div className="hero-coin-glow hero-coin-glow--halo" aria-hidden="true" />
 				<img
 					className="hero-coin-art"
 					src="/hero-coin.png"

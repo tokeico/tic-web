@@ -817,24 +817,38 @@
   overflow: visible;
 }
 
-.hero-coin-glow-plate {
-  position: absolute;
-  inset: -8% -12% -6%;
-  z-index: 0;
-  background: radial-gradient(
-    62% 68% at 50% 48%,
-    color-mix(in oklab, var(--color-volt) 24%, transparent) 0%,
-    color-mix(in oklab, var(--color-volt) 10%, transparent) 38%,
-    transparent 72%
-  );
-  filter: blur(16px);
-}
-
 .hero-coin-frame {
   position: relative;
   z-index: 2;
   width: 100%;
   aspect-ratio: 1024 / 682;
+  overflow: visible;
+  isolation: isolate;
+}
+
+.hero-coin-glow {
+  position: absolute;
+  inset: -18% -14% -16%;
+  z-index: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    58% 62% at 50% 48%,
+    color-mix(in oklab, var(--color-volt) 38%, transparent) 0%,
+    color-mix(in oklab, var(--color-volt) 16%, transparent) 42%,
+    transparent 74%
+  );
+  filter: blur(22px);
+}
+
+.hero-coin-glow--halo {
+  inset: -6% -4% -4%;
+  background: radial-gradient(
+    52% 56% at 50% 48%,
+    color-mix(in oklab, var(--color-volt) 22%, transparent) 0%,
+    transparent 68%
+  );
+  filter: blur(10px);
+  opacity: 0.95;
 }
 
 @container (max-width: 26rem) {
@@ -873,6 +887,8 @@
 }
 
 .hero-coin-art {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   height: 100%;
