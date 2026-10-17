@@ -581,9 +581,7 @@ function fromReply(r: AgentReply, autonomy: Ctx["autonomy"]): Reply {
 		if (b) bullets.push(b[1]!.replaceAll("**", ""));
 		else paras.push(line.replaceAll("**", ""));
 	}
-	const notes = [
-		`Answered locally by ${r.model} in ${(r.ms / 1000).toFixed(1)} s.`,
-	];
+	const notes: string[] = [];
 	if (r.removedCites.length)
 		notes.push(
 			`Citation guard: ${r.removedCites.join(", ")} isn’t in the rules pack.`,
@@ -704,7 +702,7 @@ export function useAgent() {
 							)
 								throw e;
 							reply = await respond(text, ctx());
-							reply.msg.note = `${reply.msg.note ? `${reply.msg.note} ` : ""}(Scripted reply: the local model is unavailable. ${e.message})`;
+							// The model is unavailable: answer from the scripted responder, silently.
 						}
 					} else {
 						reply = await respond(text, ctx());

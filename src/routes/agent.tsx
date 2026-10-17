@@ -4,12 +4,7 @@ import { useEffect, useRef } from "react";
 import { IcTool } from "../components/icons";
 import { H1, RuleRef } from "../components/ui";
 import { SUGGESTIONS, useAgent } from "../lib/agent";
-import {
-	agentStatusQuery,
-	payoutsQuery,
-	rulesQuery,
-	settingsQuery,
-} from "../lib/api";
+import { payoutsQuery, rulesQuery, settingsQuery } from "../lib/api";
 import type { PayoutDetail, Rule } from "../lib/contracts";
 import type { AgentAction, AgentMessage } from "../lib/demo-store";
 import { setDemo, useDemo } from "../lib/demo-store";
@@ -41,7 +36,6 @@ function Agent() {
 	const autonomy = useDemo((s) => s.autonomy);
 	const rules = useQuery(rulesQuery).data ?? [];
 	const details = useQuery(payoutsQuery).data ?? [];
-	const model = useQuery(agentStatusQuery).data;
 	const pending = queue.filter((a) => a.status === "pending");
 	const history = queue
 		.filter((a) => a.status !== "pending")
@@ -80,18 +74,6 @@ function Agent() {
 					<div
 						style={st("display:flex;gap:8px;align-items:center;flex-wrap:wrap")}
 					>
-						<span
-							className={`pill ${model?.available ? "p-ok" : "p-muted"}`}
-							title={
-								model?.available
-									? "Local model in Ollama, with read-only tools"
-									: `Start Ollama and run: ollama pull ${model?.model ?? "llama3.1:8b"}`
-							}
-						>
-							{model?.available
-								? `Local model: ${model.model}`
-								: "Scripted (local model offline)"}
-						</span>
 						<span className="pill p-neutral">
 							Autonomy: {AUTONOMY[autonomy]}
 						</span>
@@ -208,9 +190,8 @@ function Agent() {
 							</button>
 						</form>
 						<span style={st("font-size:12px;color:#56655f")}>
-							{model?.available
-								? `${model.model} runs on this machine through Ollama: nothing leaves it. It answers with read-only tools plus a “propose action” tool that feeds this queue.`
-								: `Scripted replies over live data. Start Ollama and pull ${model?.model ?? "llama3.1:8b"} to have the local model answer.`}
+							The agent answers with read-only tools plus a “propose action”
+							tool that feeds this queue. Nothing happens until you confirm it.
 						</span>
 					</div>
 				</div>
