@@ -15,6 +15,7 @@ import { Route as McpRouteImport } from './routes/mcp'
 import { Route as PresentationRouteImport } from './routes/presentation'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as SignupRouteImport } from './routes/signup'
+import { Route as VideoRouteImport } from './routes/video'
 import { Route as AppAccountRouteImport } from './routes/_app/account'
 import { Route as AppAgentRouteImport } from './routes/_app/agent'
 import { Route as AppAppRouteImport } from './routes/_app/app'
@@ -54,6 +55,11 @@ const SigninRoute = SigninRouteImport.update({
 const SignupRoute = SignupRouteImport.update({
   id: '/signup',
   path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const VideoRoute = VideoRouteImport.update({
+  id: '/video',
+  path: '/video',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AppAccountRoute = AppAccountRouteImport.update({
@@ -118,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/presentation': typeof PresentationRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/video': typeof VideoRoute
   '/account': typeof AppAccountRoute
   '/agent': typeof AppAgentRoute
   '/app': typeof AppAppRoute
@@ -136,6 +143,7 @@ export interface FileRoutesByTo {
   '/presentation': typeof PresentationRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/video': typeof VideoRoute
   '/account': typeof AppAccountRoute
   '/agent': typeof AppAgentRoute
   '/app': typeof AppAppRoute
@@ -156,6 +164,7 @@ export interface FileRoutesById {
   '/presentation': typeof PresentationRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
+  '/video': typeof VideoRoute
   '/_app/account': typeof AppAccountRoute
   '/_app/agent': typeof AppAgentRoute
   '/_app/app': typeof AppAppRoute
@@ -176,6 +185,7 @@ export interface FileRouteTypes {
     | '/presentation'
     | '/signin'
     | '/signup'
+    | '/video'
     | '/account'
     | '/agent'
     | '/app'
@@ -194,6 +204,7 @@ export interface FileRouteTypes {
     | '/presentation'
     | '/signin'
     | '/signup'
+    | '/video'
     | '/account'
     | '/agent'
     | '/app'
@@ -213,6 +224,7 @@ export interface FileRouteTypes {
     | '/presentation'
     | '/signin'
     | '/signup'
+    | '/video'
     | '/_app/account'
     | '/_app/agent'
     | '/_app/app'
@@ -233,6 +245,7 @@ export interface RootRouteChildren {
   PresentationRoute: typeof PresentationRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
+  VideoRoute: typeof VideoRoute
   ApiSplatRoute: typeof ApiSplatRoute
 }
 
@@ -278,6 +291,13 @@ declare module '@tanstack/react-router' {
       path: '/signup'
       fullPath: '/signup'
       preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/video': {
+      id: '/video'
+      path: '/video'
+      fullPath: '/video'
+      preLoaderRoute: typeof VideoRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_app/account': {
@@ -395,6 +415,7 @@ const rootRouteChildren: RootRouteChildren = {
   PresentationRoute: PresentationRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
+  VideoRoute: VideoRoute,
   ApiSplatRoute: ApiSplatRoute,
 }
 export const routeTree = rootRouteImport
