@@ -23,6 +23,7 @@ export const forwardApi = createServerOnlyFn(async (request: Request) => {
 		if (key === "host" || key === "forwarded" || key.startsWith("x-forwarded-"))
 			forwarded.headers.delete(key);
 	}
+	forwarded.headers.set("ngrok-skip-browser-warning", "true");
 	try {
 		const response = await fetch(forwarded, { redirect: "manual" });
 		const headers = new Headers(response.headers);
