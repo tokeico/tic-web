@@ -28,8 +28,7 @@ import {
 	SettingsUpdate,
 } from "./contracts";
 
-export const API_URL: string =
-	import.meta.env.PUBLIC_API_URL ?? "http://localhost:3000";
+export const API_URL = "";
 
 /** `{ error: { code, message } }` from the API, or a network failure. */
 export class ApiRequestError extends Error {
@@ -43,7 +42,7 @@ export class ApiRequestError extends Error {
 	}
 }
 
-async function request<S extends z.ZodType>(
+export async function request<S extends z.ZodType>(
 	schema: S,
 	path: string,
 	init: { method?: string; body?: unknown } = {},
@@ -52,6 +51,7 @@ async function request<S extends z.ZodType>(
 	const form = init.body instanceof FormData;
 	try {
 		res = await fetch(`${API_URL}${path}`, {
+			credentials: "same-origin",
 			method: init.method ?? "GET",
 			headers:
 				init.body === undefined || form
@@ -68,7 +68,7 @@ async function request<S extends z.ZodType>(
 		throw new ApiRequestError(
 			0,
 			"network",
-			`Can't reach the API at ${API_URL}. Is tic-api running?`,
+			"Can't reach Corredor. Check the API server and try again.",
 		);
 	}
 	const json: unknown = await res.json().catch(() => null);

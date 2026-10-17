@@ -4,7 +4,7 @@ import { approvedUsd, eff, fingerprint, need, rname } from "@/domain/engine";
 import { fmtDate, local, mins, objWord, usd, usd0 } from "@/domain/format";
 import { memoFor } from "@/domain/memo";
 import type { Invoice, PayoutView, RouteEval } from "@/domain/types";
-import { ACTOR, APPROVERS, useStore } from "@/state/store";
+import { useStore } from "@/state/store";
 import { Chat, CheckCircle, Close, ShieldCheck } from "./icons";
 import {
 	Card,
@@ -147,8 +147,7 @@ export function DetailPane({ v }: { v: PayoutView }) {
 			    machinery that earned the answer folds behind two bars that carry
 			    their answer in the summary, so nothing is more than one click away. */}
 			{hold && <SecurityCard v={v} hold={hold} />}
-			<SanctionsCard v={v} />
-			<ApprovalCard v={v} />
+			{status === "blocked" && <SanctionsCard v={v} />}
 			<MemoCard v={v} />
 
 			<Disclosure
@@ -161,9 +160,11 @@ export function DetailPane({ v }: { v: PayoutView }) {
 			<Disclosure
 				summary={`Invoice ${pe.inv.number} · fields & security checks`}
 			>
+				{status !== "blocked" && <SanctionsCard v={v} />}
 				{!hold && <SecurityCard v={v} hold={hold} />}
 				<FieldsCard v={v} locked={locked} />
 			</Disclosure>
+			<ApprovalCard v={v} />
 		</aside>
 	);
 }
@@ -283,7 +284,14 @@ const lockedByHuman = (m: PayoutView["m"]) =>
 /* ------------------------------------------------------------------ security */
 
 function SecurityCard({ v, hold }: { v: PayoutView; hold: boolean }) {
-	const { state: s, setSecDraft, clearSecurityHold, rejectFraud } = useStore();
+	const {
+		state: s,
+		setSecDraft,
+		clearSecurityHold,
+		rejectFraud,
+		user,
+	} = useStore();
+	const ACTOR = user.name;
 	const { p, m } = v;
 	if (!p.security)
 		return (
@@ -465,6 +473,7 @@ function SecurityCard({ v, hold }: { v: PayoutView; hold: boolean }) {
 
 function ApprovalCard({ v }: { v: PayoutView }) {
 	const {
+		user,
 		state: s,
 		approve,
 		reject,
@@ -474,6 +483,9 @@ function ApprovalCard({ v }: { v: PayoutView }) {
 		copy,
 		go,
 	} = useStore();
+	const APPROVERS = ["controller", "approver"].includes(user.role)
+		? [user.name]
+		: [];
 	const { p, m, plan, status } = v;
 	const rec = plan.rec;
 	const n = need(p, s);

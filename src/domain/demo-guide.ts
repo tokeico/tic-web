@@ -8,6 +8,19 @@ export const PAGE_GUIDES: Record<
 		terms: [string, string][];
 	}
 > = {
+	"/overview": {
+		title: "See what needs attention across the payment workflow.",
+		what: "Overview summarizes open payouts, approvals and recorded activity. Agent is the main starting point; Inbox holds the individual payments.",
+		why: "Teams need to see where a payment is waiting without losing the evidence behind each decision.",
+		tryIt:
+			"Open a payout that needs review, or start the guided demo. No real money moves.",
+		terms: [
+			[
+				"Payout",
+				"An invoice’s payment workflow, from checking its details to approval, simulated payment and bookkeeping.",
+			],
+		],
+	},
 	"/app": {
 		title: "Fast payments still need careful decisions.",
 		what: "Corredor helps teams paying suppliers in Latin America decide how a payment can travel, which rules apply, and who must review it. AI explains; dated rules decide eligibility; a person approves.",
@@ -151,7 +164,7 @@ export const TOUR_WHY: Record<string, string> = {
 	"Approve Brazil":
 		"Review comes before consent. Acknowledging a warning does not remove it, and the assistant cannot approve on your behalf.",
 	"Approve Mexico":
-		"A larger payment needs a second decision from a distinct approver. This demo cycles through test roles; a production workflow needs separately authenticated people.",
+		"A larger payment needs a second decision from a different signed-in approver. Invite a colleague from your account page; one account cannot approve twice.",
 	"Pay on the simulated rail":
 		"Approval and execution are separate steps. This mock payment lets you inspect the receipt without sending real money.",
 	"Reconcile and show the matched journal entry":

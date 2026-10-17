@@ -11,13 +11,19 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/_app'
+import { Route as McpRouteImport } from './routes/mcp'
+import { Route as SigninRouteImport } from './routes/signin'
+import { Route as SignupRouteImport } from './routes/signup'
+import { Route as AppAccountRouteImport } from './routes/_app/account'
 import { Route as AppAgentRouteImport } from './routes/_app/agent'
 import { Route as AppAppRouteImport } from './routes/_app/app'
 import { Route as AppAuditRouteImport } from './routes/_app/audit'
 import { Route as AppCustomizeRouteImport } from './routes/_app/customize'
 import { Route as AppInboxRouteImport } from './routes/_app/inbox'
 import { Route as AppLedgerRouteImport } from './routes/_app/ledger'
+import { Route as AppOverviewRouteImport } from './routes/_app/overview'
 import { Route as AppTrustRouteImport } from './routes/_app/trust'
+import { Route as ApiSplatRouteImport } from './routes/api/$'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -27,6 +33,26 @@ const IndexRoute = IndexRouteImport.update({
 const AppRoute = AppRouteImport.update({
   id: '/_app',
   getParentRoute: () => rootRouteImport,
+} as any)
+const McpRoute = McpRouteImport.update({
+  id: '/mcp',
+  path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SigninRoute = SigninRouteImport.update({
+  id: '/signin',
+  path: '/signin',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SignupRoute = SignupRouteImport.update({
+  id: '/signup',
+  path: '/signup',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AppAccountRoute = AppAccountRouteImport.update({
+  id: '/account',
+  path: '/account',
+  getParentRoute: () => AppRoute,
 } as any)
 const AppAgentRoute = AppAgentRouteImport.update({
   id: '/agent',
@@ -58,81 +84,131 @@ const AppLedgerRoute = AppLedgerRouteImport.update({
   path: '/ledger',
   getParentRoute: () => AppRoute,
 } as any)
+const AppOverviewRoute = AppOverviewRouteImport.update({
+  id: '/overview',
+  path: '/overview',
+  getParentRoute: () => AppRoute,
+} as any)
 const AppTrustRoute = AppTrustRouteImport.update({
   id: '/trust',
   path: '/trust',
   getParentRoute: () => AppRoute,
 } as any)
+const ApiSplatRoute = ApiSplatRouteImport.update({
+  id: '/api/$',
+  path: '/api/$',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/mcp': typeof McpRoute
+  '/signin': typeof SigninRoute
+  '/signup': typeof SignupRoute
+  '/account': typeof AppAccountRoute
   '/agent': typeof AppAgentRoute
   '/app': typeof AppAppRoute
   '/audit': typeof AppAuditRoute
   '/customize': typeof AppCustomizeRoute
   '/inbox': typeof AppInboxRoute
   '/ledger': typeof AppLedgerRoute
+  '/overview': typeof AppOverviewRoute
   '/trust': typeof AppTrustRoute
+  '/api/$': typeof ApiSplatRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/mcp': typeof McpRoute
+  '/signin': typeof SigninRoute
+  '/signup': typeof SignupRoute
+  '/account': typeof AppAccountRoute
   '/agent': typeof AppAgentRoute
   '/app': typeof AppAppRoute
   '/audit': typeof AppAuditRoute
   '/customize': typeof AppCustomizeRoute
   '/inbox': typeof AppInboxRoute
   '/ledger': typeof AppLedgerRoute
+  '/overview': typeof AppOverviewRoute
   '/trust': typeof AppTrustRoute
+  '/api/$': typeof ApiSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
+  '/mcp': typeof McpRoute
+  '/signin': typeof SigninRoute
+  '/signup': typeof SignupRoute
+  '/_app/account': typeof AppAccountRoute
   '/_app/agent': typeof AppAgentRoute
   '/_app/app': typeof AppAppRoute
   '/_app/audit': typeof AppAuditRoute
   '/_app/customize': typeof AppCustomizeRoute
   '/_app/inbox': typeof AppInboxRoute
   '/_app/ledger': typeof AppLedgerRoute
+  '/_app/overview': typeof AppOverviewRoute
   '/_app/trust': typeof AppTrustRoute
+  '/api/$': typeof ApiSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/mcp'
+    | '/signin'
+    | '/signup'
+    | '/account'
     | '/agent'
     | '/app'
     | '/audit'
     | '/customize'
     | '/inbox'
     | '/ledger'
+    | '/overview'
     | '/trust'
+    | '/api/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/mcp'
+    | '/signin'
+    | '/signup'
+    | '/account'
     | '/agent'
     | '/app'
     | '/audit'
     | '/customize'
     | '/inbox'
     | '/ledger'
+    | '/overview'
     | '/trust'
+    | '/api/$'
   id:
     | '__root__'
     | '/'
     | '/_app'
+    | '/mcp'
+    | '/signin'
+    | '/signup'
+    | '/_app/account'
     | '/_app/agent'
     | '/_app/app'
     | '/_app/audit'
     | '/_app/customize'
     | '/_app/inbox'
     | '/_app/ledger'
+    | '/_app/overview'
     | '/_app/trust'
+    | '/api/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
+  McpRoute: typeof McpRoute
+  SigninRoute: typeof SigninRoute
+  SignupRoute: typeof SignupRoute
+  ApiSplatRoute: typeof ApiSplatRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -150,6 +226,34 @@ declare module '@tanstack/react-router' {
       fullPath: '/'
       preLoaderRoute: typeof AppRouteImport
       parentRoute: typeof rootRouteImport
+    }
+    '/mcp': {
+      id: '/mcp'
+      path: '/mcp'
+      fullPath: '/mcp'
+      preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signin': {
+      id: '/signin'
+      path: '/signin'
+      fullPath: '/signin'
+      preLoaderRoute: typeof SigninRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/signup': {
+      id: '/signup'
+      path: '/signup'
+      fullPath: '/signup'
+      preLoaderRoute: typeof SignupRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_app/account': {
+      id: '/_app/account'
+      path: '/account'
+      fullPath: '/account'
+      preLoaderRoute: typeof AppAccountRouteImport
+      parentRoute: typeof AppRoute
     }
     '/_app/agent': {
       id: '/_app/agent'
@@ -193,6 +297,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppLedgerRouteImport
       parentRoute: typeof AppRoute
     }
+    '/_app/overview': {
+      id: '/_app/overview'
+      path: '/overview'
+      fullPath: '/overview'
+      preLoaderRoute: typeof AppOverviewRouteImport
+      parentRoute: typeof AppRoute
+    }
     '/_app/trust': {
       id: '/_app/trust'
       path: '/trust'
@@ -200,26 +311,37 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AppTrustRouteImport
       parentRoute: typeof AppRoute
     }
+    '/api/$': {
+      id: '/api/$'
+      path: '/api/$'
+      fullPath: '/api/$'
+      preLoaderRoute: typeof ApiSplatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface AppRouteChildren {
+  AppAccountRoute: typeof AppAccountRoute
   AppAgentRoute: typeof AppAgentRoute
   AppAppRoute: typeof AppAppRoute
   AppAuditRoute: typeof AppAuditRoute
   AppCustomizeRoute: typeof AppCustomizeRoute
   AppInboxRoute: typeof AppInboxRoute
   AppLedgerRoute: typeof AppLedgerRoute
+  AppOverviewRoute: typeof AppOverviewRoute
   AppTrustRoute: typeof AppTrustRoute
 }
 
 const AppRouteChildren: AppRouteChildren = {
+  AppAccountRoute: AppAccountRoute,
   AppAgentRoute: AppAgentRoute,
   AppAppRoute: AppAppRoute,
   AppAuditRoute: AppAuditRoute,
   AppCustomizeRoute: AppCustomizeRoute,
   AppInboxRoute: AppInboxRoute,
   AppLedgerRoute: AppLedgerRoute,
+  AppOverviewRoute: AppOverviewRoute,
   AppTrustRoute: AppTrustRoute,
 }
 
@@ -228,6 +350,10 @@ const AppRouteWithChildren = AppRoute._addFileChildren(AppRouteChildren)
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
+  McpRoute: McpRoute,
+  SigninRoute: SigninRoute,
+  SignupRoute: SignupRoute,
+  ApiSplatRoute: ApiSplatRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

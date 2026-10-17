@@ -1,14 +1,25 @@
+import { useRef } from "react";
 import { DetailPane } from "@/components/DetailPane";
-import { FileUp } from "@/components/icons";
-import { Cc, Chip, StatusPill } from "@/components/ui";
+import { FileUp, More } from "@/components/icons";
+import { Cc, StatusPill } from "@/components/ui";
 import { PAYOUTS } from "@/domain/data";
 import { eff, views } from "@/domain/engine";
-import { local, objWord, usd } from "@/domain/format";
+import { local, usd } from "@/domain/format";
 import { useStore } from "@/state/store";
 
 export function InboxPage() {
 	const store = useStore();
-	const { state, open, loadDemo, reset, addSuspicious, upload, go } = store;
+	const {
+		state,
+		open,
+		closeDetail,
+		loadDemo,
+		reset,
+		addSuspicious,
+		upload,
+		go,
+	} = store;
+	const uploadInput = useRef<HTMLInputElement>(null);
 	const s = state;
 	const vs = s.loaded ? views(s) : [];
 	const sel = vs.find((v) => v.p.id === s.selected);
@@ -19,10 +30,12 @@ export function InboxPage() {
 	};
 
 	return (
-		<main className="mx-auto flex max-w-[1440px] flex-wrap items-start gap-5 p-5">
+		<main
+			className={`mx-auto grid max-w-[1440px] grid-cols-1 items-start gap-6 p-5 ${sel ? "lg:grid-cols-[minmax(0,1fr)_minmax(420px,560px)]" : ""}`}
+		>
 			<section
 				aria-labelledby="inbox-h"
-				className="flex min-w-0 flex-[3_1_560px] flex-col gap-3.5"
+				className={`${sel ? "hidden lg:flex" : "flex"} min-w-0 flex-col gap-4`}
 			>
 				<div className="flex flex-wrap items-center justify-between gap-2.5">
 					<div className="flex items-baseline gap-2.5">
@@ -33,7 +46,7 @@ export function InboxPage() {
 								fontSize: 26,
 							}}
 						>
-							Payouts inbox
+							Inbox
 						</h1>
 						<span className="text-ash-dim" style={{ fontSize: 14 }}>
 							{s.loaded ? `${vs.length} payouts` : ""}
@@ -43,6 +56,7 @@ export function InboxPage() {
 						{s.loaded && (
 							<>
 								<input
+									ref={uploadInput}
 									type="file"
 									accept="application/pdf"
 									multiple
@@ -52,35 +66,43 @@ export function InboxPage() {
 								/>
 								<button
 									type="button"
-									className="btn btn-primary"
-									onClick={(e) =>
-										(
-											e.currentTarget.previousElementSibling as HTMLInputElement
-										)?.click()
-									}
+									className="btn btn-primary btn-sm"
+									onClick={() => uploadInput.current?.click()}
 								>
 									Upload invoice
 								</button>
 							</>
 						)}
-						{s.loaded && !s.sus && (
-							<button
-								type="button"
-								className="btn btn-danger"
-								onClick={addSuspicious}
-							>
-								Simulate a suspicious invoice
-							</button>
-						)}
-						{pending.length > 0 && (
-							<button type="button" className="btn" onClick={() => go("agent")}>
-								{`${pending.length} waiting in the agent queue`}
-							</button>
-						)}
 						{s.loaded && (
-							<button type="button" className="btn" onClick={reset}>
-								Reset demo
-							</button>
+							<details className="more-menu">
+								<summary className="btn btn-sm" aria-label="Demo tools">
+									<More size={16} />
+									Demo tools
+								</summary>
+								<div className="more-pop">
+									{!s.sus && (
+										<button
+											type="button"
+											className="tab text-left"
+											onClick={(event) => {
+												event.currentTarget
+													.closest("details")
+													?.removeAttribute("open");
+												addSuspicious();
+											}}
+										>
+											Stage suspicious invoice
+										</button>
+									)}
+									<button
+										type="button"
+										className="tab text-left"
+										onClick={reset}
+									>
+										Reset demo
+									</button>
+								</div>
+							</details>
 						)}
 					</div>
 				</div>
@@ -102,10 +124,9 @@ export function InboxPage() {
 							Drop an invoice or load the demo set
 						</p>
 						<p className="m-0 text-ash-dim" style={{ maxWidth: "52ch" }}>
-							A dropped PDF goes to POST /api/invoices: the local model extracts
-							the fields, instruction-like text is flagged, and the payout
-							arrives planned. Try data/invoices/hostile-CD-2026-0087.pdf from
-							the repo.
+							Start with four fictional suppliers, or upload a PDF. Corredor
+							reads the invoice, checks it for suspicious instructions, and
+							compares payment routes. Live PDF reading needs the local model.
 						</p>
 						<div className="flex flex-wrap justify-center gap-2">
 							<input
@@ -199,11 +220,11 @@ export function InboxPage() {
 
 				{s.loaded && (
 					<>
-						<div className="overflow-x-auto rounded-lg border border-edge bg-panel">
-							<div role="table" aria-label="Payouts" style={{ minWidth: 900 }}>
+						<div className="@container overflow-hidden rounded-lg border border-edge bg-panel">
+							<div role="table" aria-label="Payouts">
 								<div
 									role="row"
-									className="row bg-head"
+									className="hidden @min-[680px]:grid grid-cols-[minmax(0,1fr)_160px_180px] gap-4 bg-head"
 									style={{ padding: "10px 16px" }}
 								>
 									<span role="columnheader" className="lab">
@@ -215,14 +236,10 @@ export function InboxPage() {
 									<span role="columnheader" className="lab">
 										Status
 									</span>
-									<span role="columnheader" className="lab">
-										Why
-									</span>
 								</div>
 
 								{vs.map((v) => {
 									const { p, plan, status } = v;
-									const rec = plan.rec;
 									const invNo = eff(p, v.m).inv.number;
 									return (
 										// biome-ignore lint/a11y/useKeyWithClickEvents: the payee button inside is the keyboard path; the row click is a pointer shortcut
@@ -230,8 +247,8 @@ export function InboxPage() {
 											key={p.id}
 											role="row"
 											className={
-												"row cursor-pointer" +
-												(s.selected === p.id ? " row-sel" : "") +
+												"grid grid-cols-[minmax(0,1fr)_auto] @min-[680px]:grid-cols-[minmax(0,1fr)_160px_180px] items-center gap-x-4 gap-y-2 border-t border-edge-soft px-4 py-5 cursor-pointer hover:bg-raise" +
+												(s.selected === p.id ? " bg-raise" : "") +
 												(s.flashId === p.id ? " flash" : "")
 											}
 											onClick={() => open(p.id)}
@@ -257,12 +274,15 @@ export function InboxPage() {
 														className="text-ash-dim"
 														style={{ fontSize: 12.5 }}
 													>
-														{p.city} · {invNo}
+														{invNo}
 													</span>
 												</div>
 											</div>
 
-											<div role="cell" className="flex flex-col">
+											<div
+												role="cell"
+												className="flex flex-col items-end @min-[680px]:items-start"
+											>
 												<span
 													className="font-medium"
 													style={{ fontVariantNumeric: "tabular-nums" }}
@@ -282,43 +302,15 @@ export function InboxPage() {
 												)}
 											</div>
 
-											<div role="cell">
-												<StatusPill status={status} />
-											</div>
-
 											<div
 												role="cell"
-												className="flex min-w-0 flex-wrap items-center gap-1.5"
+												className="col-span-2 @min-[680px]:col-span-1 flex flex-wrap items-center gap-2"
 											>
-												{rec ? (
-													<>
-														<Chip>{rec.route.label}</Chip>
-														{rec.warns > 0 && (
-															<span className="pill p-warn">
-																{rec.warns +
-																	(rec.warns === 1 ? " warning" : " warnings")}
-															</span>
-														)}
-													</>
-												) : (
-													<span
-														style={{
-															fontSize: 13.5,
-															color: "var(--color-coral)",
-														}}
-													>
-														No compliant route
-													</span>
-												)}
-												{plan.overridden && (
-													<span
-														className="font-medium"
-														style={{
-															fontSize: 12,
-															color: "var(--color-amber)",
-														}}
-													>
-														Human override
+												<StatusPill status={status} />
+												{(plan.rec?.warns ?? 0) > 0 && (
+													<span className="text-xs text-ash">
+														{plan.rec?.warns}{" "}
+														{plan.rec?.warns === 1 ? "warning" : "warnings"}
 													</span>
 												)}
 											</div>
@@ -327,16 +319,37 @@ export function InboxPage() {
 								})}
 							</div>
 						</div>
-						<p className="m-0 text-ash-dim" style={{ fontSize: 13 }}>
-							{"Move the as-of date: the rules engine re-checks every open payout and picks the best compliant route for that day (preference: " +
-								objWord(s.settings.objective) +
-								"). Try Sep 30 → Oct 1 → Oct 31 with Estúdio Paulista open."}
-						</p>
+						<div className="flex flex-wrap items-center justify-between gap-2 text-sm text-ash">
+							<span>
+								Open a payout to review its route, rules and next step.
+							</span>
+							{pending.length > 0 && (
+								<button
+									type="button"
+									className="border-0 bg-transparent p-0 text-volt underline underline-offset-4"
+									onClick={() => go("agent")}
+								>
+									{pending.length} pending{" "}
+									{pending.length === 1 ? "proposal" : "proposals"} in Agent
+								</button>
+							)}
+						</div>
 					</>
 				)}
 			</section>
 
-			{sel && <DetailPane v={sel} />}
+			{sel && (
+				<div className="min-w-0">
+					<button
+						type="button"
+						className="btn btn-sm mb-4 lg:hidden"
+						onClick={closeDetail}
+					>
+						Back to payouts
+					</button>
+					<DetailPane v={sel} />
+				</div>
+			)}
 		</main>
 	);
 }
