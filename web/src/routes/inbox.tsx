@@ -18,23 +18,20 @@ export function InboxPage() {
     <main className="mx-auto flex max-w-[1440px] flex-wrap items-start gap-5 p-5">
       <section
         aria-labelledby="inbox-h"
-        className="flex min-w-0 flex-[999_1_620px] flex-col gap-3.5"
+        className="flex min-w-0 flex-[3_1_560px] flex-col gap-3.5"
       >
         <div className="flex flex-wrap items-center justify-between gap-2.5">
           <div className="flex items-baseline gap-2.5">
             <h1
               id="inbox-h"
-              className="m-0"
+              className="display m-0"
               style={{
-                fontFamily: 'Archivo, sans-serif',
-                fontWeight: 750,
-                fontStretch: '90%',
                 fontSize: 26,
               }}
             >
               Payouts inbox
             </h1>
-            <span className="text-muted" style={{ fontSize: 14 }}>
+            <span className="text-ash-dim" style={{ fontSize: 14 }}>
               {s.loaded ? vs.length + ' payouts' : ''}
             </span>
           </div>
@@ -59,14 +56,14 @@ export function InboxPage() {
 
         {!s.loaded && !s.loading && (
           <div
-            className="flex flex-col items-center gap-3.5 rounded-[10px] bg-paper px-6 py-10 text-center"
-            style={{ border: '2px dashed var(--color-line-input)' }}
+            className="flex flex-col items-center gap-3.5 rounded-[10px] bg-panel px-6 py-10 text-center"
+            style={{ border: '2px dashed var(--color-edge-input)' }}
           >
-            <FileUp color="var(--color-brand)" />
+            <FileUp color="var(--color-volt)" />
             <p className="m-0 font-semibold" style={{ fontSize: 18 }}>
               Drop an invoice or load the demo set
             </p>
-            <p className="m-0 text-muted" style={{ maxWidth: '52ch' }}>
+            <p className="m-0 text-ash-dim" style={{ maxWidth: '52ch' }}>
               In the build, a dropped PDF goes to POST /api/invoices and Claude extracts the
               fields. This preview runs on the seeded invoices.
             </p>
@@ -78,20 +75,20 @@ export function InboxPage() {
 
         {s.loading && (
           <div
-            className="overflow-hidden rounded-lg border border-line bg-paper"
+            className="overflow-hidden rounded-lg border border-edge bg-panel"
             aria-busy="true"
           >
             {PAYOUTS.filter((p) => !p.hidden).map((p) => (
               <div
                 key={p.id}
-                className="grid items-center gap-4 border-b border-line-soft p-4"
+                className="grid items-center gap-4 border-b border-edge-soft p-4"
                 style={{ gridTemplateColumns: 'minmax(0,2fr) minmax(0,1fr) minmax(0,1fr)' }}
               >
                 <div className="flex flex-col gap-1.5">
                   <span className="mono" style={{ fontSize: 13 }}>
                     {p.file}
                   </span>
-                  <span className="text-muted" style={{ fontSize: 13 }}>
+                  <span className="text-ash-dim" style={{ fontSize: 13 }}>
                     Reading invoice · scanning for injected instructions…
                   </span>
                 </div>
@@ -104,9 +101,9 @@ export function InboxPage() {
 
         {s.loaded && (
           <>
-            <div className="overflow-x-auto rounded-lg border border-line bg-paper">
-              <div role="table" aria-label="Payouts" style={{ minWidth: 820 }}>
-                <div role="row" className="row bg-paper-head" style={{ padding: '10px 16px' }}>
+            <div className="overflow-x-auto rounded-lg border border-edge bg-panel">
+              <div role="table" aria-label="Payouts" style={{ minWidth: 900 }}>
+                <div role="row" className="row bg-head" style={{ padding: '10px 16px' }}>
                   <span role="columnheader" className="lab">
                     Payee
                   </span>
@@ -147,12 +144,12 @@ export function InboxPage() {
                           <button
                             type="button"
                             onClick={() => open(p.id)}
-                            className="border-0 bg-none p-0 text-left font-semibold text-ink"
+                            className="border-0 bg-none p-0 text-left font-semibold text-bone"
                             style={{ background: 'none', fontSize: 15 }}
                           >
                             {p.payee}
                           </button>
-                          <span className="text-muted" style={{ fontSize: 12.5 }}>
+                          <span className="text-ash-dim" style={{ fontSize: 12.5 }}>
                             {p.city} · {invNo}
                           </span>
                         </div>
@@ -167,7 +164,7 @@ export function InboxPage() {
                         </span>
                         {p.cur !== 'USD' && (
                           <span
-                            className="text-muted"
+                            className="text-ash-dim"
                             style={{ fontSize: 12.5, fontVariantNumeric: 'tabular-nums' }}
                           >
                             {'≈ ' + usd(p.usd)}
@@ -175,18 +172,18 @@ export function InboxPage() {
                         )}
                       </div>
 
-                      <div role="cell" className="flex flex-col items-start gap-1">
+                      <div role="cell" className="flex min-w-0 flex-col items-start gap-1">
                         {rec && <Chip>{rec.route.label}</Chip>}
                         {plan.overridden && (
                           <span
                             className="font-medium"
-                            style={{ fontSize: 12, color: 'var(--color-warn-ink)' }}
+                            style={{ fontSize: 12, color: 'var(--color-amber)' }}
                           >
                             Human override
                           </span>
                         )}
                         {!rec && (
-                          <span style={{ fontSize: 13.5, color: 'var(--color-bad-ink)' }}>
+                          <span style={{ fontSize: 13.5, color: 'var(--color-coral)' }}>
                             No compliant route
                           </span>
                         )}
@@ -202,7 +199,7 @@ export function InboxPage() {
                             {rec.warns + (rec.warns === 1 ? ' warning' : ' warnings')}
                           </span>
                         ) : (
-                          <span className="text-faint">—</span>
+                          <span className="text-ash-faint">—</span>
                         )}
                       </div>
 
@@ -221,7 +218,7 @@ export function InboxPage() {
                 })}
               </div>
             </div>
-            <p className="m-0 text-muted" style={{ fontSize: 13 }}>
+            <p className="m-0 text-ash-dim" style={{ fontSize: 13 }}>
               {'Move the as-of date: the rules engine re-checks every open payout and picks the best compliant route for that day (preference: ' +
                 objWord(s.settings.objective) +
                 '). Try Sep 30 → Oct 1 → Oct 30 with Estúdio Paulista open.'}

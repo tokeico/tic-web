@@ -79,37 +79,37 @@ export function OverviewPage() {
       label: 'Fees saved vs. SWIFT',
       value: L ? usd0(savings) : '—',
       sub: L ? 'on ' + routed.length + ' payouts routed by stablecoin' : 'Load the demo invoices',
-      color: 'var(--color-brand-ink)',
+      color: 'var(--color-volt)',
     },
     {
       label: 'Settlement time',
       value: L && avgMin ? avgMin + ' min' : '—',
       sub: 'average, vs. about 2 days by wire',
-      color: 'var(--color-ink)',
+      color: 'var(--color-bone)',
     },
     {
       label: 'Decisions with sources',
       value: L ? vs.length + '/' + vs.length : '—',
       sub: 'every route choice cites dated, linked rules',
-      color: 'var(--color-ink)',
+      color: 'var(--color-bone)',
     },
     {
       label: 'Reroutes from rule changes',
       value: String(s.reroutes || 0),
       sub: 'automatic, each one names its rule',
-      color: 'var(--color-ink)',
+      color: 'var(--color-bone)',
     },
     {
       label: 'Human decisions',
       value: String(humanEvents),
       sub: '0 payments made without a person',
-      color: 'var(--color-warn-ink)',
+      color: 'var(--color-bone)',
     },
     {
       label: 'Fraud and sanctions stops',
       value: L ? String(stops) : '—',
       sub: 'security holds and sanctions blocks',
-      color: 'var(--color-bad-ink)',
+      color: 'var(--color-coral)',
     },
   ]
 
@@ -204,13 +204,12 @@ export function OverviewPage() {
     <main className="mx-auto flex max-w-[1440px] flex-col gap-5 px-5 py-6">
       <section className="flex flex-wrap items-end justify-between gap-4">
         <div className="flex max-w-[780px] flex-col gap-2">
-          <Lab>The compliance brain for paying Latin America in stablecoins</Lab>
+          <span className="lab" style={{ color: 'var(--color-volt)' }}>
+            The compliance brain for paying Latin America in stablecoins
+          </span>
           <h1
-            className="m-0"
+            className="display-hero m-0"
             style={{
-              fontFamily: 'Archivo, sans-serif',
-              fontWeight: 800,
-              fontStretch: '86%',
               fontSize: 36,
               lineHeight: 1.06,
               letterSpacing: '-.01em',
@@ -218,7 +217,7 @@ export function OverviewPage() {
           >
             AI reads and explains. Code decides. A person approves.
           </h1>
-          <p className="m-0 text-body" style={{ maxWidth: '66ch' }}>
+          <p className="m-0 text-ash" style={{ maxWidth: '66ch' }}>
             Every payout runs the same pipeline. Each step is labeled with who is responsible for
             it, and every step is written to a hash-chained audit log.
           </p>
@@ -244,7 +243,7 @@ export function OverviewPage() {
           {stages.map(([name, actor, sub, count], i) => (
             <li key={name} className="stage">
               <div className="flex items-center justify-between gap-1.5">
-                <span className="mono text-faint" style={{ fontSize: 12 }}>
+                <span className="mono text-ash-faint" style={{ fontSize: 12 }}>
                   {'0' + (i + 1)}
                 </span>
                 <span
@@ -265,7 +264,7 @@ export function OverviewPage() {
               >
                 {count}
               </span>
-              <span className="text-muted" style={{ fontSize: 12.5 }}>
+              <span className="text-ash-dim" style={{ fontSize: 12.5 }}>
                 {sub}
               </span>
             </li>
@@ -293,13 +292,13 @@ export function OverviewPage() {
             >
               {k.value}
             </span>
-            <span className="text-muted" style={{ fontSize: 13 }}>
+            <span className="text-ash-dim" style={{ fontSize: 13 }}>
               {k.sub}
             </span>
           </div>
         ))}
       </section>
-      <p className="mt-[-8px] mb-0 text-muted" style={{ fontSize: 12.5 }}>
+      <p className="mt-[-8px] mb-0 text-ash-dim" style={{ fontSize: 12.5 }}>
         Numbers come from the demo invoices, demo FX rates and fictional provider fees.
       </p>
 
@@ -309,19 +308,19 @@ export function OverviewPage() {
             <h2 className="m-0" style={{ fontSize: 17 }}>
               Needs a person
             </h2>
-            <span className="text-muted" style={{ fontSize: 13 }}>
+            <span className="text-ash-dim" style={{ fontSize: 13 }}>
               {needs.length ? needs.length + ' items' : ''}
             </span>
           </div>
           {needs.length === 0 && (
-            <p className="m-0 text-muted" style={{ fontSize: 14 }}>
+            <p className="m-0 text-ash-dim" style={{ fontSize: 14 }}>
               Nothing waiting. Load the demo invoices to start.
             </p>
           )}
           {needs.map((nd, i) => (
             <div
               key={i}
-              className="flex items-center justify-between gap-2.5 border-t border-line-soft py-2"
+              className="flex items-center justify-between gap-2.5 border-t border-edge-soft py-2"
             >
               <div className="flex min-w-0 items-center gap-2.5">
                 <span className={nd.cls}>{nd.tag}</span>
@@ -339,19 +338,19 @@ export function OverviewPage() {
             <h2 className="m-0" style={{ fontSize: 17 }}>
               Who did what
             </h2>
-            <span className="text-muted" style={{ fontSize: 13 }}>
+            <span className="text-ash-dim" style={{ fontSize: 13 }}>
               Latest from the audit chain
             </span>
           </div>
           {feed.length === 0 && (
-            <p className="m-0 text-muted" style={{ fontSize: 14 }}>
+            <p className="m-0 text-ash-dim" style={{ fontSize: 14 }}>
               No activity yet.
             </p>
           )}
           {feed.map((e) => (
             <div
               key={e.seq}
-              className="grid items-center gap-2.5 border-t border-line-soft py-[7px]"
+              className="grid items-center gap-2.5 border-t border-edge-soft py-[7px]"
               style={{ gridTemplateColumns: '62px minmax(0,1fr) 44px', fontSize: 13.5 }}
             >
               <span className={e.cls} style={{ justifySelf: 'start' }}>
@@ -360,7 +359,7 @@ export function OverviewPage() {
               <span className="min-w-0">
                 <strong className="font-semibold">{e.payee}</strong> · {e.summary}
               </span>
-              <span className="mono text-muted" style={{ fontSize: 12 }}>
+              <span className="mono text-ash-dim" style={{ fontSize: 12 }}>
                 {e.time}
               </span>
             </div>

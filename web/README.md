@@ -11,6 +11,36 @@ npm run build      # tsc --noEmit && vite build  →  dist/
 npm run smoke      # mounts the app in jsdom and drives the whole demo script
 ```
 
+## Routes
+
+| Path | What it is |
+|---|---|
+| `/` | Marketing landing page — hero token, how it works, coverage map, security, CTA |
+| `/app` | The product: overview dashboard (the lockup in the header links back to `/`) |
+| `/inbox` `/agent` `/trust` `/ledger` `/audit` `/customize` | The rest of the product, inside the shell |
+
+## Design system
+
+Black ground, volt-yellow accent, sampled from the Corredor brand artwork
+(`#ecf038`). One rule holds it together: **volt marks the engine's chosen path
+and the action a person takes on it** — recommended route, primary buttons, the
+as-of control. Compliance outcomes never borrow it: pass is jade, warning is
+amber, blocked is coral. That keeps the yellow meaning "act here" on every
+screen.
+
+Type is Poppins (display) / Figtree (UI) / IBM Plex Mono (every number, rule id,
+hash and date). All of it lives in `src/styles.css` — change a token there, not
+in a component.
+
+### Image assets
+
+`public/corredor-mark.png` and `public/hero-coin.png` were lifted out of the
+brand artwork by `tools/brand-extract.mjs` and `tools/crop-hero.mjs`, so they
+are the right shapes at demo resolution but are **not** final exports. Drop in
+the real SVG/PNG at the same paths and nothing else needs to change — the mark
+is applied as a CSS mask (`.corredor-mark`), so it takes its colour from a
+token.
+
 ## What works today
 
 The full demo script from the PRD, client-side:

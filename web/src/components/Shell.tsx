@@ -1,4 +1,4 @@
-import { useLocation } from '@tanstack/react-router'
+import { Link, useLocation } from '@tanstack/react-router'
 import type { ReactNode } from 'react'
 
 import { RULES } from '@/domain/data'
@@ -31,24 +31,38 @@ export function Shell({ children }: { children: ReactNode }) {
   const pending = state.actions.filter((a) => a.status === 'pending')
 
   return (
-    <div className="min-h-screen bg-mist text-ink">
-      <header className="bg-paper border-b border-line">
+    <div className="min-h-screen text-bone">
+      {/* Transparent so the ambient glow on the body reads through the masthead. */}
+      <header className="border-b border-edge-soft">
         <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-4 px-5 py-3">
           <div className="flex flex-wrap items-center gap-[18px]">
-            <div className="flex items-baseline gap-2.5">
-              <span
-                style={{
-                  fontFamily: 'Archivo, sans-serif',
-                  fontWeight: 800,
-                  fontStretch: '86%',
-                  fontSize: 26,
-                  letterSpacing: '-.01em',
-                }}
-              >
-                Corredor
-              </span>
-              <span className="lab">Payouts · LatAm</span>
-            </div>
+            {/* The lockup is the way back out to the marketing site. */}
+            <Link
+              to="/"
+              className="brand-link flex items-center gap-3 no-underline"
+              aria-label="Corredor home"
+              title="Back to corredor.com"
+            >
+              <span className="corredor-mark" aria-hidden="true" />
+              <div className="flex flex-col">
+                <span
+                  className="display"
+                  style={{
+                    fontSize: 24,
+                    lineHeight: 1.05,
+                    letterSpacing: '-.01em',
+                  }}
+                >
+                  Corredor
+                </span>
+                <span
+                  className="mono text-ash-dim"
+                  style={{ fontSize: 9.5, letterSpacing: '.22em' }}
+                >
+                  BY TOKEISO
+                </span>
+              </div>
+            </Link>
             <nav aria-label="Main" className="flex flex-wrap gap-0.5">
               {TABS.map(([id, label]) => {
                 const on = pathname === VIEW_PATH[id]
@@ -69,7 +83,7 @@ export function Shell({ children }: { children: ReactNode }) {
             </nav>
           </div>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-body" style={{ fontSize: 13 }}>
+            <span className="text-ash" style={{ fontSize: 13 }}>
               Acting as <strong className="font-semibold">{ACTOR}</strong> · Controller
             </span>
             <span className="pill p-neutral">
@@ -104,7 +118,7 @@ function AsOfBar() {
   const label = fmtDate(iso(state.day))
 
   return (
-    <div className="border-t border-line-soft bg-paper-dim">
+    <div className="border-t border-edge-soft bg-panel">
       <div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-x-5 gap-y-3 px-5 py-3">
         <div className="flex min-w-[170px] flex-col gap-0.5">
           <label htmlFor="asof" className="lab">
@@ -126,10 +140,10 @@ function AsOfBar() {
             step={1}
             value={state.day}
             onChange={(e) => setDay(parseInt(e.target.value, 10))}
-            style={{ width: '100%', accentColor: 'var(--color-brand)', height: 28 }}
+            className="asof-range"
             aria-valuetext={label}
           />
-          <div className="mono flex justify-between text-muted" style={{ fontSize: 12 }}>
+          <div className="mono flex justify-between text-ash-dim" style={{ fontSize: 12 }}>
             <span>Sep 25</span>
             <span>Nov 5</span>
           </div>
@@ -161,7 +175,11 @@ function TourBar() {
   const step = steps[i]
 
   return (
-    <div className="bg-ink text-paper" aria-live="polite">
+    <div
+      className="bg-raise text-bone"
+      style={{ borderBlock: '1px solid var(--color-edge)', boxShadow: 'inset 3px 0 0 var(--color-volt)' }}
+      aria-live="polite"
+    >
       <div className="mx-auto flex max-w-[1440px] flex-wrap items-center justify-between gap-x-5 gap-y-3 px-5 py-3">
         <div className="flex min-w-0 flex-[1_1_460px] flex-col gap-[3px]">
           <span
@@ -170,7 +188,7 @@ function TourBar() {
               fontSize: 11,
               letterSpacing: '.06em',
               textTransform: 'uppercase',
-              color: 'var(--color-brand-pale)',
+              color: 'var(--color-volt)',
             }}
           >
             {'Guided demo · step ' + (i + 1) + ' of ' + steps.length + ' · ' + step.time}
@@ -178,7 +196,7 @@ function TourBar() {
           <span className="font-semibold" style={{ fontSize: 16 }}>
             {step.title}
           </span>
-          <span style={{ fontSize: 14, color: '#d5e1dd' }}>{'Say: “' + step.say + '”'}</span>
+          <span className="text-ash" style={{ fontSize: 14 }}>{'Say: “' + step.say + '”'}</span>
         </div>
         <div className="flex flex-wrap gap-2">
           <button type="button" className="btn btn-sm" disabled={i === 0} onClick={tourBack}>
@@ -188,7 +206,6 @@ function TourBar() {
             type="button"
             className="btn btn-primary btn-sm"
             onClick={tourDo}
-            style={{ borderColor: 'var(--color-brand-glow)' }}
           >
             {i === steps.length - 1 ? 'Do it and finish' : 'Do it · next step'}
           </button>
@@ -211,10 +228,13 @@ function Toast() {
     >
       {state.toast && (
         <div
-          className="bg-ink text-paper flex items-start gap-3 rounded-lg px-4 py-3.5"
-          style={{ boxShadow: '0 8px 24px rgba(19,32,28,.25)' }}
+          className="bg-raise text-bone flex items-start gap-3 rounded-[10px] px-4 py-3.5"
+          style={{
+            border: '1px solid var(--color-edge-strong)',
+            boxShadow: '0 12px 32px rgba(0, 0, 0, 0.6)',
+          }}
         >
-          <Swap color="var(--color-brand-glow)" style={{ flex: 'none', marginTop: 2 }} />
+          <Swap color="var(--color-volt)" style={{ flex: 'none', marginTop: 2 }} />
           <div className="flex min-w-0 flex-col gap-1">
             {state.toast.lines.map((l, n) => (
               <span key={n} style={{ fontSize: 14 }}>
@@ -226,7 +246,7 @@ function Toast() {
             type="button"
             onClick={closeToast}
             aria-label="Dismiss"
-            className="text-paper border-0 bg-transparent p-0.5"
+            className="text-ash-dim border-0 bg-transparent p-0.5"
             style={{ minWidth: 28, minHeight: 28 }}
           >
             <Close />

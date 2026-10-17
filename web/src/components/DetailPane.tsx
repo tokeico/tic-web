@@ -51,7 +51,7 @@ export function DetailPane({ v }: { v: PayoutView }) {
   return (
     <aside
       aria-labelledby="detail-h"
-      className="flex min-w-0 max-w-[660px] flex-[1_1_480px] flex-col gap-3.5"
+      className="flex min-w-0 max-w-[680px] flex-[2_1_460px] flex-col gap-3.5"
     >
       {/* header ---------------------------------------------------------- */}
       <Card style={{ gap: 10 }}>
@@ -59,17 +59,14 @@ export function DetailPane({ v }: { v: PayoutView }) {
           <div className="flex min-w-0 flex-col gap-1">
             <div className="flex items-center gap-2">
               <Cc code={p.c} />
-              <span className="text-muted" style={{ fontSize: 13 }}>
+              <span className="text-ash-dim" style={{ fontSize: 13 }}>
                 {p.city} · {pe.inv.number}
               </span>
             </div>
             <h2
               id="detail-h"
-              className="m-0"
+              className="display m-0"
               style={{
-                fontFamily: 'Archivo, sans-serif',
-                fontWeight: 750,
-                fontStretch: '90%',
                 fontSize: 23,
                 lineHeight: 1.15,
               }}
@@ -84,7 +81,7 @@ export function DetailPane({ v }: { v: PayoutView }) {
                 {local(p)}
               </span>
               {p.cur !== 'USD' && (
-                <span className="text-muted" style={{ fontVariantNumeric: 'tabular-nums' }}>
+                <span className="text-ash-dim" style={{ fontVariantNumeric: 'tabular-nums' }}>
                   {'≈ ' + usd(p.usd)}
                 </span>
               )}
@@ -107,7 +104,7 @@ export function DetailPane({ v }: { v: PayoutView }) {
             View memo
           </a>
           {m.lockedIso && (
-            <span className="text-muted" style={{ fontSize: 13 }}>
+            <span className="text-ash-dim" style={{ fontSize: 13 }}>
               {'Plan locked at approval (' + fmtDate(m.lockedIso) + ')'}
             </span>
           )}
@@ -153,7 +150,7 @@ export function DetailPane({ v }: { v: PayoutView }) {
         </h3>
         <div className="flex flex-wrap items-center gap-2.5">
           <span className="pill p-ok">Clear</span>
-          <span className="text-body" style={{ fontSize: 14 }}>
+          <span className="text-ash" style={{ fontSize: 14 }}>
             No OFAC SDN match above the 0.85 threshold.
           </span>
         </div>
@@ -249,7 +246,10 @@ function SecurityCard({ v, hold }: { v: PayoutView; hold: boolean }) {
       {hold && (
         <div
           className="flex flex-col gap-2.5 rounded-md p-3"
-          style={{ border: '1px solid var(--color-bad-edge)', background: 'var(--color-bad-wash)' }}
+          style={{
+            border: '1px solid color-mix(in oklab, var(--color-coral) 30%, transparent)',
+            background: 'color-mix(in oklab, var(--color-coral) 8%, transparent)',
+          }}
         >
           <span className="font-semibold" style={{ fontSize: 14 }}>
             Approval is frozen until a person resolves this.
@@ -299,7 +299,7 @@ function SecurityCard({ v, hold }: { v: PayoutView; hold: boolean }) {
       )}
 
       {p.security && m.secCleared && (
-        <span style={{ fontSize: 14, color: 'var(--color-brand-ink)' }}>
+        <span style={{ fontSize: 14, color: 'var(--color-volt)' }}>
           {'Hold cleared by ' +
             m.secCleared.by +
             ' after a callback: “' +
@@ -339,7 +339,7 @@ function ApprovalCard({ v }: { v: PayoutView }) {
 
   const approvedRow = (a: { who: string; at: string }, i: number) => (
     <div key={i} className="flex items-center gap-2" style={{ fontSize: 14 }}>
-      <CheckCircle size={16} color="var(--color-brand-ink)" />
+      <CheckCircle size={16} color="var(--color-volt)" />
       {'Approved by ' + a.who + ' · ' + a.at}
     </div>
   )
@@ -350,7 +350,7 @@ function ApprovalCard({ v }: { v: PayoutView }) {
         <h3 className="m-0" style={{ fontSize: 16 }}>
           Approval
         </h3>
-        <span className="text-muted" style={{ fontSize: 13 }}>
+        <span className="text-ash-dim" style={{ fontSize: 13 }}>
           {'Daily cap: ' + usd0(used) + ' of ' + usd0(s.settings.cap)}
         </span>
       </div>
@@ -361,7 +361,7 @@ function ApprovalCard({ v }: { v: PayoutView }) {
             <span className="font-semibold">
               {m.approvals.length + ' of ' + n + (n === 1 ? ' approval' : ' approvals')}
             </span>
-            <span className="text-muted" style={{ fontSize: 13 }}>
+            <span className="text-ash-dim" style={{ fontSize: 13 }}>
               {n === 2
                 ? 'Over ' + usd0(s.settings.threshold) + ': needs a second, different approver'
                 : 'One approval needed'}
@@ -409,7 +409,7 @@ function ApprovalCard({ v }: { v: PayoutView }) {
           </div>
 
           {overCap && (
-            <p className="m-0" style={{ color: 'var(--color-bad-ink)', fontSize: 14 }}>
+            <p className="m-0" style={{ color: 'var(--color-coral)', fontSize: 14 }}>
               Approving this would exceed the daily cap.
             </p>
           )}
@@ -417,7 +417,7 @@ function ApprovalCard({ v }: { v: PayoutView }) {
       )}
 
       {isBlockedish && (
-        <p className="m-0" style={{ color: 'var(--color-bad-ink)', fontSize: 14 }}>
+        <p className="m-0" style={{ color: 'var(--color-coral)', fontSize: 14 }}>
           {'Approval is unavailable: ' +
             (hold
               ? 'the invoice is on security hold. Resolve it in Security checks above.'
@@ -428,7 +428,7 @@ function ApprovalCard({ v }: { v: PayoutView }) {
       )}
 
       {status === 'rejected' && (
-        <p className="m-0" style={{ color: 'var(--color-bad-ink)', fontSize: 14 }}>
+        <p className="m-0" style={{ color: 'var(--color-coral)', fontSize: 14 }}>
           {(m.rejectReason || 'Rejected') + '. Nothing will be paid.'}
         </p>
       )}
@@ -541,7 +541,7 @@ function RoutesCard({
               ? 'SWIFT wire'
               : e.route.off!.asset + ' · ' + e.route.off!.net}
           </span>
-          <span className="text-muted" style={{ fontSize: 12.5 }}>
+          <span className="text-ash-dim" style={{ fontSize: 12.5 }}>
             {e.route.kind === 'wire'
               ? 'Correspondent bank · SWIFT'
               : e.route.off!.name +
@@ -551,13 +551,13 @@ function RoutesCard({
                 e.route.off!.rail}
           </span>
           {block && (
-            <span style={{ fontSize: 12.5, color: 'var(--color-bad-ink)' }}>{block.msg}</span>
+            <span style={{ fontSize: 12.5, color: 'var(--color-coral)' }}>{block.msg}</span>
           )}
         </div>
 
         <div className="mono flex flex-col text-right">
           <span style={{ fontSize: 13.5 }}>{e.route.fee.toFixed(2) + '%'}</span>
-          <span className="text-muted" style={{ fontSize: 12 }}>
+          <span className="text-ash-dim" style={{ fontSize: 12 }}>
             {usd((p.usd * e.route.fee) / 100)}
           </span>
         </div>
@@ -573,7 +573,7 @@ function RoutesCard({
               target="_blank"
               rel="noopener"
               title={block.rule.title + ' · ' + block.rule.src.name}
-              style={{ background: 'var(--color-bad-tint)', color: 'var(--color-bad-ink)' }}
+              style={{ background: 'color-mix(in oklab, var(--color-coral) 14%, transparent)', color: 'var(--color-coral)' }}
             >
               {block.rule.id}
             </a>
@@ -612,19 +612,19 @@ function RoutesCard({
         <h3 className="m-0" style={{ fontSize: 16 }}>
           {'Routes as of ' + fmtDate(plan.iso)}
         </h3>
-        <span className="text-muted" style={{ fontSize: 13 }}>
+        <span className="text-ash-dim" style={{ fontSize: 13 }}>
           {'Picks the ' + objWord(objective) + ' compliant route'}
         </span>
       </div>
 
       {plan.overrideLost && !locked && (
-        <p className="m-0" style={{ fontSize: 14, color: 'var(--color-warn-ink)' }}>
+        <p className="m-0" style={{ fontSize: 14, color: 'var(--color-amber)' }}>
           Your override is no longer compliant on this date, so the engine’s pick is shown.
         </p>
       )}
 
       <div className="overflow-x-auto">
-        <div className="flex flex-col gap-1.5" style={{ minWidth: 520 }}>
+        <div className="flex flex-col gap-1.5" style={{ minWidth: 460 }}>
           {plan.evals.map(routeRow)}
         </div>
       </div>
@@ -633,8 +633,8 @@ function RoutesCard({
         <div
           className="flex flex-col gap-2 rounded-md p-3"
           style={{
-            border: '1px solid var(--color-warn-edge)',
-            background: 'var(--color-warn-wash)',
+            border: '1px solid color-mix(in oklab, var(--color-amber) 30%, transparent)',
+            background: 'color-mix(in oklab, var(--color-amber) 8%, transparent)',
           }}
         >
           <label htmlFor="ovr" className="font-semibold" style={{ fontSize: 14 }}>
@@ -660,7 +660,7 @@ function RoutesCard({
               Cancel
             </button>
           </div>
-          <span className="text-muted" style={{ fontSize: 12.5 }}>
+          <span className="text-ash-dim" style={{ fontSize: 12.5 }}>
             You can pick any compliant route. Blocked routes stay blocked: code decides compliance.
           </span>
         </div>
@@ -668,7 +668,7 @@ function RoutesCard({
 
       {plan.overridden && !locked && m.override && (
         <div className="flex flex-wrap items-center gap-2.5" style={{ fontSize: 14 }}>
-          <span style={{ color: 'var(--color-warn-ink)' }}>
+          <span style={{ color: 'var(--color-amber)' }}>
             {'Override by ' + m.override.by + ': “' + m.override.reason + '”'}
           </span>
           <button type="button" className="btn btn-sm" onClick={() => clearOverride(p.id)}>
@@ -677,7 +677,7 @@ function RoutesCard({
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-2.5 border-t border-line-soft pt-2.5">
+      <div className="flex flex-wrap items-center gap-2.5 border-t border-edge-soft pt-2.5">
         <Lab>Decision fingerprint</Lab>
         <span className="mono" style={{ fontSize: 12.5 }}>
           {fp}
@@ -705,7 +705,7 @@ function RulesChecklistCard({ v }: { v: PayoutView }) {
         <h3 className="m-0" style={{ fontSize: 16 }}>
           Rules checklist
         </h3>
-        <span className="text-muted" style={{ fontSize: 13 }}>
+        <span className="text-ash-dim" style={{ fontSize: 13 }}>
           {target === rec
             ? plan.overridden
               ? 'For the route you chose'
@@ -733,7 +733,7 @@ function RulesChecklistCard({ v }: { v: PayoutView }) {
             <span style={{ fontSize: 14 }}>
               <strong className="font-semibold">{OUTCOME_LABEL[x.o]}.</strong> {x.msg}
             </span>
-            <span className="text-muted" style={{ fontSize: 12.5 }}>
+            <span className="text-ash-dim" style={{ fontSize: 12.5 }}>
               {'Effective ' +
                 (x.rule.from ? fmtDate(x.rule.from) : 'date not set') +
                 (x.rule.to ? ' → ' + fmtDate(x.rule.to) : '') +
@@ -777,7 +777,7 @@ function MemoCard({ v }: { v: PayoutView }) {
         <div className="flex flex-col gap-1">
           <Lab>Warnings</Lab>
           {memo.warnings.map((w, i) => (
-            <span key={i} style={{ fontSize: 14, color: 'var(--color-warn-ink)' }}>
+            <span key={i} style={{ fontSize: 14, color: 'var(--color-amber)' }}>
               {w}
             </span>
           ))}
@@ -803,8 +803,8 @@ function MemoCard({ v }: { v: PayoutView }) {
       </div>
 
       <div
-        className="flex items-start gap-2 border-t border-line-soft pt-2"
-        style={{ fontSize: 13, color: 'var(--color-brand-ink)' }}
+        className="flex items-start gap-2 border-t border-edge-soft pt-2"
+        style={{ fontSize: 13, color: 'var(--color-volt)' }}
       >
         <ShieldCheck size={16} style={{ flex: 'none', marginTop: 1 }} />
         <span>{memo.guard}</span>
@@ -857,7 +857,7 @@ function FieldsCard({ v, locked }: { v: PayoutView; locked: boolean }) {
                 {lowNow(k) && (
                   <span
                     className="font-medium"
-                    style={{ fontSize: 12.5, color: 'var(--color-warn-ink)' }}
+                    style={{ fontSize: 12.5, color: 'var(--color-amber)' }}
                   >
                     {p.security && k === 'bank'
                       ? 'Differs from the vendor master'
@@ -899,7 +899,7 @@ function FieldsCard({ v, locked }: { v: PayoutView; locked: boolean }) {
               Cancel
             </button>
           </div>
-          <span className="text-muted" style={{ fontSize: 12.5 }}>
+          <span className="text-ash-dim" style={{ fontSize: 12.5 }}>
             Saving marks the fields as reviewed and re-runs the rules. Try clearing the Brazil
             purpose code: BR-521-FX then asks for it.
           </span>

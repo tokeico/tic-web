@@ -35,11 +35,8 @@ export function LedgerPage() {
     <main className="mx-auto flex max-w-[1100px] flex-col gap-4 p-5">
       <div className="flex flex-wrap items-center justify-between gap-2.5">
         <h1
-          className="m-0"
+          className="display m-0"
           style={{
-            fontFamily: 'Archivo, sans-serif',
-            fontWeight: 750,
-            fontStretch: '90%',
             fontSize: 26,
           }}
         >
@@ -55,7 +52,7 @@ export function LedgerPage() {
           <p className="m-0 font-semibold" style={{ fontSize: 16 }}>
             Nothing booked yet
           </p>
-          <p className="m-0 text-muted" style={{ fontSize: 14 }}>
+          <p className="m-0 text-ash-dim" style={{ fontSize: 14 }}>
             Approve, pay and reconcile a payout from the inbox or the agent’s queue. Its journal
             entry lands here.
           </p>
@@ -74,7 +71,7 @@ export function LedgerPage() {
               <span className="font-semibold" style={{ fontSize: 16 }}>
                 {je.payee}
               </span>
-              <span className="mono text-muted" style={{ fontSize: 12.5 }}>
+              <span className="mono text-ash-dim" style={{ fontSize: 12.5 }}>
                 {je.id + ' · ' + je.date + ' · ' + je.route}
               </span>
             </div>
@@ -88,7 +85,7 @@ export function LedgerPage() {
             <div role="table" aria-label="Journal lines" style={{ minWidth: 520 }}>
               <div
                 role="row"
-                className="grid gap-2.5 border-b border-line-soft pb-1.5"
+                className="grid gap-2.5 border-b border-edge-soft pb-1.5"
                 style={{ gridTemplateColumns: 'minmax(0,1fr) 130px 130px' }}
               >
                 <span role="columnheader">
@@ -105,7 +102,7 @@ export function LedgerPage() {
                 <div
                   key={i}
                   role="row"
-                  className="grid gap-2.5 border-b border-line-soft py-2"
+                  className="grid gap-2.5 border-b border-edge-soft py-2"
                   style={{ gridTemplateColumns: 'minmax(0,1fr) 130px 130px', fontSize: 14 }}
                 >
                   <span role="cell">{ln.acct}</span>
@@ -128,7 +125,7 @@ export function LedgerPage() {
             </div>
           </div>
 
-          <span className="text-muted" style={{ fontSize: 13 }}>
+          <span className="text-ash-dim" style={{ fontSize: 13 }}>
             {je.match}
           </span>
         </Card>

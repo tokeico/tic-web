@@ -65,7 +65,7 @@ export type ViewId =
   | 'customize'
 
 export const VIEW_PATH: Record<ViewId, string> = {
-  overview: '/',
+  overview: '/app',
   inbox: '/inbox',
   agent: '/agent',
   trust: '/trust',

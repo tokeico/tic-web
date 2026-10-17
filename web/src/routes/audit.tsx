@@ -21,11 +21,8 @@ export function AuditPage() {
       <div className="flex flex-wrap items-center justify-between gap-2.5">
         <div className="flex flex-wrap items-center gap-2.5">
           <h1
-            className="m-0"
+            className="display m-0"
             style={{
-              fontFamily: 'Archivo, sans-serif',
-              fontWeight: 750,
-              fontStretch: '90%',
               fontSize: 26,
             }}
           >
@@ -48,7 +45,7 @@ export function AuditPage() {
         </button>
       </div>
 
-      <p className="m-0 text-muted" style={{ fontSize: 14, maxWidth: '90ch' }}>
+      <p className="m-0 text-ash-dim" style={{ fontSize: 14, maxWidth: '90ch' }}>
         Append-only and hash-chained. Each event’s hash covers the previous hash plus its payload,
         so editing any past event breaks verification from that point on. Agent steps, engine steps
         and human decisions are tagged separately.
@@ -56,16 +53,16 @@ export function AuditPage() {
 
       {s.events.length === 0 && (
         <Card>
-          <p className="m-0 text-muted" style={{ fontSize: 14 }}>
+          <p className="m-0 text-ash-dim" style={{ fontSize: 14 }}>
             No events yet. Load the demo invoices to start the chain.
           </p>
         </Card>
       )}
 
       {s.events.length > 0 && (
-        <div className="overflow-x-auto rounded-lg border border-line bg-paper">
+        <div className="overflow-x-auto rounded-lg border border-edge bg-panel">
           <div role="table" aria-label="Audit events" style={{ minWidth: 900 }}>
-            <div role="row" className="ev bg-paper-head">
+            <div role="row" className="ev bg-head">
               <span role="columnheader">
                 <Lab>#</Lab>
               </span>

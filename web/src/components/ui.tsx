@@ -152,7 +152,7 @@ export const CardHead = ({
 }
 
 export const Muted = ({ children, size = 13 }: { children: ReactNode; size?: number }) => (
-  <span className="text-muted" style={{ fontSize: size }}>
+  <span className="text-ash-dim" style={{ fontSize: size }}>
     {children}
   </span>
 )

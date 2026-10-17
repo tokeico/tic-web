@@ -113,17 +113,14 @@ export function TrustPage() {
     <main className="mx-auto flex max-w-[1200px] flex-col gap-4 p-5">
       <div className="flex flex-col gap-1">
         <h1
-          className="m-0"
+          className="display m-0"
           style={{
-            fontFamily: 'Archivo, sans-serif',
-            fontWeight: 750,
-            fontStretch: '90%',
             fontSize: 26,
           }}
         >
           Trust and compliance
         </h1>
-        <p className="m-0 text-muted" style={{ fontSize: 14, maxWidth: '80ch' }}>
+        <p className="m-0 text-ash-dim" style={{ fontSize: 14, maxWidth: '80ch' }}>
           What the agent watches, what it is allowed to do, and the guardrails that hold no matter
           what it says.
         </p>
@@ -136,7 +133,7 @@ export function TrustPage() {
             <h2 className="m-0" style={{ fontSize: 18 }}>
               Regulatory radar
             </h2>
-            <span className="text-muted" style={{ fontSize: 13.5 }}>
+            <span className="text-ash-dim" style={{ fontSize: 13.5 }}>
               The agent watches the rules pack’s sources and the provider registry, and proposes
               changes with an impact analysis. Compliance approves every change.
             </span>
@@ -161,14 +158,14 @@ export function TrustPage() {
 
         <div
           className="flex flex-col gap-2.5 rounded-lg p-3.5"
-          style={{ border: '1px solid var(--color-line)', background: 'var(--color-paper-dim)' }}
+          style={{ border: '1px solid var(--color-edge)', background: 'var(--color-raise)' }}
         >
           <div className="flex flex-wrap items-start justify-between gap-2.5">
             <div className="flex flex-col gap-0.5">
               <span className="font-semibold" style={{ fontSize: 15 }}>
                 Registry update: Ponte Digital listed as an authorized VASP
               </span>
-              <span className="text-muted" style={{ fontSize: 13 }}>
+              <span className="text-ash-dim" style={{ fontSize: 13 }}>
                 Detected 09:00 · provider registry · BR
               </span>
             </div>
@@ -232,7 +229,7 @@ export function TrustPage() {
           {RULES.filter((r) => r.verify).map((r) => (
             <div
               key={r.id}
-              className="flex flex-wrap items-center justify-between gap-2.5 border-t border-line-soft py-2.5"
+              className="flex flex-wrap items-center justify-between gap-2.5 border-t border-edge-soft py-2.5"
             >
               <div className="flex min-w-0 flex-[1_1_380px] flex-col gap-[3px]">
                 <div className="flex flex-wrap items-center gap-2">
@@ -241,7 +238,7 @@ export function TrustPage() {
                     {r.title}
                   </span>
                 </div>
-                <span className="text-body" style={{ fontSize: 13.5 }}>
+                <span className="text-ash" style={{ fontSize: 13.5 }}>
                   {'Effective date is marked “verify” in rules pack v1 (' +
                     (r.from ? fmtDate(r.from) : 'no date') +
                     '). The agent linked the source; a person has to confirm it.'}
@@ -270,7 +267,7 @@ export function TrustPage() {
             <h2 className="m-0" style={{ fontSize: 18 }}>
               Agent permissions
             </h2>
-            <span className="text-muted" style={{ fontSize: 13.5 }}>
+            <span className="text-ash-dim" style={{ fontSize: 13.5 }}>
               The agent only gets the tools on the left. The ones on the right don’t exist for it.
             </span>
           </div>
@@ -283,7 +280,7 @@ export function TrustPage() {
               <Lab>Agent can</Lab>
               {TOOLS_ALLOWED.map((t) => (
                 <div key={t} className="flex items-center gap-2">
-                  <Check color="var(--color-brand-ink)" style={{ flex: 'none' }} />
+                  <Check color="var(--color-volt)" style={{ flex: 'none' }} />
                   <span className="mono" style={{ fontSize: 13 }}>
                     {t}
                   </span>
@@ -294,7 +291,7 @@ export function TrustPage() {
               <Lab>People only</Lab>
               {TOOLS_HUMAN.map((t) => (
                 <div key={t} className="flex items-center gap-2">
-                  <Lock color="var(--color-warn-ink)" style={{ flex: 'none' }} />
+                  <Lock color="var(--color-amber)" style={{ flex: 'none' }} />
                   <span className="mono" style={{ fontSize: 13 }}>
                     {t}
                   </span>
@@ -304,7 +301,7 @@ export function TrustPage() {
           </div>
 
           <div
-            className="grid gap-2 border-t border-line-soft pt-2.5"
+            className="grid gap-2 border-t border-edge-soft pt-2.5"
             style={{ gridTemplateColumns: 'repeat(auto-fit,minmax(110px,1fr))' }}
           >
             {agentStats.map((a) => (
@@ -315,7 +312,7 @@ export function TrustPage() {
                 >
                   {a.v}
                 </span>
-                <span className="text-muted" style={{ fontSize: 12.5 }}>
+                <span className="text-ash-dim" style={{ fontSize: 12.5 }}>
                   {a.l}
                 </span>
               </div>
@@ -335,7 +332,7 @@ export function TrustPage() {
                 </span>
                 <span className={g.cls}>{g.status}</span>
               </div>
-              <span className="text-muted" style={{ fontSize: 13 }}>
+              <span className="text-ash-dim" style={{ fontSize: 13 }}>
                 {g.detail}
               </span>
             </div>

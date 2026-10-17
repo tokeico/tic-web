@@ -45,17 +45,14 @@ export function CustomizePage() {
     <main className="mx-auto flex max-w-[1000px] flex-col gap-4 p-5">
       <div className="flex flex-col gap-1">
         <h1
-          className="m-0"
+          className="display m-0"
           style={{
-            fontFamily: 'Archivo, sans-serif',
-            fontWeight: 750,
-            fontStretch: '90%',
             fontSize: 26,
           }}
         >
           Customize
         </h1>
-        <p className="m-0 text-muted" style={{ fontSize: 14, maxWidth: '80ch' }}>
+        <p className="m-0 text-ash-dim" style={{ fontSize: 14, maxWidth: '80ch' }}>
           Every change re-runs the rules on open payouts and is written to the audit log. Changes
           that reroute a payout show the same notice as the date bar.
         </p>
@@ -77,7 +74,7 @@ export function CustomizePage() {
               <span className="font-semibold" style={{ fontSize: 14 }}>
                 {label}
               </span>
-              <span className="text-muted" style={{ fontSize: 12.5 }}>
+              <span className="text-ash-dim" style={{ fontSize: 12.5 }}>
                 {desc}
               </span>
             </button>
@@ -158,13 +155,13 @@ export function CustomizePage() {
               <span className="font-semibold" style={{ fontSize: 14 }}>
                 {label}
               </span>
-              <span className="text-muted" style={{ fontSize: 12.5 }}>
+              <span className="text-ash-dim" style={{ fontSize: 12.5 }}>
                 {desc}
               </span>
             </button>
           ))}
         </div>
-        <span className="text-muted" style={{ fontSize: 12.5 }}>
+        <span className="text-ash-dim" style={{ fontSize: 12.5 }}>
           The preference only chooses among compliant routes. It can never pick a blocked one.
         </span>
       </Card>
@@ -186,13 +183,13 @@ export function CustomizePage() {
                 type="checkbox"
                 checked={!s.settings.disabled[o.id]}
                 onChange={() => toggleProvider(o)}
-                style={{ width: 18, height: 18, accentColor: 'var(--color-brand)', flex: 'none' }}
+                style={{ width: 18, height: 18, accentColor: 'var(--color-volt)', flex: 'none' }}
               />
               <span className="flex min-w-0 flex-col gap-0.5">
                 <span className="font-medium" style={{ fontSize: 14 }}>
                   {o.name} <span className="cc">{o.c}</span>
                 </span>
-                <span className="text-muted" style={{ fontSize: 12.5 }}>
+                <span className="text-ash-dim" style={{ fontSize: 12.5 }}>
                   {(o.id === 'br-ponte' && s.registry.ponte
                     ? 'Authorized VASP (registry v2)'
                     : OFFRAMP_TYPE_TITLE[o.type]) +
@@ -218,7 +215,7 @@ export function CustomizePage() {
         </h2>
         {LOCKED.map((t) => (
           <div key={t} className="flex items-start gap-2" style={{ fontSize: 14 }}>
-            <Lock size={16} color="var(--color-muted)" style={{ flex: 'none', marginTop: 2 }} />
+            <Lock size={16} color="var(--color-ash-dim)" style={{ flex: 'none', marginTop: 2 }} />
             <span>{t}</span>
           </div>
         ))}
@@ -229,19 +226,19 @@ export function CustomizePage() {
           <h2 className="m-0" style={{ fontSize: 18 }}>
             Rules pack v1
           </h2>
-          <span className="text-muted" style={{ fontSize: 13 }}>
+          <span className="text-ash-dim" style={{ fontSize: 13 }}>
             Changed through a reviewed rules.json update, not here
           </span>
         </div>
         {RULES.map((r) => (
           <div
             key={r.id}
-            className="flex flex-wrap items-center gap-2 border-t border-line-soft pt-2"
+            className="flex flex-wrap items-center gap-2 border-t border-edge-soft pt-2"
           >
             <RuleRef id={r.id} url={r.src.url} />
             <span className="min-w-0 flex-1" style={{ fontSize: 14 }}>
               {r.title}{' '}
-              <span className="text-muted" style={{ fontSize: 12.5 }}>
+              <span className="text-ash-dim" style={{ fontSize: 12.5 }}>
                 {'· ' +
                   (r.from ? 'from ' + fmtDate(r.from) : 'no date set') +
                   (r.to ? ' to ' + fmtDate(r.to) : '') +

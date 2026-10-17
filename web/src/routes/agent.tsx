@@ -33,17 +33,14 @@ export function AgentPage() {
           <div className="flex flex-col gap-0.5">
             <h1
               id="agent-h"
-              className="m-0"
+              className="display m-0"
               style={{
-                fontFamily: 'Archivo, sans-serif',
-                fontWeight: 750,
-                fontStretch: '90%',
                 fontSize: 26,
               }}
             >
               Corredor agent
             </h1>
-            <span className="text-muted" style={{ fontSize: 13.5 }}>
+            <span className="text-ash-dim" style={{ fontSize: 13.5 }}>
               Reads invoices and the engine’s results, explains with sources, prepares actions. It
               has no tool that moves money.
             </span>
@@ -61,7 +58,7 @@ export function AgentPage() {
           </div>
         </div>
 
-        <div className="flex flex-col rounded-lg border border-line bg-paper">
+        <div className="flex flex-col rounded-lg border border-edge bg-panel">
           <div
             className="flex flex-col-reverse overflow-y-auto"
             style={{ maxHeight: 560, minHeight: 360 }}
@@ -71,7 +68,7 @@ export function AgentPage() {
                 m.role === 'user' ? (
                   <div
                     key={i}
-                    className="bg-ink text-paper self-end"
+                    className="bg-raise text-bone self-end"
                     style={{
                       maxWidth: '78%',
                       padding: '10px 14px',
@@ -108,7 +105,7 @@ export function AgentPage() {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2.5 border-t border-line-soft px-4 py-3">
+          <div className="flex flex-col gap-2.5 border-t border-edge-soft px-4 py-3">
             <div className="flex flex-wrap gap-1.5">
               {SUGGESTIONS.map((label) => (
                 <button
@@ -149,7 +146,7 @@ export function AgentPage() {
                 Send
               </button>
             </form>
-            <span className="text-muted" style={{ fontSize: 12 }}>
+            <span className="text-ash-dim" style={{ fontSize: 12 }}>
               Preview: scripted agent over the demo data. In the build this calls Claude with
               read-only tools plus a “propose action” tool that feeds the queue.
             </span>
@@ -164,24 +161,21 @@ export function AgentPage() {
         <div className="flex items-baseline justify-between gap-2">
           <h2
             id="queue-h"
-            className="m-0"
+            className="display m-0"
             style={{
-              fontFamily: 'Archivo, sans-serif',
-              fontWeight: 750,
-              fontStretch: '90%',
               fontSize: 21,
             }}
           >
             Waiting for you
           </h2>
-          <span className="text-muted" style={{ fontSize: 13.5 }}>
+          <span className="text-ash-dim" style={{ fontSize: 13.5 }}>
             {pending.length ? pending.length + ' to review' : 'All clear'}
           </span>
         </div>
 
         {pending.length === 0 && (
           <Card>
-            <p className="m-0 text-muted" style={{ fontSize: 14 }}>
+            <p className="m-0 text-ash-dim" style={{ fontSize: 14 }}>
               Nothing waiting. When the agent prepares an action (approve, pay, email a vendor,
               reject a fraud attempt, record a license), it lands here. Nothing happens until you
               confirm it.
@@ -199,11 +193,11 @@ export function AgentPage() {
             {history.map((h) => (
               <div
                 key={h.id}
-                className="flex justify-between gap-2.5 border-t border-line-soft py-1.5"
+                className="flex justify-between gap-2.5 border-t border-edge-soft py-1.5"
                 style={{ fontSize: 13.5 }}
               >
                 <span>{h.title}</span>
-                <span className="text-muted text-right">{h.result}</span>
+                <span className="text-ash-dim text-right">{h.result}</span>
               </div>
             ))}
           </Card>
@@ -221,12 +215,12 @@ const Avatar = () => (
       width: 30,
       height: 30,
       borderRadius: '50%',
-      background: 'var(--color-brand-tint)',
-      color: 'var(--color-brand-ink)',
+      background: 'color-mix(in oklab, var(--color-volt) 14%, transparent)',
+      color: 'var(--color-volt)',
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      font: "700 13px/1 'Archivo', sans-serif",
+      font: "600 13px/1 var(--font-display)",
     }}
   >
     C
@@ -241,9 +235,9 @@ function AgentBubble({ m }: { m: AgentMessage }) {
     <div className="flex items-start gap-2.5" style={{ maxWidth: '92%' }}>
       <Avatar />
       <div
-        className="flex min-w-0 flex-col gap-2 border border-line-soft"
+        className="flex min-w-0 flex-col gap-2 border border-edge-soft"
         style={{
-          background: 'var(--color-paper-head)',
+          background: 'var(--color-head)',
           borderRadius: '2px 12px 12px 12px',
           padding: '12px 14px',
         }}
@@ -278,7 +272,7 @@ function AgentBubble({ m }: { m: AgentMessage }) {
         {m.note && (
           <p
             className="m-0 font-medium"
-            style={{ fontSize: 13.5, color: 'var(--color-brand-ink)' }}
+            style={{ fontSize: 13.5, color: 'var(--color-volt)' }}
           >
             {m.note}
           </p>
@@ -360,7 +354,7 @@ function QueueCard({ a, vs }: { a: AgentAction; vs: PayoutView[] }) {
         </span>
       </div>
 
-      <span className="text-body" style={{ fontSize: 14 }}>
+      <span className="text-ash" style={{ fontSize: 14 }}>
         {a.why}
       </span>
 
@@ -373,7 +367,7 @@ function QueueCard({ a, vs }: { a: AgentAction; vs: PayoutView[] }) {
       )}
 
       {invalid && (
-        <span style={{ fontSize: 14, color: 'var(--color-bad-ink)' }}>
+        <span style={{ fontSize: 14, color: 'var(--color-coral)' }}>
           No longer applicable: the payout’s status changed.
         </span>
       )}

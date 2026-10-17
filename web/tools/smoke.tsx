@@ -54,7 +54,7 @@ const check = (label: string, cond: boolean, extra = '') => {
 
 const router = createRouter({
   routeTree,
-  history: createMemoryHistory({ initialEntries: ['/'] }),
+  history: createMemoryHistory({ initialEntries: ['/app'] }),
 })
 
 const root = createRoot(document.getElementById('root')!)
@@ -102,6 +102,10 @@ const setRange = async (value: number) => {
     input.dispatchEvent(new dom.window.Event('input', { bubbles: true }))
   })
 }
+
+console.log('\nShell')
+const brand = document.querySelector('a[aria-label="Corredor home"]') as HTMLElement
+check('the lockup links back to the landing page', brand?.getAttribute('href') === '/')
 
 console.log('\nOverview')
 check('hero line renders', text().includes('AI reads and explains. Code decides. A person approves.'))
