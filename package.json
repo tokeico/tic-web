@@ -6,7 +6,7 @@
     "#/*": "./src/*"
   },
   "scripts": {
-    "dev": "rsbuild dev --port 3000",
+    "dev": "rsbuild dev --port 8080",
     "generate-routes": "rsbuild build",
     "build": "rsbuild build",
     "start": "srvx --prod -s ../client dist/server/index.js",
