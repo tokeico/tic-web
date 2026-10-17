@@ -1,136 +1,143 @@
-import { eff, views } from '@/domain/engine'
-import { ledgerCsvUrl } from '@/lib/api'
-import { fmtDate, num } from '@/domain/format'
-import { useStore } from '@/state/store'
-import { Check } from '@/components/icons'
-import { Card, Lab } from '@/components/ui'
+import { Check } from "@/components/icons";
+import { Card, Lab } from "@/components/ui";
+import { eff, views } from "@/domain/engine";
+import { fmtDate, num } from "@/domain/format";
+import { ledgerCsvUrl } from "@/lib/api";
+import { useStore } from "@/state/store";
 
 /**
  * Booked journal entries: AP, fees, cash and the FX line, each matched to the
  * on-chain reference and the local rail reference.
  */
 export function LedgerPage() {
-  const { state: s, go } = useStore()
-  const vs = s.loaded ? views(s) : []
-  const journal = vs
-    .filter((v) => v.m.journal)
-    .map((v) => ({
-      id: v.m.journal!.id,
-      payee: v.p.payee,
-      date: fmtDate(v.m.lockedIso || ''),
-      route: v.m.journal!.route,
-      lines: v.m.journal!.lines,
-      match:
-        'Invoice ' +
-        eff(v.p, v.m).inv.number +
-        ' ↔ ' +
-        v.m.payment!.txHash.slice(0, 14) +
-        '… ↔ ' +
-        v.m.payment!.railName +
-        ' ' +
-        v.m.payment!.railRef.slice(0, 12) +
-        '…',
-    }))
+	const { state: s, go } = useStore();
+	const vs = s.loaded ? views(s) : [];
+	const journal = vs
+		.filter((v) => v.m.journal)
+		.map((v) => ({
+			id: v.m.journal!.id,
+			payee: v.p.payee,
+			date: fmtDate(v.m.lockedIso || ""),
+			route: v.m.journal!.route,
+			lines: v.m.journal!.lines,
+			match:
+				"Invoice " +
+				eff(v.p, v.m).inv.number +
+				" ↔ " +
+				v.m.payment!.txHash.slice(0, 14) +
+				"… ↔ " +
+				v.m.payment!.railName +
+				" " +
+				v.m.payment!.railRef.slice(0, 12) +
+				"…",
+		}));
 
-  return (
-    <main className="mx-auto flex max-w-[1100px] flex-col gap-4 p-5">
-      <div className="flex flex-wrap items-center justify-between gap-2.5">
-        <h1
-          className="display m-0"
-          style={{
-            fontSize: 26,
-          }}
-        >
-          Ledger
-        </h1>
-        <a className="btn" href={ledgerCsvUrl}>
-          Export CSV
-        </a>
-      </div>
+	return (
+		<main className="mx-auto flex max-w-[1100px] flex-col gap-4 p-5">
+			<div className="flex flex-wrap items-center justify-between gap-2.5">
+				<h1
+					className="display m-0"
+					style={{
+						fontSize: 26,
+					}}
+				>
+					Ledger
+				</h1>
+				<a className="btn" href={ledgerCsvUrl}>
+					Export CSV
+				</a>
+			</div>
 
-      {journal.length === 0 && (
-        <Card>
-          <p className="m-0 font-semibold" style={{ fontSize: 16 }}>
-            Nothing booked yet
-          </p>
-          <p className="m-0 text-ash-dim" style={{ fontSize: 14 }}>
-            Approve, pay and reconcile a payout from the inbox or the agent’s queue. Its journal
-            entry lands here.
-          </p>
-          <div>
-            <button type="button" className="btn" onClick={() => go('inbox')}>
-              Go to inbox
-            </button>
-          </div>
-        </Card>
-      )}
+			{journal.length === 0 && (
+				<Card>
+					<p className="m-0 font-semibold" style={{ fontSize: 16 }}>
+						Nothing booked yet
+					</p>
+					<p className="m-0 text-ash-dim" style={{ fontSize: 14 }}>
+						Approve, pay and reconcile a payout from the inbox or the agent’s
+						queue. Its journal entry lands here.
+					</p>
+					<div>
+						<button type="button" className="btn" onClick={() => go("inbox")}>
+							Go to inbox
+						</button>
+					</div>
+				</Card>
+			)}
 
-      {journal.map((je) => (
-        <Card key={je.id}>
-          <div className="flex flex-wrap items-start justify-between gap-2.5">
-            <div className="flex flex-col gap-0.5">
-              <span className="font-semibold" style={{ fontSize: 16 }}>
-                {je.payee}
-              </span>
-              <span className="mono text-ash-dim" style={{ fontSize: 12.5 }}>
-                {je.id + ' · ' + je.date + ' · ' + je.route}
-              </span>
-            </div>
-            <span className="pill p-ok">
-              <Check />
-              Matched
-            </span>
-          </div>
+			{journal.map((je) => (
+				<Card key={je.id}>
+					<div className="flex flex-wrap items-start justify-between gap-2.5">
+						<div className="flex flex-col gap-0.5">
+							<span className="font-semibold" style={{ fontSize: 16 }}>
+								{je.payee}
+							</span>
+							<span className="mono text-ash-dim" style={{ fontSize: 12.5 }}>
+								{`${je.id} · ${je.date} · ${je.route}`}
+							</span>
+						</div>
+						<span className="pill p-ok">
+							<Check />
+							Matched
+						</span>
+					</div>
 
-          <div className="overflow-x-auto">
-            <div role="table" aria-label="Journal lines" style={{ minWidth: 520 }}>
-              <div
-                role="row"
-                className="grid gap-2.5 border-b border-edge-soft pb-1.5"
-                style={{ gridTemplateColumns: 'minmax(0,1fr) 130px 130px' }}
-              >
-                <span role="columnheader">
-                  <Lab>Account</Lab>
-                </span>
-                <span role="columnheader" className="text-right">
-                  <Lab>Debit (USD)</Lab>
-                </span>
-                <span role="columnheader" className="text-right">
-                  <Lab>Credit (USD)</Lab>
-                </span>
-              </div>
-              {je.lines.map((ln, i) => (
-                <div
-                  key={i}
-                  role="row"
-                  className="grid gap-2.5 border-b border-edge-soft py-2"
-                  style={{ gridTemplateColumns: 'minmax(0,1fr) 130px 130px', fontSize: 14 }}
-                >
-                  <span role="cell">{ln.acct}</span>
-                  <span
-                    role="cell"
-                    className="mono text-right"
-                    style={{ fontVariantNumeric: 'tabular-nums' }}
-                  >
-                    {ln.dr == null ? '' : num(ln.dr)}
-                  </span>
-                  <span
-                    role="cell"
-                    className="mono text-right"
-                    style={{ fontVariantNumeric: 'tabular-nums' }}
-                  >
-                    {ln.cr == null ? '' : num(ln.cr)}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
+					<div className="overflow-x-auto">
+						<div
+							role="table"
+							aria-label="Journal lines"
+							style={{ minWidth: 520 }}
+						>
+							<div
+								role="row"
+								className="grid gap-2.5 border-b border-edge-soft pb-1.5"
+								style={{ gridTemplateColumns: "minmax(0,1fr) 130px 130px" }}
+							>
+								<span role="columnheader">
+									<Lab>Account</Lab>
+								</span>
+								<span role="columnheader" className="text-right">
+									<Lab>Debit (USD)</Lab>
+								</span>
+								<span role="columnheader" className="text-right">
+									<Lab>Credit (USD)</Lab>
+								</span>
+							</div>
+							{je.lines.map((ln) => (
+								<div
+									key={ln.acct}
+									role="row"
+									className="grid gap-2.5 border-b border-edge-soft py-2"
+									style={{
+										gridTemplateColumns: "minmax(0,1fr) 130px 130px",
+										fontSize: 14,
+									}}
+								>
+									<span role="cell">{ln.acct}</span>
+									<span
+										role="cell"
+										className="mono text-right"
+										style={{ fontVariantNumeric: "tabular-nums" }}
+									>
+										{ln.dr == null ? "" : num(ln.dr)}
+									</span>
+									<span
+										role="cell"
+										className="mono text-right"
+										style={{ fontVariantNumeric: "tabular-nums" }}
+									>
+										{ln.cr == null ? "" : num(ln.cr)}
+									</span>
+								</div>
+							))}
+						</div>
+					</div>
 
-          <span className="text-ash-dim" style={{ fontSize: 13 }}>
-            {je.match}
-          </span>
-        </Card>
-      ))}
-    </main>
-  )
+					<span className="text-ash-dim" style={{ fontSize: 13 }}>
+						{je.match}
+					</span>
+				</Card>
+			))}
+		</main>
+	);
 }
