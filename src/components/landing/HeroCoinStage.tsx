@@ -256,7 +256,6 @@ export function HeroCoinStage() {
 			</svg>
 			<div ref={frameRef} className="hero-coin-frame">
 				<div className="hero-coin-glow" aria-hidden="true" />
-				<div className="hero-coin-glow hero-coin-glow--halo" aria-hidden="true" />
 				<img
 					className="hero-coin-art"
 					src="/hero-coin.png"
