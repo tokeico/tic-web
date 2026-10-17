@@ -38,7 +38,7 @@ const CORRIDORS = [
 	{ id: "mx", flag: "🇲🇽", name: "Mexico" },
 	{ id: "ar", flag: "🇦🇷", name: "Argentina" },
 ];
-
+/*
 const STEPS = [
 	{
 		n: "01",
@@ -59,7 +59,7 @@ const STEPS = [
 		body: "Corredor maps a customized route for your invoice—rails, local rules, and tradeoffs, as of today’s date.",
 	},
 ];
-
+*/
 export function LandingPage() {
 	// Brand feel: long marketing scroll glides (Lenis). Only here — the app is a
 	// working surface, not a story. Native for anyone who prefers reduced motion.
