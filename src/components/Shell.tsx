@@ -137,27 +137,13 @@ export function Shell({ children }: { children: ReactNode }) {
 					</div>
 					<div className="ml-auto flex min-w-0 flex-wrap items-center justify-end gap-2">
 						<AgentTicker fleet={DEMO_FLEET} />
-						<span
-							className="hidden max-w-[180px] truncate text-xs text-ash-dim xl:inline"
-							title={user.workspace.name}
+						<Link
+							to="/account"
+							aria-current={pathname === "/account" ? "page" : undefined}
+							className="btn btn-sm"
 						>
-							{user.workspace.name}
-						</span>
-						<span
-							className="max-w-[40vw] truncate text-ash sm:max-w-none"
-							style={{ fontSize: 13 }}
-						>
-							<Link
-								to="/account"
-								aria-current={pathname === "/account" ? "page" : undefined}
-								className="font-semibold text-bone underline-offset-4 hover:underline"
-							>
-								{user.name}
-							</Link>
-							<span className="ml-2 hidden text-ash-dim sm:inline">
-								{user.role}
-							</span>
-						</span>
+							Account
+						</Link>
 						<button
 							type="button"
 							className="btn btn-sm"
