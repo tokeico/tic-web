@@ -91,16 +91,17 @@ async function mountGlobe(
 
 	const scene = new THREE.Scene();
 	const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 20);
-	camera.position.set(0.25, 0.55, 2.55);
-	camera.lookAt(0, -0.02, 0);
+	camera.position.set(0.05, 0.42, 4.25);
+	camera.lookAt(0, 0, 0);
 
 	const globe = new THREE.Group();
+	globe.scale.setScalar(0.9);
 	scene.add(globe);
 
 	const land: number[] = [];
-	for (let lat = -56; lat <= 72; lat += 2.15) {
+	for (let lat = -56; lat <= 72; lat += 1.7) {
 		const cos = Math.max(0.28, Math.cos(lat * DEG));
-		const step = 2.15 / cos;
+		const step = 1.7 / cos;
 		for (let lon = -168; lon <= -28; lon += step) {
 			if (!isLand(lon, lat)) continue;
 			const p = latLon(lat, lon, 1);
@@ -244,7 +245,7 @@ async function mountGlobe(
 		if (!reduce) frame = requestAnimationFrame(draw);
 		if (!visible && !reduce) return;
 		const t = clock.getElapsedTime();
-		globe.rotation.y = reduce ? 0.42 : 0.42 + Math.sin(t * 0.18) * 0.12;
+		globe.rotation.y = reduce ? 0.15 : 0.15 + t * 0.42;
 		curves.forEach((entry, index) => {
 			const along = reduce ? 0.45 : (t * 0.13 + index * 0.23) % 1;
 			entry.pulse.position.copy(entry.curve.getPoint(along));

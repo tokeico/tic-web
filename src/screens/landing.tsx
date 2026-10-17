@@ -125,7 +125,10 @@ export function LandingPage() {
 						))}
 					</nav>
 
-					<Link to="/signup" className="btn btn-primary lp-pill-cta no-underline">
+					<Link
+						to="/signup"
+						className="btn btn-primary lp-pill-cta no-underline"
+					>
 						Create account
 					</Link>
 				</header>
@@ -457,7 +460,7 @@ export function LandingPage() {
 /** The hero artwork: the Corredor token, lit in the page. */
 function CoinStage() {
 	return (
-		<div className="relative origin-left lg:scale-[1.12]">
+		<div className="relative">
 			<HeroCoin />
 		</div>
 	);

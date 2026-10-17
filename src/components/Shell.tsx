@@ -130,7 +130,12 @@ export function Shell({ children }: { children: ReactNode }) {
 						</nav>
 					</div>
 					<div className="flex flex-wrap items-center gap-2">
-						<span className="max-w-[180px] truncate text-xs text-ash-dim" title={user.workspace.name}>{user.workspace.name}</span>
+						<span
+							className="max-w-[180px] truncate text-xs text-ash-dim"
+							title={user.workspace.name}
+						>
+							{user.workspace.name}
+						</span>
 						<span className="text-ash" style={{ fontSize: 13 }}>
 							<Link
 								to="/account"

@@ -83,20 +83,48 @@ export function AccountPage() {
 				</p>
 			</header>
 			{workspaces.length > 1 && (
-				<form className="flex flex-wrap items-end gap-3" onSubmit={(event) => {
-					event.preventDefault();
-					void run(async () => { await switchWorkspace(workspaceId); window.location.assign("/agent"); });
-				}}>
-					<label htmlFor="active-workspace" className="flex min-w-0 flex-1 flex-col gap-2 text-sm">
+				<form
+					className="flex flex-wrap items-end gap-3"
+					onSubmit={(event) => {
+						event.preventDefault();
+						void run(async () => {
+							await switchWorkspace(workspaceId);
+							window.location.assign("/agent");
+						});
+					}}
+				>
+					<label
+						htmlFor="active-workspace"
+						className="flex min-w-0 flex-1 flex-col gap-2 text-sm"
+					>
 						Active workspace
-						<select id="active-workspace" value={workspaceId} onChange={(event) => setWorkspaceId(event.currentTarget.value)} className={field}>
-							{workspaces.map((workspace) => <option key={workspace.id} value={workspace.id}>{workspace.name} · {workspace.role}</option>)}
+						<select
+							id="active-workspace"
+							value={workspaceId}
+							onChange={(event) => setWorkspaceId(event.currentTarget.value)}
+							className={field}
+						>
+							{workspaces.map((workspace) => (
+								<option key={workspace.id} value={workspace.id}>
+									{workspace.name} · {workspace.role}
+								</option>
+							))}
 						</select>
 					</label>
-					<button type="submit" className="btn" disabled={busy || workspaceId === user.workspace.id}>Switch workspace</button>
+					<button
+						type="submit"
+						className="btn"
+						disabled={busy || workspaceId === user.workspace.id}
+					>
+						Switch workspace
+					</button>
 				</form>
 			)}
-			{notice && <p role="status" className="m-0 text-sm text-ash">{notice}</p>}
+			{notice && (
+				<p role="status" className="m-0 text-sm text-ash">
+					{notice}
+				</p>
+			)}
 			{error && (
 				<p role="alert" className="m-0 text-coral">
 					{error}
@@ -191,11 +219,29 @@ export function AccountPage() {
 					cannot approve payments, move money, or clear compliance holds. Keys
 					expire after 90 days.
 				</p>
-				<p className="text-sm text-ash">Connect an HTTP MCP client to <code className="mono">/mcp</code> on this site, using your key in the <code className="mono">Authorization: Bearer</code> header.</p>
-				<button type="button" className="btn btn-sm mb-5" onClick={async () => {
-					try { await navigator.clipboard.writeText(`${window.location.origin}/mcp`); setNotice("MCP endpoint copied."); }
-					catch { setError("Could not copy. Use this site’s address followed by /mcp."); }
-				}}>Copy MCP endpoint</button>
+				<p className="text-sm text-ash">
+					Connect an HTTP MCP client to <code className="mono">/mcp</code> on
+					this site, using your key in the{" "}
+					<code className="mono">Authorization: Bearer</code> header.
+				</p>
+				<button
+					type="button"
+					className="btn btn-sm mb-5"
+					onClick={async () => {
+						try {
+							await navigator.clipboard.writeText(
+								`${window.location.origin}/mcp`,
+							);
+							setNotice("MCP endpoint copied.");
+						} catch {
+							setError(
+								"Could not copy. Use this site’s address followed by /mcp.",
+							);
+						}
+					}}
+				>
+					Copy MCP endpoint
+				</button>
 				<form
 					className="flex flex-wrap items-end gap-3"
 					onSubmit={(event) => {

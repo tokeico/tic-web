@@ -62,7 +62,9 @@ export function AuthPage({
 					Review who you pay, understand the rules, and keep the evidence behind
 					every decision. Agent explains. A person decides.
 				</p>
-				<p className={`m-0 text-sm text-ash${invitation ? "" : " hidden lg:block"}`}>
+				<p
+					className={`m-0 text-sm text-ash${invitation ? "" : " hidden lg:block"}`}
+				>
 					{invitation
 						? "You’ve been invited to an existing workspace. Use the email address on your invitation."
 						: "Each new account gets a separate workspace with fictional demo invoices. Your data and decisions are not shared with other visitors."}
