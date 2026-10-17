@@ -90,6 +90,9 @@ export const payoutsQuery = {
 	queryFn: () => request(z.array(PayoutDetail), "/api/payouts?detail=1"),
 };
 
+export const getPayout = (id: string) =>
+	request(PayoutDetail, `/api/payouts/${enc(id)}`);
+
 export const settingsQuery = {
 	queryFn: () => request(Settings, "/api/settings"),
 };

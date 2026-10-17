@@ -36,7 +36,7 @@ const FIELD_DEFS: [keyof Invoice, string][] = [
 export function DetailPane({ v }: { v: PayoutView }) {
 	const store = useStore();
 	const { state: s, closeDetail, ask } = store;
-	const { p, m, status } = v;
+	const { p, m, plan, status } = v;
 	const pe = eff(p, m);
 	const locked = !!(m.final || m.lockedIso);
 	const st = m.lockedSettings || s.settings;
@@ -142,15 +142,27 @@ export function DetailPane({ v }: { v: PayoutView }) {
 				</div>
 			</Card>
 
-			<SecurityCard v={v} hold={hold} />
+			{/* The decision first: a hold that gates approval stays visible; the
+			    machinery that earned the answer folds behind two bars that carry
+			    their answer in the summary, so nothing is more than one click away. */}
+			{hold && <SecurityCard v={v} hold={hold} />}
+			<SanctionsCard v={v} />
 			<ApprovalCard v={v} />
-			<RoutesCard v={v} locked={locked} objective={st.objective} />
-			<RulesChecklistCard v={v} />
 			<MemoCard v={v} />
 
-			<SanctionsCard v={v} />
+			<Disclosure
+				summary={`Why ${rname(plan.rec)} · ${plan.evals.length} routes · every rule cited`}
+			>
+				<RoutesCard v={v} locked={locked} objective={st.objective} />
+				<RulesChecklistCard v={v} />
+			</Disclosure>
 
-			<FieldsCard v={v} locked={locked} />
+			<Disclosure
+				summary={`Invoice ${pe.inv.number} · fields & security checks`}
+			>
+				{!hold && <SecurityCard v={v} hold={hold} />}
+				<FieldsCard v={v} locked={locked} />
+			</Disclosure>
 		</aside>
 	);
 }
@@ -272,6 +284,12 @@ const lockedByHuman = (m: PayoutView["m"]) =>
 function SecurityCard({ v, hold }: { v: PayoutView; hold: boolean }) {
 	const { state: s, setSecDraft, clearSecurityHold, rejectFraud } = useStore();
 	const { p, m } = v;
+	if (!p.security)
+		return (
+			<p className="m-0 text-ash-dim" style={{ fontSize: 14 }}>
+				Injection scan, bank details and duplicates — all passed.
+			</p>
+		);
 	const checks: { kind: "ok" | "warn" | "bad"; text: string }[] = p.security
 		? p.security.findings
 			? // Live invoices: exactly what the server's injection scanner found, quoted verbatim.
@@ -987,44 +1005,48 @@ function MemoCard({ v }: { v: PayoutView }) {
 					Memo
 				</h3>
 				<span className="pill p-muted">
-					Template fallback in preview · Claude writes it live
+					Template memo · the local model writes the live one
 				</span>
 			</div>
 			<p className="m-0 font-medium">{memo.summary}</p>
-			<p className="m-0" style={{ fontSize: 14 }}>
-				{memo.rationale}
-			</p>
 
-			{memo.warnings.length > 0 && (
+			<Disclosure summary="Read the full memo — rationale, warnings, human checks">
+				<p className="m-0" style={{ fontSize: 14 }}>
+					{memo.rationale}
+				</p>
+
+				{memo.warnings.length > 0 && (
+					<div className="flex flex-col gap-1">
+						<Lab>Warnings</Lab>
+						{memo.warnings.map((w) => (
+							<span
+								key={w}
+								style={{ fontSize: 14, color: "var(--color-amber)" }}
+							>
+								{w}
+							</span>
+						))}
+					</div>
+				)}
+
 				<div className="flex flex-col gap-1">
-					<Lab>Warnings</Lab>
-					{memo.warnings.map((w, i) => (
-						// biome-ignore lint/suspicious/noArrayIndexKey: model-written warnings can repeat verbatim
-						<span key={i} style={{ fontSize: 14, color: "var(--color-amber)" }}>
-							{w}
+					<Lab>For a human to check</Lab>
+					{memo.checks.map((h) => (
+						<span key={h} style={{ fontSize: 14 }}>
+							{h}
 						</span>
 					))}
 				</div>
-			)}
 
-			<div className="flex flex-col gap-1">
-				<Lab>For a human to check</Lab>
-				{memo.checks.map((h, i) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: checklist lines can repeat
-					<span key={i} style={{ fontSize: 14 }}>
-						{h}
-					</span>
-				))}
-			</div>
-
-			<div className="flex flex-wrap items-center gap-1.5">
-				<Lab className="mr-1">Cites</Lab>
-				{memo.cited.map((ci) => (
-					<a key={ci.id} className="ruleref" href={ci.href}>
-						{ci.id}
-					</a>
-				))}
-			</div>
+				<div className="flex flex-wrap items-center gap-1.5">
+					<Lab className="mr-1">Cites</Lab>
+					{memo.cited.map((ci) => (
+						<a key={ci.id} className="ruleref" href={ci.href}>
+							{ci.id}
+						</a>
+					))}
+				</div>
+			</Disclosure>
 
 			<div
 				className="flex items-start gap-2 border-t border-edge-soft pt-2"

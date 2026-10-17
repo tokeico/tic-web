@@ -2,7 +2,7 @@ import { Check, Lock } from "@/components/icons";
 import { Card, Lab, RuleRef } from "@/components/ui";
 import { radarImpact } from "@/domain/agent";
 import { verify } from "@/domain/audit";
-import { RULES, SOURCES } from "@/domain/data";
+import { cite, RULES, SOURCES } from "@/domain/data";
 import { views } from "@/domain/engine";
 import { fmtDate, usd0 } from "@/domain/format";
 import { COMPLIANCE, useStore } from "@/state/store";
@@ -218,8 +218,9 @@ export function TrustPage() {
 
 					<div className="flex flex-wrap items-center gap-1.5">
 						<Lab>Affects</Lab>
-						<RuleRef id="BR-VASP-PENDING-WARN" url={SOURCES.fcm.url} />
-						<RuleRef id="BR-VASP-AUTH" url={SOURCES.fcm.url} />
+						{["BR-VASP-PENDING-WARN", "BR-VASP-AUTH"].map((id) => (
+							<RuleRef key={id} id={id} url={cite(id).url} tip={cite(id).tip} />
+						))}
 					</div>
 
 					{s.radar === "pending" && (

@@ -7,7 +7,7 @@ import { useStore } from "@/state/store";
  * The audit log. Append-only and hash-chained: "simulate tampering" rewrites
  * one past event's payload, and verification fails from that point on.
  */
-export function AuditPage() {
+export function AuditSection() {
 	const { state: s, toggleTamper } = useStore();
 	const chk = verify(s.events, s.tamperSeq);
 	const tamperTarget = Math.min(3, s.events.length);
@@ -17,17 +17,22 @@ export function AuditPage() {
 		.map((e) => ({ ...e, ...actorOf(e.type) }));
 
 	return (
-		<main className="mx-auto flex max-w-[1200px] flex-col gap-4 p-5">
+		<section
+			id="audit"
+			aria-labelledby="audit-h"
+			className="flex scroll-mt-20 flex-col gap-4 border-t border-edge-soft pt-6"
+		>
 			<div className="flex flex-wrap items-center justify-between gap-2.5">
 				<div className="flex flex-wrap items-center gap-2.5">
-					<h1
+					<h2
+						id="audit-h"
 						className="display m-0"
 						style={{
 							fontSize: 26,
 						}}
 					>
 						Audit log
-					</h1>
+					</h2>
 					<span className={`pill ${chk.ok ? "p-ok" : "p-bad"}`}>
 						{chk.ok ? <ShieldCheck /> : <XCircle />}
 						{chk.ok
@@ -114,6 +119,6 @@ export function AuditPage() {
 					</div>
 				</div>
 			)}
-		</main>
+		</section>
 	);
 }

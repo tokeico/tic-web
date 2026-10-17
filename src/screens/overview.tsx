@@ -1,13 +1,14 @@
 import { Play } from "@/components/icons";
-import { Card, Lab } from "@/components/ui";
+import { Card, Disclosure, Lab } from "@/components/ui";
 import { actorOf } from "@/domain/audit";
 import { views } from "@/domain/engine";
 import { fmtDate, iso, usd0 } from "@/domain/format";
 import { useStore } from "@/state/store";
 
 /**
- * The overview is the pitch in one screen: the pipeline with who owns each
- * step, the numbers, what needs a person, and the tail of the audit chain.
+ * The overview answers one question: what needs me? Everything else — the
+ * pipeline, the pitch numbers — waits one click away, because a controller
+ * opens this screen to act, not to read about the machine.
  */
 export function OverviewPage() {
 	const { state, go, open, loadDemo, startTour } = useStore();
@@ -34,16 +35,12 @@ export function OverviewPage() {
 				routed.reduce((t, v) => t + v.plan.rec!.route.min, 0) / routed.length,
 			)
 		: 0;
-	const humanEvents = s.events.filter(
-		(e) => actorOf(e.type).actor === "Human" && e.type !== "asof_changed",
-	).length;
 	const stops = vs.filter(
 		(v) =>
 			v.status === "security_hold" ||
 			v.status === "blocked" ||
 			(v.status === "rejected" && v.p.security),
 	).length;
-	const flagged = vs.filter((v) => v.p.security).length;
 	const waiting = vs.filter(
 		(v) => v.status === "ready" || v.status === "awaiting_second_approver",
 	).length;
@@ -56,14 +53,14 @@ export function OverviewPage() {
 		[
 			"Intake",
 			"AI",
-			"Claude reads the PDF into typed fields",
+			"The model reads the PDF into typed fields",
 			L ? String(vs.length) : "—",
 		],
 		[
 			"Security scan",
 			"AI + Code",
 			"Injection, bank change, duplicates",
-			L ? `${flagged} flagged` : "—",
+			L ? `${vs.filter((v) => v.p.security).length} flagged` : "—",
 		],
 		[
 			"Sanctions screen",
@@ -108,47 +105,6 @@ export function OverviewPage() {
 		],
 	];
 
-	const kpis = [
-		{
-			label: "Fees saved vs. SWIFT",
-			value: L ? usd0(savings) : "—",
-			sub: L
-				? `on ${routed.length} payouts routed by stablecoin`
-				: "Load the demo invoices",
-			color: "var(--color-volt)",
-		},
-		{
-			label: "Settlement time",
-			value: L && avgMin ? `${avgMin} min` : "—",
-			sub: "average, vs. about 2 days by wire",
-			color: "var(--color-bone)",
-		},
-		{
-			label: "Decisions with sources",
-			value: L ? `${vs.length}/${vs.length}` : "—",
-			sub: "every route choice cites dated, linked rules",
-			color: "var(--color-bone)",
-		},
-		{
-			label: "Reroutes from rule changes",
-			value: String(s.reroutes || 0),
-			sub: "automatic, each one names its rule",
-			color: "var(--color-bone)",
-		},
-		{
-			label: "Human decisions",
-			value: String(humanEvents),
-			sub: "0 payments made without a person",
-			color: "var(--color-bone)",
-		},
-		{
-			label: "Fraud and sanctions stops",
-			value: L ? String(stops) : "—",
-			sub: "security holds and sanctions blocks",
-			color: "var(--color-coral)",
-		},
-	];
-
 	const needs: {
 		tag: string;
 		cls: string;
@@ -163,11 +119,7 @@ export function OverviewPage() {
 			needs.push({
 				tag: "Security",
 				cls: "pill p-bad",
-				text:
-					v.p.payee +
-					" " +
-					num +
-					": injected instructions and changed bank details",
+				text: `${v.p.payee} ${num}: injected instructions and changed bank details`,
 				cta: "Review",
 				go: openIt,
 			});
@@ -184,8 +136,7 @@ export function OverviewPage() {
 				tag: "Approve",
 				cls: "pill p-ok",
 				text:
-					v.p.payee +
-					" is ready" +
+					`${v.p.payee} is ready` +
 					(v.plan.rec?.warns ? " (warning to acknowledge)" : ""),
 				cta: "Open",
 				go: openIt,
@@ -235,48 +186,28 @@ export function OverviewPage() {
 			cta: "Review",
 			go: () => go("trust"),
 		});
-	const openVerify = ["MX-BANK-CRYPTO", "AR-PSAV"].filter(
-		(id) => !s.verified[id],
-	).length;
-	if (L && openVerify)
-		needs.push({
-			tag: "Compliance",
-			cls: "pill p-warn",
-			text:
-				openVerify +
-				" rule" +
-				(openVerify > 1 ? "s" : "") +
-				" flagged “verify” in the rules pack",
-			cta: "Review",
-			go: () => go("trust"),
-		});
 
 	const feed = s.events
-		.slice(-7)
+		.slice(-5)
 		.reverse()
 		.map((e) => ({ ...e, ...actorOf(e.type) }));
 
 	return (
-		<main className="mx-auto flex max-w-[1440px] flex-col gap-5 px-5 py-6">
+		<main className="mx-auto flex max-w-[1200px] flex-col gap-6 px-5 py-6">
 			<section className="flex flex-wrap items-end justify-between gap-4">
-				<div className="flex max-w-[780px] flex-col gap-2">
-					<span className="lab" style={{ color: "var(--color-volt)" }}>
-						The compliance brain for paying Latin America in stablecoins
-					</span>
+				<div className="flex max-w-[760px] flex-col gap-2">
 					<h1
 						className="display-hero m-0"
 						style={{
-							fontSize: 36,
-							lineHeight: 1.06,
+							fontSize: 34,
+							lineHeight: 1.08,
 							letterSpacing: "-.01em",
 						}}
 					>
 						AI reads and explains. Code decides. A person approves.
 					</h1>
-					<p className="m-0 text-ash" style={{ maxWidth: "66ch" }}>
-						Every payout runs the same pipeline. Each step is labeled with who
-						is responsible for it, and every step is written to a hash-chained
-						audit log.
+					<p className="m-0 text-ash" style={{ fontSize: 15 }}>
+						Every step lands in a hash-chained audit trail.
 					</p>
 				</div>
 				<div className="flex flex-wrap gap-2">
@@ -287,90 +218,13 @@ export function OverviewPage() {
 					)}
 					<button type="button" className="btn btn-primary" onClick={startTour}>
 						<Play />
-						Start the 3-minute guided demo
+						Start the guided demo
 					</button>
 				</div>
 			</section>
 
-			<section aria-label="Pipeline">
-				<ol
-					className="m-0 grid list-none gap-2 p-0"
-					style={{ gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))" }}
-				>
-					{stages.map(([name, actor, sub, count], i) => (
-						<li key={name} className="stage">
-							<div className="flex items-center justify-between gap-1.5">
-								<span className="mono text-ash-faint" style={{ fontSize: 12 }}>
-									{`0${i + 1}`}
-								</span>
-								<span
-									className={
-										"act " +
-										(actor === "Human"
-											? "act-human"
-											: actor === "Code"
-												? "act-code"
-												: "act-ai")
-									}
-								>
-									{actor}
-								</span>
-							</div>
-							<span className="font-semibold" style={{ fontSize: 15 }}>
-								{name}
-							</span>
-							<span
-								className="mono"
-								style={{
-									fontWeight: 600,
-									fontSize: 22,
-									lineHeight: 1.1,
-									fontVariantNumeric: "tabular-nums",
-								}}
-							>
-								{count}
-							</span>
-							<span className="text-ash-dim" style={{ fontSize: 12.5 }}>
-								{sub}
-							</span>
-						</li>
-					))}
-				</ol>
-			</section>
-
-			<section
-				aria-label="Key numbers"
-				className="grid gap-2"
-				style={{ gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}
-			>
-				{kpis.map((k) => (
-					<div key={k.label} className="kpi">
-						<Lab>{k.label}</Lab>
-						<span
-							className="mono"
-							style={{
-								fontWeight: 600,
-								fontSize: 28,
-								lineHeight: 1.1,
-								fontVariantNumeric: "tabular-nums",
-								color: k.color,
-							}}
-						>
-							{k.value}
-						</span>
-						<span className="text-ash-dim" style={{ fontSize: 13 }}>
-							{k.sub}
-						</span>
-					</div>
-				))}
-			</section>
-			<p className="mt-[-8px] mb-0 text-ash-dim" style={{ fontSize: 12.5 }}>
-				Numbers come from the demo invoices, demo FX rates and fictional
-				provider fees.
-			</p>
-
-			<section className="flex flex-wrap items-start gap-4">
-				<Card className="min-w-0 flex-[1_1_420px]">
+			<section aria-label="Needs a person">
+				<Card>
 					<div className="flex items-baseline justify-between gap-2">
 						<h2 className="m-0" style={{ fontSize: 17 }}>
 							Needs a person
@@ -381,7 +235,9 @@ export function OverviewPage() {
 					</div>
 					{needs.length === 0 && (
 						<p className="m-0 text-ash-dim" style={{ fontSize: 14 }}>
-							Nothing waiting. Load the demo invoices to start.
+							{L
+								? "Nothing waiting. Approve, pay and reconcile from the inbox."
+								: "Load the demo invoices to start."}
 						</p>
 					)}
 					{needs.map((nd) => (
@@ -399,7 +255,78 @@ export function OverviewPage() {
 						</div>
 					))}
 				</Card>
+			</section>
 
+			<section
+				aria-label="Key numbers"
+				className="flex flex-wrap items-baseline gap-x-12 gap-y-4"
+			>
+				<div className="flex flex-col gap-0.5">
+					<Lab>Fees saved vs. SWIFT</Lab>
+					<span
+						className="mono"
+						style={{
+							fontWeight: 600,
+							fontSize: 24,
+							lineHeight: 1.1,
+							fontVariantNumeric: "tabular-nums",
+							color: "var(--color-volt)",
+						}}
+					>
+						{L ? usd0(savings) : "—"}
+					</span>
+					<span className="text-ash-dim" style={{ fontSize: 12.5 }}>
+						{L
+							? `on ${routed.length} stablecoin payouts`
+							: "load the demo invoices"}
+					</span>
+				</div>
+				<div className="flex flex-col gap-0.5">
+					<Lab>Settlement time</Lab>
+					<span
+						className="mono"
+						style={{
+							fontWeight: 600,
+							fontSize: 24,
+							lineHeight: 1.1,
+							fontVariantNumeric: "tabular-nums",
+						}}
+					>
+						{L && avgMin ? `${avgMin} min` : "—"}
+					</span>
+					<span className="text-ash-dim" style={{ fontSize: 12.5 }}>
+						average, vs. about 2 days by wire
+					</span>
+				</div>
+				{L && (
+					<div className="flex flex-col gap-0.5">
+						<Lab>Stops</Lab>
+						<span
+							className="mono"
+							style={{
+								fontWeight: 600,
+								fontSize: 24,
+								lineHeight: 1.1,
+								fontVariantNumeric: "tabular-nums",
+								color: stops ? "var(--color-coral)" : undefined,
+							}}
+						>
+							{String(stops)}
+						</span>
+						<span className="text-ash-dim" style={{ fontSize: 12.5 }}>
+							security holds and sanctions blocks
+						</span>
+					</div>
+				)}
+				<span className="text-ash-faint" style={{ fontSize: 12 }}>
+					Demo data: fictional providers, snapshot FX rates.
+				</span>
+			</section>
+
+			<section
+				aria-label="Who did what"
+				className="flex flex-wrap items-start gap-4"
+			>
 				<Card className="min-w-0 flex-[1_1_420px]">
 					<div className="flex items-baseline justify-between gap-2">
 						<h2 className="m-0" style={{ fontSize: 17 }}>
@@ -436,6 +363,59 @@ export function OverviewPage() {
 						</div>
 					))}
 				</Card>
+
+				<div className="min-w-0 flex-[1_1_420px]">
+					<Disclosure summary="The pipeline · 8 steps · who owns each one">
+						<ol
+							className="m-0 grid list-none gap-2 p-0"
+							style={{
+								gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))",
+							}}
+						>
+							{stages.map(([name, actor, sub, count], i) => (
+								<li key={name} className="stage">
+									<div className="flex items-center justify-between gap-1.5">
+										<span
+											className="mono text-ash-faint"
+											style={{ fontSize: 12 }}
+										>
+											{`0${i + 1}`}
+										</span>
+										<span
+											className={
+												"act " +
+												(actor === "Human"
+													? "act-human"
+													: actor === "Code"
+														? "act-code"
+														: "act-ai")
+											}
+										>
+											{actor}
+										</span>
+									</div>
+									<span className="font-semibold" style={{ fontSize: 15 }}>
+										{name}
+									</span>
+									<span
+										className="mono"
+										style={{
+											fontWeight: 600,
+											fontSize: 22,
+											lineHeight: 1.1,
+											fontVariantNumeric: "tabular-nums",
+										}}
+									>
+										{count}
+									</span>
+									<span className="text-ash-dim" style={{ fontSize: 12.5 }}>
+										{sub}
+									</span>
+								</li>
+							))}
+						</ol>
+					</Disclosure>
+				</div>
 			</section>
 		</main>
 	);

@@ -213,16 +213,10 @@ export function InboxPage() {
 										Amount
 									</span>
 									<span role="columnheader" className="lab">
-										Route
-									</span>
-									<span role="columnheader" className="lab">
 										Status
 									</span>
 									<span role="columnheader" className="lab">
-										Warnings
-									</span>
-									<span role="columnheader" className="lab">
-										<span className="sr-only">Open</span>
+										Why
 									</span>
 								</div>
 
@@ -231,14 +225,16 @@ export function InboxPage() {
 									const rec = plan.rec;
 									const invNo = eff(p, v.m).inv.number;
 									return (
+										// biome-ignore lint/a11y/useKeyWithClickEvents: the payee button inside is the keyboard path; the row click is a pointer shortcut
 										<div
 											key={p.id}
 											role="row"
 											className={
-												"row" +
+												"row cursor-pointer" +
 												(s.selected === p.id ? " row-sel" : "") +
 												(s.flashId === p.id ? " flash" : "")
 											}
+											onClick={() => open(p.id)}
 										>
 											<div
 												role="cell"
@@ -248,7 +244,10 @@ export function InboxPage() {
 												<div className="flex min-w-0 flex-col">
 													<button
 														type="button"
-														onClick={() => open(p.id)}
+														onClick={(e) => {
+															e.stopPropagation();
+															open(p.id);
+														}}
 														className="border-0 bg-none p-0 text-left font-semibold text-bone"
 														style={{ background: "none", fontSize: 15 }}
 													>
@@ -283,11 +282,34 @@ export function InboxPage() {
 												)}
 											</div>
 
+											<div role="cell">
+												<StatusPill status={status} />
+											</div>
+
 											<div
 												role="cell"
-												className="flex min-w-0 flex-col items-start gap-1"
+												className="flex min-w-0 flex-wrap items-center gap-1.5"
 											>
-												{rec && <Chip>{rec.route.label}</Chip>}
+												{rec ? (
+													<>
+														<Chip>{rec.route.label}</Chip>
+														{rec.warns > 0 && (
+															<span className="pill p-warn">
+																{rec.warns +
+																	(rec.warns === 1 ? " warning" : " warnings")}
+															</span>
+														)}
+													</>
+												) : (
+													<span
+														style={{
+															fontSize: 13.5,
+															color: "var(--color-coral)",
+														}}
+													>
+														No compliant route
+													</span>
+												)}
 												{plan.overridden && (
 													<span
 														className="font-medium"
@@ -299,42 +321,6 @@ export function InboxPage() {
 														Human override
 													</span>
 												)}
-												{!rec && (
-													<span
-														style={{
-															fontSize: 13.5,
-															color: "var(--color-coral)",
-														}}
-													>
-														No compliant route
-													</span>
-												)}
-											</div>
-
-											<div role="cell">
-												<StatusPill status={status} />
-											</div>
-
-											<div role="cell">
-												{rec?.warns ? (
-													<span className="pill p-warn">
-														{rec.warns +
-															(rec.warns === 1 ? " warning" : " warnings")}
-													</span>
-												) : (
-													<span className="text-ash-faint">—</span>
-												)}
-											</div>
-
-											<div role="cell" className="text-right">
-												<button
-													type="button"
-													className="btn btn-sm"
-													onClick={() => open(p.id)}
-													aria-label={`Open ${p.payee} ${p.inv.number}`}
-												>
-													Open
-												</button>
 											</div>
 										</div>
 									);
@@ -344,7 +330,7 @@ export function InboxPage() {
 						<p className="m-0 text-ash-dim" style={{ fontSize: 13 }}>
 							{"Move the as-of date: the rules engine re-checks every open payout and picks the best compliant route for that day (preference: " +
 								objWord(s.settings.objective) +
-								"). Try Sep 30 → Oct 1 → Oct 30 with Estúdio Paulista open."}
+								"). Try Sep 30 → Oct 1 → Oct 31 with Estúdio Paulista open."}
 						</p>
 					</>
 				)}

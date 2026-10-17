@@ -21,6 +21,29 @@ export const Lab = ({
 	className?: string;
 }) => <span className={`lab ${className}`}>{children}</span>;
 
+/**
+ * Progressive disclosure: the depth stays one click away, but the pane leads
+ * with the decision instead of the machinery. The summary row is a button-like
+ * bar, not a card, so the cards it reveals never nest.
+ */
+export function Disclosure({
+	summary,
+	open: defaultOpen = false,
+	children,
+}: {
+	summary: string;
+	/** Start open — for the rare section a first-time visitor needs unfolded. */
+	open?: boolean;
+	children: ReactNode;
+}) {
+	return (
+		<details className="disc" open={defaultOpen}>
+			<summary>{summary}</summary>
+			{children}
+		</details>
+	);
+}
+
 export const Chip = ({ children }: { children: ReactNode }) => (
 	<span className="chip">{children}</span>
 );

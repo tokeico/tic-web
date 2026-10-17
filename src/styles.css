@@ -1,7 +1,9 @@
 @import "tailwindcss";
 
 /* ---------------------------------------------------------------------------
-   Corredor design tokens — black ground, volt accent.
+   Corredor design tokens — Brand book V3.
+
+   Black ground, Corredor Yellow #FFFF67 as the one accent.
 
    One rule holds the system together: VOLT marks the engine's chosen path and
    the action a person takes on it (recommended route, primary buttons, the
@@ -10,46 +12,50 @@
    on, and the semantics stay readable next to it.
 --------------------------------------------------------------------------- */
 @theme {
-  --font-sans: "Figtree", -apple-system, "Segoe UI", sans-serif;
-  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
-  --font-display: "Poppins", "Figtree", sans-serif;
+  /* Brand book V3 — type: display Bricolage Grotesque 800, text Geist 400/600,
+     data Geist Mono. */
+  --font-sans: "Geist", -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+  --font-display: "Bricolage Grotesque", "Geist", sans-serif;
 
-  /* grounds — near-black, biased a few degrees green so it agrees with volt */
-  --color-void: #080a07;
-  --color-panel: #0f120e;
-  --color-raise: #161a13;
-  --color-head: #12150f;
-  --color-sunk: #0b0d0a;
+  /* grounds — the brand's neutral blacks: ground #000000, cards #121212 */
+  --color-void: #000000;
+  --color-panel: #121212;
+  --color-raise: #171717;
+  --color-head: #121212;
+  --color-sunk: #0b0b0b;
 
-  /* hairlines */
-  --color-edge-soft: #1c2018;
-  --color-edge: #262b21;
-  --color-edge-strong: #343a2c;
-  --color-edge-input: #3a4131;
-  --color-edge-bright: #4a5340;
+  /* hairlines — Line #2A2A2A is the brand border; lighter steps below it */
+  --color-edge-soft: #1a1a1a;
+  --color-edge: #202020;
+  --color-edge-strong: #2a2a2a;
+  --color-edge-input: #303030;
+  --color-edge-bright: #3a3a3a;
 
-  /* text */
-  --color-bone: #f1f4ea;
-  --color-ash: #b6bea9;
-  --color-ash-dim: #8d9683;
-  --color-ash-faint: #6b7463;
+  /* text — Paper #F5F5F0 primary, Mist #BDBDB5 body */
+  --color-bone: #f5f5f0;
+  --color-ash: #bdbdb5;
+  --color-ash-dim: #8f8f87;
+  --color-ash-faint: #6a6a62;
 
-  /* accent: the chosen path, and acting on it.
-     Sampled from the Corredor brand artwork (the "Get early access" yellow). */
-  --color-volt: #ecf038;
-  --color-volt-bright: #f6fa73;
-  --color-volt-deep: #a8ad28;
-  --color-volt-ink: #0a0c06;
+  /* accent: Corredor Yellow #FFFF67 — the one accent ("don't use any yellow
+     other than #FFFF67"). Marks the engine's chosen path and the action a
+     person takes on it. */
+  --color-volt: #ffff67;
+  --color-volt-bright: #ffffa6;
+  --color-volt-deep: #d6d631;
+  --color-volt-ink: #0a0a06;
 
-  /* compliance semantics, kept clear of the accent */
-  --color-jade: #3ddc97;
+  /* compliance semantics, kept clear of the accent: pass, warning, blocked.
+     Sampled from the app screens shown in the brand book's look and feel. */
+  --color-jade: #4ade80;
   --color-amber: #ffb224;
-  --color-coral: #ff6a5a;
+  --color-coral: #fc6054;
   --color-coral-solid: #e04a3c;
   --color-coral-deep: #b8352a;
 
   /* the Code actor tag */
-  --color-slate: #9fb4d4;
+  --color-slate: #78c0fc;
 }
 
 @layer base {
@@ -187,15 +193,15 @@
     font-family: var(--font-mono);
   }
 
-  /* headings and the wordmark: geometric, tight, set in the display face */
+  /* headings and the wordmark: the brand's display face, heavy and tight */
   .display {
     font-family: var(--font-display);
-    font-weight: 600;
+    font-weight: 800;
     letter-spacing: -0.02em;
   }
   .display-hero {
     font-family: var(--font-display);
-    font-weight: 700;
+    font-weight: 800;
     letter-spacing: -0.03em;
   }
 
@@ -413,12 +419,11 @@
     min-width: 0;
   }
 
-  /* inbox table rows ---------------------------------------------------- */
+  /* inbox table rows — four columns: who, how much, where it stands, why ---- */
   .row {
     display: grid;
     grid-template-columns:
-      minmax(190px, 1.9fr) minmax(120px, 1.2fr) minmax(180px, 1.9fr)
-      minmax(150px, 1.4fr) 76px 78px;
+      minmax(200px, 2fr) minmax(120px, 1.1fr) 150px minmax(220px, 2fr);
     gap: 12px;
     align-items: center;
     padding: 12px 16px;
@@ -431,6 +436,97 @@
   .row-sel:hover {
     background: color-mix(in oklab, var(--color-volt) 7%, transparent);
     box-shadow: inset 2px 0 0 var(--color-volt);
+  }
+
+  /* progressive disclosure: a summary bar, not a card, so revealed cards
+     never nest. The answer rides in the summary so it can stay closed. */
+  .disc {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .disc > summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 10px;
+    border: 1px solid var(--color-edge);
+    background: var(--color-panel);
+    color: var(--color-bone);
+    font: 600 14px/1.3 var(--font-sans);
+  }
+  .disc > summary::-webkit-details-marker {
+    display: none;
+  }
+  .disc > summary::after {
+    content: "";
+    margin-left: auto;
+    width: 7px;
+    height: 7px;
+    flex: none;
+    border-right: 2px solid var(--color-ash-dim);
+    border-bottom: 2px solid var(--color-ash-dim);
+    transform: rotate(45deg);
+    transition: transform 0.12s ease;
+  }
+  .disc[open] > summary::after {
+    transform: rotate(225deg);
+  }
+  .disc > summary:hover {
+    border-color: var(--color-edge-bright);
+  }
+  .disc > summary:focus-visible {
+    outline: 2px solid var(--color-volt);
+    outline-offset: 2px;
+  }
+
+  /* the demoted views live behind one overflow (⋯), not five more tabs ---- */
+  .more-menu {
+    position: relative;
+  }
+  .more-menu > summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-ash-dim);
+  }
+  .more-menu > summary::-webkit-details-marker {
+    display: none;
+  }
+  .more-menu > summary:hover,
+  .more-menu[open] > summary {
+    background: var(--color-raise);
+    color: var(--color-bone);
+  }
+  .more-pop {
+    position: absolute;
+    z-index: 30;
+    top: calc(100% + 6px);
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 220px;
+    padding: 6px;
+    background: var(--color-panel);
+    border: 1px solid var(--color-edge-strong);
+    border-radius: 10px;
+    box-shadow: 0 18px 30px -12px rgb(0 0 0 / 0.55);
+  }
+  .more-pop .tab {
+    text-align: left;
+    justify-content: flex-start;
   }
 
   /* route comparison: the engine's pick wears the accent ----------------- */
@@ -550,8 +646,11 @@
   }
 }
 
-/* brand mark — masked, so the horse always takes a token colour and a real
-   SVG can replace the asset without touching any component. */
+/* brand mark — the brand book's construction: "A coin with a diamond passage.
+   The diamond is 80% of the coin's radius wide and 120% tall, centered."
+   Drawn as an inline SVG so it stays sharp at any size and the masked span
+   keeps taking a token colour (volt, and volt-bright on hover). Don't stretch
+   it, outline it, add shadows, or rotate the diamond. */
 .brand-link {
   color: inherit;
   border-radius: 8px;
@@ -565,14 +664,12 @@
 
 .corredor-mark {
   display: inline-block;
-  width: 40px;
-  height: 23px;
+  width: 26px;
+  height: 26px;
   flex: none;
-  /* Faces left, matching the horse struck on the coin. */
-  transform: scaleX(-1);
   background: var(--color-volt);
-  -webkit-mask: url(./assets/corredor-mark.png) center / contain no-repeat;
-  mask: url(./assets/corredor-mark.png) center / contain no-repeat;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M24 2a22 22 0 1 0 0 44 22 22 0 1 0 0-44Zm0 8.8 8.8 13.2-8.8 13.2-8.8-13.2Z' fill='%23000' fill-rule='evenodd'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M24 2a22 22 0 1 0 0 44 22 22 0 1 0 0-44Zm0 8.8 8.8 13.2-8.8 13.2-8.8-13.2Z' fill='%23000' fill-rule='evenodd'/%3E%3C/svg%3E") center / contain no-repeat;
 }
 
 /* the as-of control: the demo's signature input, so it gets the accent ---- */

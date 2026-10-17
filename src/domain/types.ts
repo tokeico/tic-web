@@ -165,6 +165,7 @@ export interface Payment {
 	offrampRef: string;
 	railRef: string;
 	railName: string;
+	railMode?: "mock" | "bridge" | "blindpay";
 }
 
 export interface JournalLine {

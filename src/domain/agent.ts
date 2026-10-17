@@ -78,14 +78,14 @@ export function radarImpact(s: AppState): string[] {
 			const m = s.mut[p.id] || { approvals: [] };
 			if (m.final || m.lockedIso) return;
 			const num = eff(p, m).inv.number;
-			const a = plan(p, "2026-10-30", s);
-			const b = plan(p, "2026-10-30", s2);
+			const a = plan(p, "2026-10-31", s);
+			const b = plan(p, "2026-10-31", s2);
 			if (rname(a.rec) !== rname(b.rec)) {
 				out.push(
 					p.payee +
 						" " +
 						num +
-						", from Oct 30: " +
+						", from Oct 31: " +
 						rname(a.rec) +
 						" → " +
 						rname(b.rec) +
@@ -104,7 +104,7 @@ export function radarImpact(s: AppState): string[] {
 						num +
 						", as of " +
 						fmtDate(asOf) +
-						": the BR-VASP-PENDING-WARN warning goes away",
+						": the BR-VASP-UNFILED-WARN warning goes away",
 				);
 			}
 		});
@@ -124,7 +124,7 @@ const SUGGEST_NOTE =
 export const SUGGESTIONS = [
 	"What needs my attention today?",
 	"Why is Estúdio Paulista on this route?",
-	"What changes on Oct 30?",
+	"What changes on Oct 31?",
 	"Any regulatory changes?",
 	"How much are we saving vs. wires?",
 	"Prepare approvals for everything ready",
@@ -164,17 +164,17 @@ export function respond(text: string, s: AppState): AgentReply {
 
 	// ---- what changes on a future date -------------------------------------
 	if (
-		/oct(ober)?\.?\s*30|deadline|what if|what-if|simulate|dry.?run|upcoming|what changes/.test(
+		/oct(ober)?\.?\s*31|deadline|what if|what-if|simulate|dry.?run|upcoming|what changes/.test(
 			t,
 		)
 	) {
-		const target = "2026-10-30";
+		const target = "2026-10-31";
 		msg.tools = [`plan_all(asOf="${target}", dry_run=true)`];
 		if (asOf >= target) {
 			msg.paras.push(
 				"The as-of date is already " +
 					dl +
-					", past the Oct 30 VASP deadline. Nothing else is scheduled in rules pack v1.",
+					", on or after the Oct 31 non-filer cutoff. Use the date bar to rewind and compare routes.",
 			);
 			return { msg };
 		}
@@ -199,28 +199,28 @@ export function respond(text: string, s: AppState): AgentReply {
 				if (hit) msg.cites.push(hit.rule.id);
 			}
 		});
-		msg.paras.push("Dry run as of Oct 30, 2026. Nothing has changed yet.");
+		msg.paras.push("Dry run as of Oct 31, 2026. The demo clock has not changed. Oct 30 is still a valid filing day; Corredor blocks providers that didn’t file from Oct 31.");
 		if (!msg.bullets.length)
-			msg.bullets.push("No open payout changes route on Oct 30.");
+			msg.bullets.push("No open payout changes route on Oct 31.");
 		const pending = vs.find(
 			(v) =>
 				!v.m.final &&
 				!v.p.security &&
 				v.plan.rec &&
 				v.plan.rec.route.off &&
-				v.plan.rec.route.off.type === "vasp_pending",
+				v.plan.rec.route.off.type === "vasp_unfiled",
 		);
 		if (pending) {
 			msg.paras.push(
 				"To keep the cheaper Ponte Digital route for " +
 					pending.p.payee +
-					", it has to be approved and paid before Oct 30, unless Ponte’s authorization comes through first (see the Regulatory radar).",
+					", compliance must verify a timely filing or authorization. Approval alone cannot make an ineligible provider compliant.",
 			);
 		}
 		if (s.settings.autonomy === "auto") {
 			msg.note =
-				"This is low-risk, so I moved the demo clock to Oct 30 automatically. Use the date bar to go back.";
-			return { msg, auto: { kind: "setDay", day: 35 } };
+				"This is low-risk, so I moved the demo clock to Oct 31 automatically. Use the date bar to go back.";
+			return { msg, auto: { kind: "setDay", day: 36 } };
 		}
 		if (prepare) {
 			msg.note = "I queued that as an action in case you want to apply it.";
@@ -231,7 +231,7 @@ export function respond(text: string, s: AppState): AgentReply {
 						kind: "asof",
 						pid: null,
 						risk: "Low",
-						title: "Move the demo clock to Oct 30",
+						title: "Move the demo clock to Oct 31",
 						why: "Applies the dry run so you can see the reroute in the inbox.",
 						cites: msg.cites.slice(),
 					},
@@ -334,9 +334,9 @@ export function respond(text: string, s: AppState): AgentReply {
 		msg.tools = [
 			"watch_sources(5)",
 			"diff_registry()",
-			'plan_all(asOf="2026-10-30", dry_run=true)',
+			'plan_all(asOf="2026-10-31", dry_run=true)',
 		];
-		msg.cites = ["BR-VASP-AUTH", "BR-VASP-PENDING-WARN"];
+		msg.cites = ["BR-VASP-AUTH", "BR-VASP-UNFILED-WARN"];
 		msg.cta = { label: "Open Trust and compliance", kind: "trust" };
 		if (s.radar === "approved") {
 			msg.paras.push(
@@ -713,7 +713,7 @@ export function respond(text: string, s: AppState): AgentReply {
 			msg.bullets.push(`Warning · ${w}`);
 		});
 		if (!v.m.final && !v.m.lockedIso) {
-			["2026-10-01", "2026-10-30"].forEach((d) => {
+			["2026-10-01", "2026-10-31"].forEach((d) => {
 				if (d <= v.plan.iso) return;
 				const b = plan(v.p, d, s);
 				const ai = v.plan.rec ? v.plan.rec.route.id : null;
@@ -820,7 +820,7 @@ export function respond(text: string, s: AppState): AgentReply {
 	msg.bullets = [
 		"What needs my attention today?",
 		"Why is Estúdio Paulista on this route?",
-		"What changes on Oct 30?",
+		"What changes on Oct 31?",
 		"Any regulatory changes?",
 		"How much are we saving vs. wires?",
 		"Prepare approvals for everything ready",
@@ -841,11 +841,11 @@ export function loadSummaryMessage(asOf: string): AgentMessage {
 			"screen_ofac() ×4",
 			`plan_all(asOf="${asOf}")`,
 		],
-		cites: ["VE-OFAC", "BR-VASP-PENDING-WARN", "AR-FX-SPREAD"],
+		cites: ["VE-OFAC", "BR-VASP-UNFILED-WARN", "AR-FX-SPREAD"],
 		note: "Ask me what needs your attention, or open the queue to act.",
 		paras: ["I read 4 invoices. Here is where they stand:"],
 		bullets: [
-			"Estúdio Paulista: ready, with one warning (Ponte Digital’s authorization is pending).",
+			"Estúdio Paulista: ready, with one warning (Ponte Digital hasn’t filed for BCB authorization).",
 			"Autopartes del Norte: needs a second approver. I read the CLABE (ending " +
 				last4("002180700123456789") +
 				") with low confidence, so please check it.",

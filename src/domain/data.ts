@@ -91,7 +91,7 @@ export const RULES: Rule[] = [
 		id: "BR-VASP-PENDING-WARN",
 		c: "BR",
 		from: "2026-02-02",
-		to: "2026-10-29",
+		to: null,
 		kind: "warn",
 		title: "Off-ramp authorization still pending",
 		src: SOURCES.fcm,
@@ -102,24 +102,39 @@ export const RULES: Rule[] = [
 					? [
 							"warn",
 							r.off!.name +
-								"’s VASP authorization is still pending; the transition ends Oct 29.",
+								" filed for BCB authorization and may operate while the application is pending.",
 						]
 					: ["pass", `${r.off!.name} is not awaiting authorization.`],
 	},
 	{
-		id: "BR-VASP-AUTH",
+		id: "BR-VASP-UNFILED-WARN",
 		c: "BR",
-		from: "2026-10-30",
-		to: null,
-		kind: "block",
-		title: "VASP authorization transition ends",
+		from: "2026-02-02",
+		to: "2026-10-30",
+		kind: "warn",
+		title: "Provider hasn’t filed for BCB authorization",
 		src: SOURCES.fcm,
 		ev: (_p, r) =>
 			r.kind === "wire"
 				? NA
-				: r.off!.type === "vasp_authorized"
-					? ["pass", `${r.off!.name} is an authorized VASP.`]
-					: ["block", `${r.off!.name} is not an authorized VASP.`],
+				: r.off!.type === "vasp_unfiled"
+					? ["warn", `${r.off!.name} hasn’t filed; the filing deadline is Oct 30.`]
+					: ["pass", `${r.off!.name} is not an unfiled provider.`],
+	},
+	{
+		id: "BR-VASP-AUTH",
+		c: "BR",
+		from: "2026-10-31",
+		to: null,
+		kind: "block",
+		title: "Missed the Oct 30 BCB filing deadline",
+		src: SOURCES.fcm,
+		ev: (_p, r) =>
+			r.kind === "wire"
+				? NA
+				: r.off!.type === "vasp_unfiled"
+					? ["block", `${r.off!.name} missed the filing deadline; Corredor policy blocks non-filers from Oct 31.`]
+					: ["pass", `${r.off!.name} is not an unfiled provider.`],
 	},
 	{
 		id: "MX-BANK-CRYPTO",
@@ -221,7 +236,7 @@ export const OFFRAMPS: Offramp[] = [
 		id: "br-ponte",
 		name: "Ponte Digital",
 		c: "BR",
-		type: "vasp_pending",
+		type: "vasp_unfiled",
 		fee: 0.7,
 		asset: "USDC",
 		net: "Base",

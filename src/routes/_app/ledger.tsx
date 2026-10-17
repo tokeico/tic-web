@@ -1,6 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { LedgerPage } from "@/screens/ledger";
+import { BooksPage } from "@/screens/books";
 
 export const Route = createFileRoute("/_app/ledger")({
-	component: LedgerPage,
+	component: BooksPage,
 });

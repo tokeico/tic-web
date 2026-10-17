@@ -1,4 +1,7 @@
 import { Link } from "@tanstack/react-router";
+import Lenis from "lenis";
+import { useEffect } from "react";
+import "lenis/dist/lenis.css";
 import {
 	Chat,
 	Check,
@@ -68,6 +71,16 @@ const STEPS = [
 ];
 
 export function LandingPage() {
+	// Brand feel: long marketing scroll glides (Lenis). Only here — the app is a
+	// working surface, not a story. Native for anyone who prefers reduced motion.
+	useEffect(() => {
+		if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+		const lenis = new Lenis({
+			autoRaf: true,
+			anchors: true, // the "#how-it-works" CTA glides to its section too
+		});
+		return () => lenis.destroy();
+	}, []);
 	return (
 		<div className="min-h-screen text-bone">
 			<div className="relative overflow-hidden">

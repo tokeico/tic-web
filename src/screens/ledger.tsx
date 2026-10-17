@@ -9,7 +9,7 @@ import { useStore } from "@/state/store";
  * Booked journal entries: AP, fees, cash and the FX line, each matched to the
  * on-chain reference and the local rail reference.
  */
-export function LedgerPage() {
+export function LedgerSection() {
 	const { state: s, go } = useStore();
 	const vs = s.loaded ? views(s) : [];
 	const journal = vs
@@ -33,16 +33,21 @@ export function LedgerPage() {
 		}));
 
 	return (
-		<main className="mx-auto flex max-w-[1100px] flex-col gap-4 p-5">
+		<section
+			id="ledger"
+			aria-labelledby="ledger-h"
+			className="flex scroll-mt-20 flex-col gap-4"
+		>
 			<div className="flex flex-wrap items-center justify-between gap-2.5">
-				<h1
+				<h2
+					id="ledger-h"
 					className="display m-0"
 					style={{
 						fontSize: 26,
 					}}
 				>
 					Ledger
-				</h1>
+				</h2>
 				<a className="btn" href={ledgerCsvUrl}>
 					Export CSV
 				</a>
@@ -138,6 +143,6 @@ export function LedgerPage() {
 					</span>
 				</Card>
 			))}
-		</main>
+		</section>
 	);
 }

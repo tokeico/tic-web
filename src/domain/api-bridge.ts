@@ -7,6 +7,7 @@ import {
 	askAgentApi,
 	auditQuery,
 	editInvoice,
+	getPayout,
 	ledgerQuery,
 	offrampsQuery,
 	payoutsQuery,
@@ -324,6 +325,7 @@ function toMut(detail: PayoutDetail, plan: Plan): Mut {
 						offrampRef: detail.payment.offrampRef ?? "",
 						railRef: detail.payment.railRef,
 						railName: rail,
+						railMode: detail.payment.railMode,
 					},
 				}
 			: {}),
@@ -631,6 +633,7 @@ export function agentMessage(reply: AgentReply): AgentMessage {
 }
 
 export const api = {
+	getPayout,
 	planAll,
 	approvePayout,
 	payPayout,

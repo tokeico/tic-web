@@ -1,19 +1,22 @@
 import { Link, useLocation } from "@tanstack/react-router";
-import type { ReactNode } from "react";
+import { type ReactNode, useState } from "react";
 
 import { RULES } from "@/domain/data";
 import { activeRuleCount } from "@/domain/engine";
 import { fmtDate, iso } from "@/domain/format";
 import { ACTOR, useStore, VIEW_PATH, type ViewId } from "@/state/store";
-import { Close, Swap } from "./icons";
+import { Close, More, Swap } from "./icons";
 
 const TABS: [ViewId, string][] = [
-	["overview", "Overview"],
 	["inbox", "Inbox"],
 	["agent", "Agent"],
+	["ledger", "Books"],
+];
+
+/** Same app, less chrome: the rest sits one click behind the overflow. */
+const MORE: [ViewId, string][] = [
+	["overview", "Overview"],
 	["trust", "Trust & compliance"],
-	["ledger", "Ledger"],
-	["audit", "Audit"],
 	["customize", "Customize"],
 ];
 
@@ -22,7 +25,7 @@ const JUMPS: [number, string][] = [
 	[5, "Sep 30"],
 	[6, "Oct 1 · Res. 561"],
 	[22, "Today"],
-	[35, "Oct 30 · VASP deadline"],
+	[36, "Oct 31 · Non-filers drop out"],
 ];
 
 export function Shell({ children }: { children: ReactNode }) {
@@ -63,7 +66,10 @@ export function Shell({ children }: { children: ReactNode }) {
 								</span>
 							</div>
 						</Link>
-						<nav aria-label="Main" className="flex flex-wrap gap-0.5">
+						<nav
+							aria-label="Main"
+							className="flex flex-wrap items-center gap-0.5"
+						>
 							{TABS.map(([id, label]) => {
 								const on = pathname === VIEW_PATH[id];
 								const text =
@@ -82,23 +88,56 @@ export function Shell({ children }: { children: ReactNode }) {
 									</button>
 								);
 							})}
+							<details className="more-menu">
+								<summary
+									className={
+										MORE.some(([id]) => pathname === VIEW_PATH[id])
+											? "tab tab-on"
+											: ""
+									}
+									aria-label="More views"
+									title="More views"
+								>
+									<More size={18} />
+								</summary>
+								<div className="more-pop">
+									{MORE.map(([id, label]) => (
+										<button
+											key={id}
+											type="button"
+											className={`tab${pathname === VIEW_PATH[id] ? " tab-on" : ""}`}
+											onClick={(e) => {
+												go(id);
+												(
+													e.currentTarget.closest(
+														"details",
+													) as HTMLDetailsElement
+												).removeAttribute("open");
+											}}
+										>
+											{label}
+										</button>
+									))}
+								</div>
+							</details>
 						</nav>
 					</div>
 					<div className="flex flex-wrap items-center gap-2">
 						<span className="text-ash" style={{ fontSize: 13 }}>
-							Acting as <strong className="font-semibold">{ACTOR}</strong> ·
-							Controller
+							Acting as <strong className="font-semibold">{ACTOR}</strong>
 						</span>
-						<span className="pill p-neutral">
-							{"Rules pack v1 · " +
+						<span
+							className="pill p-muted"
+							title={
+								"Rules pack v1 · " +
 								activeRuleCount(iso(state.day)) +
 								" of " +
 								RULES.length +
-								" active" +
-								(state.registry.ponte ? " · registry v2" : "")}
+								" active · pending compliance review · rail: simulated"
+							}
+						>
+							Simulated demo
 						</span>
-						<span className="pill p-warn">Pending compliance review</span>
-						<span className="pill p-muted">Rail: simulated</span>
 					</div>
 				</div>
 
@@ -119,71 +158,89 @@ export function Shell({ children }: { children: ReactNode }) {
 function AsOfBar() {
 	const { state, setDay } = useStore();
 	const label = fmtDate(iso(state.day));
+	const [open, setOpen] = useState(false);
 
 	return (
 		<div className="border-t border-edge-soft bg-panel">
-			<div className="mx-auto flex max-w-[1440px] flex-wrap items-center gap-x-5 gap-y-3 px-5 py-3">
-				<div className="flex min-w-[170px] flex-col gap-0.5">
-					<label htmlFor="asof" className="lab">
-						As-of date
-					</label>
-					<span
-						className="mono"
-						style={{
-							fontWeight: 600,
-							fontSize: 20,
-							lineHeight: 1.1,
-							fontVariantNumeric: "tabular-nums",
-						}}
-					>
-						{label}
-					</span>
-				</div>
-				<div className="flex min-w-0 flex-[1_1_320px] flex-col gap-1">
-					<input
-						id="asof"
-						type="range"
-						min={0}
-						max={41}
-						step={1}
-						value={state.day}
-						onChange={(e) => setDay(parseInt(e.target.value, 10))}
-						className="asof-range"
-						aria-valuetext={label}
-					/>
-					<div
-						className="mono flex justify-between text-ash-dim"
-						style={{ fontSize: 12 }}
-					>
-						<span>Sep 25</span>
-						<span>Nov 5</span>
-					</div>
-				</div>
-				<div
-					role="group"
-					aria-label="Jump to date"
-					className="flex flex-wrap gap-1.5"
-				>
-					{JUMPS.map(([d, label2]) => (
-						<button
-							key={d}
-							type="button"
-							className={`jump${state.day === d ? " jump-on" : ""}`}
-							aria-pressed={state.day === d}
-							onClick={() => setDay(d)}
+			<div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-5 py-3">
+				<div className="flex flex-wrap items-center justify-between gap-2">
+					<div className="flex min-w-[170px] items-center gap-2.5">
+						<span className="lab">As-of date</span>
+						<span
+							className="mono"
+							style={{
+								fontWeight: 600,
+								fontSize: 16,
+								lineHeight: 1.1,
+								fontVariantNumeric: "tabular-nums",
+							}}
 						>
-							{label2}
-						</button>
-					))}
+							{label}
+						</span>
+					</div>
+					<button
+						type="button"
+						className="btn btn-sm"
+						onClick={() => setOpen((v) => !v)}
+						aria-expanded={open}
+						aria-controls="asof-controls"
+					>
+						{open ? "Hide timeline" : "Adjust timeline"}
+					</button>
 				</div>
+				{open && (
+					<div
+						id="asof-controls"
+						className="flex flex-wrap items-center gap-x-5 gap-y-3"
+					>
+						<div className="flex min-w-0 flex-[1_1_320px] flex-col gap-1">
+							<input
+								id="asof"
+								type="range"
+								min={0}
+								max={41}
+								step={1}
+								value={state.day}
+								onChange={(e) => setDay(parseInt(e.target.value, 10))}
+								className="asof-range"
+								aria-valuetext={label}
+							/>
+							<div
+								className="mono flex justify-between text-ash-dim"
+								style={{ fontSize: 12 }}
+							>
+								<span>Sep 25</span>
+								<span>Nov 5</span>
+							</div>
+						</div>
+						<div
+							role="group"
+							aria-label="Jump to date"
+							className="flex flex-wrap gap-1.5"
+						>
+							{JUMPS.map(([d, label2]) => (
+								<button
+									key={d}
+									type="button"
+									className={`jump${state.day === d ? " jump-on" : ""}`}
+									aria-pressed={state.day === d}
+									onClick={() => setDay(d)}
+								>
+									{label2}
+								</button>
+							))}
+						</div>
+					</div>
+				)}
 			</div>
 		</div>
 	);
 }
 
-/** The 3-minute guided demo: each step says the line and performs the action. */
+/** The guided demo runs actions step-by-step without presenter script copy. */
 function TourBar() {
 	const { state, tourSteps, tourBack, tourDo, tourExit } = useStore();
+	const [advancing, setAdvancing] = useState(false);
 	if (state.tour == null) return null;
 	const steps = tourSteps();
 	const i = state.tour;
@@ -219,15 +276,12 @@ function TourBar() {
 					<span className="font-semibold" style={{ fontSize: 16 }}>
 						{step.title}
 					</span>
-					<span className="text-ash" style={{ fontSize: 14 }}>
-						{`Say: “${step.say}”`}
-					</span>
 				</div>
 				<div className="flex flex-wrap gap-2">
 					<button
 						type="button"
 						className="btn btn-sm"
-						disabled={i === 0}
+						disabled={i === 0 || advancing}
 						onClick={tourBack}
 					>
 						Previous
@@ -235,9 +289,21 @@ function TourBar() {
 					<button
 						type="button"
 						className="btn btn-primary btn-sm"
-						onClick={tourDo}
+						disabled={advancing}
+						onClick={async () => {
+							setAdvancing(true);
+							try {
+								await tourDo();
+							} finally {
+								setAdvancing(false);
+							}
+						}}
 					>
-						{i === steps.length - 1 ? "Do it and finish" : "Do it · next step"}
+						{advancing
+							? "Working..."
+							: i === steps.length - 1
+								? "Finish"
+								: "Continue"}
 					</button>
 					<button type="button" className="btn btn-sm" onClick={tourExit}>
 						Exit

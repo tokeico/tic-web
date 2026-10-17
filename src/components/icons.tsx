@@ -13,6 +13,15 @@ interface IconProps {
 	className?: string;
 }
 
+/** Vertical kebab: the overflow affordance for the demoted views. */
+export const More = (p: IconProps) => (
+	<Svg {...p} width={0}>
+		<circle cx="12" cy="5.2" r="1.7" fill="currentColor" stroke="none" />
+		<circle cx="12" cy="12" r="1.7" fill="currentColor" stroke="none" />
+		<circle cx="12" cy="18.8" r="1.7" fill="currentColor" stroke="none" />
+	</Svg>
+);
+
 const Svg = ({
 	size = 14,
 	width = 2.2,

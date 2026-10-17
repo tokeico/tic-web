@@ -33,6 +33,7 @@ import {
 	rname,
 } from "@/domain/engine";
 import { iso, usd0 } from "@/domain/format";
+import { runPaymentAction } from "@/domain/payment-actions";
 import { remoteHit, remotePayouts, setServerVerify } from "@/domain/remote";
 import type {
 	AgentAction,
@@ -45,6 +46,7 @@ import type {
 	Settings,
 	ToastLine,
 } from "@/domain/types";
+import { ApiRequestError } from "@/lib/api";
 
 /**
  * The single client-side store. Mirrors the approved prototype's state shape
@@ -120,7 +122,7 @@ export interface TourStep {
 	title: string;
 	say: string;
 	time: string;
-	act: () => void;
+	act: () => void | boolean | Promise<void | boolean>;
 }
 
 export interface Store {
@@ -130,6 +132,7 @@ export interface Store {
 	closeDetail: () => void;
 	loadDemo: () => void;
 	reset: () => void;
+	refresh: () => Promise<void>;
 	setDay: (day: number) => void;
 	setSetting: <K extends keyof Settings>(
 		key: K,
@@ -140,8 +143,8 @@ export interface Store {
 	approve: (pid: string, who: string) => void;
 	reject: (pid: string) => void;
 	setAck: (pid: string, val: boolean) => void;
-	pay: (pid: string) => void;
-	reconcile: (pid: string) => void;
+	pay: (pid: string) => Promise<boolean>;
+	reconcile: (pid: string) => Promise<boolean>;
 	copy: (text: string, key: string) => void;
 	replay: (pid: string) => void;
 	startOverride: (pid: string, routeId: string, label: string) => void;
@@ -174,7 +177,7 @@ export interface Store {
 	tourSteps: () => TourStep[];
 	startTour: () => void;
 	tourBack: () => void;
-	tourDo: () => void;
+	tourDo: () => Promise<void>;
 	tourExit: () => void;
 }
 
@@ -193,6 +196,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 	const [state, setState] = useState<AppState>(initialState);
 	const ref = useRef(state);
 	const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
+	const paymentRequests = useRef(new Map<string, Promise<boolean>>());
+	const tourRunning = useRef(false);
 	const navigate = useNavigate();
 
 	useEffect(() => {
@@ -439,14 +444,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
 			loadDemo: () => {},
 			reset: () => {},
+			refresh: async () => {},
 			setDay: () => {},
 			setSetting: () => {},
 			toggleProvider: () => {},
 			approve: () => {},
 			reject: () => {},
 			setAck: (pid, val) => set(ackP(get(), pid, val)),
-			pay: () => {},
-			reconcile: () => {},
+			pay: async () => false,
+			reconcile: async () => false,
 			copy: (text, key) => {
 				try {
 					void navigator.clipboard?.writeText(text);
@@ -611,12 +617,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
 			startTour: () => set({ tour: 0 }),
 			tourBack: () => set({ tour: Math.max(0, (get().tour ?? 0) - 1) }),
-			tourDo: () => {
+			tourDo: async () => {
 				const i = get().tour;
-				if (i == null) return;
+				if (i == null || tourRunning.current) return;
 				const steps = api.tourSteps();
-				steps[i].act();
-				set({ tour: i + 1 < steps.length ? i + 1 : null });
+				tourRunning.current = true;
+				try {
+					const result = await steps[i].act();
+					if (result !== false && get().tour === i)
+						set({ tour: i + 1 < steps.length ? i + 1 : null });
+				} finally {
+					tourRunning.current = false;
+				}
 			},
 			tourExit: () => set({ tour: null }),
 		};
@@ -625,7 +637,18 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 			const body = e instanceof Error ? e.message : "Something went wrong";
 			const key = Date.now();
 			set({
-				toast: { key, lines: [{ head: "Couldn’t reach the API:", body }] },
+				toast: {
+					key,
+					lines: [
+						{
+							head:
+								e instanceof ApiRequestError && e.status === 0
+									? "Couldn’t reach the API:"
+									: "Couldn’t complete the action:",
+							body,
+						},
+					],
+				},
 			});
 			toastLater(key, null);
 		};
@@ -633,6 +656,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 			const patch = await syncServer(get());
 			set({ ...patch, ...extra });
 		};
+		api.refresh = () => refresh();
 		const countryId = (c: string) =>
 			remotePayouts()?.find((p) => p.c === c)?.id;
 
@@ -937,29 +961,38 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 			})();
 		};
 
-		api.pay = (id) => {
-			set({ paying: id });
-			void (async () => {
+		const paymentAction = (action: "pay" | "reconcile", id: string) => {
+			const key = `${action}:${id}`;
+			const pending = paymentRequests.current.get(key);
+			if (pending) return pending;
+			if (action === "pay") set({ paying: id });
+			const request = (async () => {
 				try {
-					await http.payPayout(id, ACTOR);
-					await refresh({ paying: null });
-				} catch (e) {
-					set({ paying: null });
-					fail(e);
-				}
-			})();
-		};
-
-		api.reconcile = (id) => {
-			void (async () => {
-				try {
-					await http.reconcilePayout(id, ACTOR);
+					await runPaymentAction(
+						action,
+						async () => (await http.getPayout(id)).status,
+						() =>
+							action === "pay"
+								? http.payPayout(id, ACTOR)
+								: http.reconcilePayout(id, ACTOR),
+					);
 					await refresh();
+					return true;
 				} catch (e) {
 					fail(e);
+					// A second tab may have moved the payout forward.
+					await refresh().catch(() => {});
+					return false;
+				} finally {
+					paymentRequests.current.delete(key);
+					if (action === "pay" && get().paying === id) set({ paying: null });
 				}
 			})();
+			paymentRequests.current.set(key, request);
+			return request;
 		};
+		api.pay = (id) => paymentAction("pay", id);
+		api.reconcile = (id) => paymentAction("reconcile", id);
 
 		api.saveEdit = (pid) => {
 			const s = get();
@@ -1113,13 +1146,15 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 					.then(() => finish(`Approved · ${who}`))
 					.catch(fail);
 			} else if (a.kind === "pay" && a.pid) {
-				api.pay(a.pid);
-				finish("Sent (simulated)");
+				void api.pay(a.pid).then((ok) => {
+					if (ok) finish("Payment recorded");
+				});
 			} else if (a.kind === "reconcile" && a.pid) {
-				api.reconcile(a.pid);
-				finish("Booked");
+				void api.reconcile(a.pid).then((ok) => {
+					if (ok) finish("Booked");
+				});
 			} else if (a.kind === "asof") {
-				api.setDay(35);
+				api.setDay(36);
 				finish("Applied");
 			} else if (a.kind === "email") {
 				finish(`Sent · ${who}`);
@@ -1140,7 +1175,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 		api.tourSteps = () => [
 			{
 				title: "Load four invoices from four countries",
-				say: "Paying Latin America costs 3 to 7 percent and takes days. Stablecoins fix the money. Corredor fixes everything around it.",
+				say: "Corredor gives your compliance officer a cited, versioned recommendation as of a date. Your officer decides.",
 				time: "0:00",
 				act: () => {
 					go("inbox");
@@ -1175,10 +1210,10 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 				act: () => api.setDay(6),
 			},
 			{
-				title: "Oct 30: the VASP transition ends",
-				say: "It reroutes again to an authorized provider. Rules are data with dates, not code.",
+				title: "Oct 31: providers that didn’t file drop out",
+				say: "Oct 30 was the filing deadline. Corredor blocks non-filers from Oct 31 and reroutes to Sol, a fictional provider whose authorization is hypothetical.",
 				time: "1:10",
-				act: () => api.setDay(35),
+				act: () => api.setDay(36),
 			},
 			{
 				title: "Back to today, ask the agent",
@@ -1193,35 +1228,42 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 				title: "Approve Brazil and Mexico",
 				say: "Warnings must be acknowledged, and over fifty thousand dollars needs two different people.",
 				time: "1:40",
-				act: () => {
+				act: async () => {
 					const br = countryId("BR");
 					const mx = countryId("MX");
-					void (async () => {
-						try {
-							if (br) {
+					try {
+						if (br) {
+							const current = await http.getPayout(br);
+							if (
+								!["approved", "paid", "booked"].includes(current.status) &&
+								!current.approvals.some((a) => a.approver === ACTOR)
+							) {
 								set(ackP(get(), br, true));
 								await http.approvePayout(br, {
 									approver: ACTOR,
 									decision: "approved",
 								});
 							}
-							if (mx) {
-								await http
-									.approvePayout(mx, { approver: ACTOR, decision: "approved" })
-									.catch(() => {});
-								await http
-									.approvePayout(mx, {
-										approver: COMPLIANCE,
-										decision: "approved",
-									})
-									.catch(() => {});
-							}
-							await refresh({ selected: br ?? null });
-							go("inbox");
-						} catch (e) {
-							fail(e);
 						}
-					})();
+						if (mx) {
+							for (const approver of APPROVERS) {
+								const current = await http.getPayout(mx);
+								if (["approved", "paid", "booked"].includes(current.status))
+									break;
+								if (!current.approvals.some((a) => a.approver === approver)) {
+									await http.approvePayout(mx, {
+										approver,
+										decision: "approved",
+									});
+								}
+							}
+						}
+						await refresh({ selected: br ?? null });
+						go("inbox");
+					} catch (e) {
+						fail(e);
+						return false;
+					}
 				},
 			},
 			{
@@ -1233,13 +1275,23 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 					if (!br) return;
 					set({ selected: br });
 					go("inbox");
-					api.pay(br);
+					return api.pay(br);
+				},
+			},
+			{
+				title: "Reconcile and show the matched journal entry",
+				say: "Match the invoice to the simulated payment references, then book AP, fees, cash and FX. The Ledger shows the balanced entry.",
+				time: "2:10",
+				act: async () => {
+					const br = countryId("BR");
+					if (!br || !(await api.reconcile(br))) return false;
+					go("ledger");
 				},
 			},
 			{
 				title: "Catch an invoice-fraud attempt",
 				say: "A resubmitted invoice hides instructions for the AI and swaps the bank details. We treat it as data and freeze it.",
-				time: "2:10",
+				time: "2:20",
 				act: () => addSuspicious(),
 			},
 			{
