@@ -817,8 +817,22 @@
   overflow: visible;
 }
 
+.hero-coin-glow-plate {
+  position: absolute;
+  inset: -8% -12% -6%;
+  z-index: 0;
+  background: radial-gradient(
+    62% 68% at 50% 48%,
+    color-mix(in oklab, var(--color-volt) 24%, transparent) 0%,
+    color-mix(in oklab, var(--color-volt) 10%, transparent) 38%,
+    transparent 72%
+  );
+  filter: blur(16px);
+}
+
 .hero-coin-frame {
   position: relative;
+  z-index: 2;
   width: 100%;
   aspect-ratio: 1024 / 682;
 }
@@ -839,32 +853,6 @@
   }
 }
 
-.hero-coin-glow {
-  position: absolute;
-  inset: 4% 6% 8%;
-  pointer-events: none;
-  z-index: 0;
-  background: radial-gradient(
-    70% 72% at 50% 48%,
-    color-mix(in oklab, var(--color-volt) 28%, transparent) 0%,
-    color-mix(in oklab, var(--color-volt) 8%, transparent) 42%,
-    transparent 72%
-  );
-  filter: blur(26px);
-}
-
-.hero-coin-glow--core {
-  inset: 14% 18% 16%;
-  z-index: 0;
-  background: radial-gradient(
-    58% 62% at 50% 48%,
-    color-mix(in oklab, var(--color-volt) 38%, transparent) 0%,
-    transparent 68%
-  );
-  filter: blur(18px);
-  opacity: 0.9;
-}
-
 .hero-coin-rails {
   position: absolute;
   inset: 0;
@@ -878,16 +866,13 @@
 
 .hero-coin-rails path {
   fill: none;
-  stroke: color-mix(in oklab, var(--color-volt) 62%, transparent);
-  stroke-width: 3;
+  stroke: color-mix(in oklab, var(--color-volt) 48%, transparent);
+  stroke-width: 2;
   stroke-linecap: round;
-  opacity: 0.78;
+  opacity: 0.48;
 }
 
 .hero-coin-art {
-  position: absolute;
-  inset: 0;
-  z-index: 2;
   display: block;
   width: 100%;
   height: 100%;
