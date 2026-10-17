@@ -59,7 +59,7 @@ async function mountHeroCoin(
 	renderer.setClearColor(0x000000, 0);
 	renderer.outputColorSpace = THREE.SRGBColorSpace;
 	renderer.toneMapping = THREE.ACESFilmicToneMapping;
-	renderer.toneMappingExposure = 1.35;
+	renderer.toneMappingExposure = 1.5;
 	renderer.domElement.style.display = "block";
 	renderer.domElement.style.width = "100%";
 	renderer.domElement.style.height = "100%";
@@ -73,8 +73,8 @@ async function mountHeroCoin(
 
 	scene.add(new THREE.HemisphereLight(0xfff6c2, 0x141008, 0.55));
 
-	const key = new THREE.DirectionalLight(0xfff3d0, 3.4);
-	key.position.set(2.6, 3.4, 4.2);
+	const key = new THREE.DirectionalLight(0xfff3d0, 4.8);
+	key.position.set(2.2, 3.6, 3.4);
 	scene.add(key);
 
 	const rim = new THREE.DirectionalLight(0xffff67, 2.6);
@@ -127,10 +127,8 @@ async function mountHeroCoin(
 	rig.rotation.z = -0.12;
 	scene.add(rig);
 
-	const radius = 1.15;
-	const distance = radius / Math.sin(THREE.MathUtils.degToRad(15));
-	camera.position.set(0.05, 0.12, distance * 0.92);
-	camera.lookAt(0, 0, 0);
+	camera.position.set(0.02, 0.0, 2.95);
+	camera.lookAt(0, -0.02, 0);
 
 	const pointer = { x: 0, y: 0 };
 	const onPointer = (event: PointerEvent) => {

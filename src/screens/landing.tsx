@@ -466,7 +466,7 @@ export function LandingPage() {
 /** The hero artwork: the Corredor token, lit in the page. */
 function CoinStage() {
 	return (
-		<div className="relative origin-left lg:scale-[1.12]">
+		<div className="relative">
 			<HeroCoin />
 		</div>
 	);
