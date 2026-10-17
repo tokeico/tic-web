@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { useRef, useState } from "react";
 import { IcUpload } from "../components/icons";
 import { PayoutPanel } from "../components/PayoutPanel";
 import { Cc, H1, StatusPill } from "../components/ui";
@@ -29,6 +30,10 @@ function Inbox() {
 	const agent = useAgent();
 	const payouts = useQuery(payoutsQuery);
 	const loadingDemo = useDemo((s) => s.loading);
+	const uploading = useDemo((s) => s.uploading);
+	const fileInput = useRef<HTMLInputElement>(null);
+	const [dragging, setDragging] = useState(false);
+	const pick = () => fileInput.current?.click();
 	const flashId = useDemo((s) => s.flashId);
 	const pending = useDemo(
 		(s) => s.actions.filter((a) => a.status === "pending").length,
@@ -50,10 +55,41 @@ function Inbox() {
 		>
 			<section
 				aria-labelledby="inbox-h"
-				style={st(
-					"flex:999 1 620px;min-width:0;display:flex;flex-direction:column;gap:14px",
-				)}
+				onDragOver={(e) => {
+					e.preventDefault();
+					setDragging(true);
+				}}
+				onDragLeave={(e) => {
+					if (!e.currentTarget.contains(e.relatedTarget as Node))
+						setDragging(false);
+				}}
+				onDrop={(e) => {
+					e.preventDefault();
+					setDragging(false);
+					void actions.upload([...e.dataTransfer.files]);
+				}}
+				style={{
+					...st(
+						"flex:999 1 620px;min-width:0;display:flex;flex-direction:column;gap:14px;border-radius:10px",
+					),
+					...(dragging
+						? st(
+								"outline:2px dashed #0e6b5c;outline-offset:6px;background:#eef6f3",
+							)
+						: {}),
+				}}
 			>
+				<input
+					ref={fileInput}
+					type="file"
+					accept="application/pdf,.pdf"
+					multiple
+					hidden
+					onChange={(e) => {
+						void actions.upload([...(e.target.files ?? [])]);
+						e.target.value = "";
+					}}
+				/>
 				<div
 					style={st(
 						"display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px",
@@ -73,6 +109,11 @@ function Inbox() {
 								onClick={() => actions.go("/agent")}
 							>
 								{pending} waiting in the agent queue
+							</button>
+						)}
+						{loaded && (
+							<button type="button" className="btn" onClick={pick}>
+								Upload invoice
 							</button>
 						)}
 						{loaded && (
@@ -118,8 +159,9 @@ function Inbox() {
 							Drop an invoice or load the demo set
 						</p>
 						<p style={st("margin:0;color:#56655f;max-width:52ch")}>
-							Dropping a PDF will go to POST /api/invoices and the local model
-							will extract the fields. For now this runs on the seeded invoices.
+							Drop invoice PDFs anywhere on this page. The fields are read on
+							this machine, bank and tax numbers are checked, and the rules
+							engine plans the payout.
 						</p>
 						<button
 							type="button"
@@ -131,6 +173,38 @@ function Inbox() {
 						>
 							Load the 4 demo invoices
 						</button>
+						<button type="button" className="btn" onClick={pick}>
+							Choose PDFs
+						</button>
+					</div>
+				)}
+
+				{uploading.length > 0 && (
+					<div
+						style={st(
+							"background:#ffffff;border:1px solid #d6dfdb;border-radius:8px;overflow:hidden",
+						)}
+						aria-busy="true"
+					>
+						{uploading.map((name) => (
+							<div
+								key={name}
+								style={st(
+									"display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(0,1fr);gap:16px;align-items:center;padding:16px;border-bottom:1px solid #e1e8e5",
+								)}
+							>
+								<div style={st("display:flex;flex-direction:column;gap:6px")}>
+									<span className="mono" style={st("font-size:13px")}>
+										{name}
+									</span>
+									<span style={st("font-size:13px;color:#56655f")}>
+										Reading invoice · checking bank and tax numbers…
+									</span>
+								</div>
+								<div className="skel" />
+								<div className="skel" />
+							</div>
+						))}
 					</div>
 				)}
 

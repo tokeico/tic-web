@@ -29,6 +29,7 @@ The as-of date lives in the URL (`?asOf=2026-10-17`) on every page; moving it re
 
 - **Real (API):** rules engine, reroutes, approvals and daily cap, payment records, reconciliation, ledger, audit chain, settings, registry update.
 - **Simulated, and labeled as such:** the payment rail (mock adapter), the agent's replies (scripted over live data; the local model will write them), the vendor email "send", the regulatory radar's detection, agent autonomy and the warning-acknowledgment preference (browser session only).
+- **Invoices:** drop PDFs on the Inbox (or "Upload invoice"); fields are read by the local model with checksum checks, then planned.
 - **From the design, not built yet:** the "suspicious invoice" security hold, human route overrides and OFAC license sign-off.
 
 ## Where things are

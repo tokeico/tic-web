@@ -16,6 +16,8 @@ import {
 	resetDemo,
 	reviewScreening,
 	updateSettings,
+	uploadInvoice,
+	writeMemo,
 } from "./api";
 import type { InvoicePatch, PayoutDetail, SettingsPatch } from "./contracts";
 import {
@@ -193,6 +195,57 @@ export function useActions() {
 					announceReroutes(out.reroutes, prev);
 					return out;
 				}),
+
+			/** Upload invoice PDFs one by one; open the last one that was read. */
+			async upload(files: File[]) {
+				const pdfs = files.filter(
+					(f) =>
+						f.type === "application/pdf" ||
+						f.name.toLowerCase().endsWith(".pdf"),
+				);
+				if (!pdfs.length) {
+					showToast([{ head: "Not a PDF:", body: "drop invoice PDFs." }]);
+					return;
+				}
+				let last: string | null = null;
+				for (const f of pdfs) {
+					setDemo((s) => ({ uploading: [...s.uploading, f.name] }));
+					try {
+						const d = await uploadInvoice(f);
+						last = d.id;
+						const low = d.invoice.lowConfidence.length;
+						showToast(
+							[
+								{
+									head: "Invoice read:",
+									body: `${d.payeeName} ${d.invoice.invoiceNumber}${low ? ` · ${low} field${low > 1 ? "s" : ""} to check` : ""}`,
+								},
+							],
+							d.id,
+						);
+					} catch (e) {
+						showToast([{ head: `Couldn't read ${f.name}:`, body: msg(e) }]);
+					} finally {
+						setDemo((s) => ({
+							uploading: s.uploading.filter((n) => n !== f.name),
+						}));
+					}
+				}
+				// Uploading into the unplanned demo set plans the drafts too, so the inbox shows a table.
+				if (
+					last &&
+					(queryClient.getQueryData(payoutsQuery.queryKey) ?? []).some(
+						(p) => p.status === "draft",
+					)
+				) {
+					await planAll(asOf).catch(() => undefined);
+				}
+				await refresh();
+				if (last) openPayout(last);
+			},
+
+			writeMemo: (d: PayoutDetail) =>
+				run("write the memo", () => writeMemo(d.id)),
 
 			setAck: (id: string, value: boolean) =>
 				setDemo((s) => ({ acks: { ...s.acks, [id]: value } })),

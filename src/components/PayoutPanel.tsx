@@ -673,8 +673,11 @@ function ChecklistCard({ d }: { d: PayoutDetail }) {
 // ---- Memo ------------------------------------------------------------------------------
 
 function MemoCard({ d }: { d: PayoutDetail }) {
+	const actions = useActions();
+	const [writing, setWriting] = useState(false);
 	const memo = d.memo;
 	if (!memo || !d.plan) return null;
+	const written = memo.generatedBy === "llm";
 	const target = recommendedEval(d.plan) ?? wireEval(d.plan);
 	const inPlan = memo.citedRuleIds.filter((id) =>
 		target?.results.some((r) => r.ruleId === id),
@@ -688,9 +691,30 @@ function MemoCard({ d }: { d: PayoutDetail }) {
 				)}
 			>
 				<h3 style={st("margin:0;font-size:16px")}>Memo</h3>
-				<span className="pill p-muted">
-					Template memo · the local model writes it live
-				</span>
+				<div
+					style={st("display:flex;gap:8px;align-items:center;flex-wrap:wrap")}
+				>
+					<span className={`pill ${written ? "p-ok" : "p-muted"}`}>
+						{written ? "Written · citations checked" : "Template memo"}
+					</span>
+					{!written && (
+						<button
+							type="button"
+							className="btn btn-sm"
+							disabled={writing}
+							onClick={async () => {
+								setWriting(true);
+								try {
+									await actions.writeMemo(d);
+								} finally {
+									setWriting(false);
+								}
+							}}
+						>
+							{writing ? "Writing…" : "Write memo"}
+						</button>
+					)}
+				</div>
 			</div>
 			<p style={st("margin:0;font-weight:500")}>{memo.summary}</p>
 			<p style={st("margin:0;font-size:14px")}>{memo.routeRationale}</p>

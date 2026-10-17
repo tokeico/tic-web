@@ -61,6 +61,8 @@ export interface DemoState {
 	copied: string | null;
 	/** Set once the user loads the demo invoices this session (drives the loading animation). */
 	loading: boolean;
+	/** File names being read right now. */
+	uploading: string[];
 }
 
 export const WELCOME: AgentMessage = {
@@ -88,6 +90,7 @@ const initial = (): DemoState => ({
 	radarRejected: false,
 	copied: null,
 	loading: false,
+	uploading: [],
 });
 
 let state: DemoState = initial();
