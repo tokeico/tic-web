@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AppRouteImport } from './routes/_app'
 import { Route as McpRouteImport } from './routes/mcp'
+import { Route as PresentationRouteImport } from './routes/presentation'
 import { Route as SigninRouteImport } from './routes/signin'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AppAccountRouteImport } from './routes/_app/account'
@@ -38,6 +39,11 @@ const AppRoute = AppRouteImport.update({
 const McpRoute = McpRouteImport.update({
   id: '/mcp',
   path: '/mcp',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const PresentationRoute = PresentationRouteImport.update({
+  id: '/presentation',
+  path: '/presentation',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SigninRoute = SigninRouteImport.update({
@@ -109,6 +115,7 @@ const ApiSplatRoute = ApiSplatRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/mcp': typeof McpRoute
+  '/presentation': typeof PresentationRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/account': typeof AppAccountRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/mcp': typeof McpRoute
+  '/presentation': typeof PresentationRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/account': typeof AppAccountRoute
@@ -145,6 +153,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_app': typeof AppRouteWithChildren
   '/mcp': typeof McpRoute
+  '/presentation': typeof PresentationRoute
   '/signin': typeof SigninRoute
   '/signup': typeof SignupRoute
   '/_app/account': typeof AppAccountRoute
@@ -164,6 +173,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/mcp'
+    | '/presentation'
     | '/signin'
     | '/signup'
     | '/account'
@@ -181,6 +191,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/mcp'
+    | '/presentation'
     | '/signin'
     | '/signup'
     | '/account'
@@ -199,6 +210,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_app'
     | '/mcp'
+    | '/presentation'
     | '/signin'
     | '/signup'
     | '/_app/account'
@@ -218,6 +230,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AppRoute: typeof AppRouteWithChildren
   McpRoute: typeof McpRoute
+  PresentationRoute: typeof PresentationRoute
   SigninRoute: typeof SigninRoute
   SignupRoute: typeof SignupRoute
   ApiSplatRoute: typeof ApiSplatRoute
@@ -244,6 +257,13 @@ declare module '@tanstack/react-router' {
       path: '/mcp'
       fullPath: '/mcp'
       preLoaderRoute: typeof McpRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/presentation': {
+      id: '/presentation'
+      path: '/presentation'
+      fullPath: '/presentation'
+      preLoaderRoute: typeof PresentationRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/signin': {
@@ -372,6 +392,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AppRoute: AppRouteWithChildren,
   McpRoute: McpRoute,
+  PresentationRoute: PresentationRoute,
   SigninRoute: SigninRoute,
   SignupRoute: SignupRoute,
   ApiSplatRoute: ApiSplatRoute,
