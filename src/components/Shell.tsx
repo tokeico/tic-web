@@ -5,7 +5,7 @@ import { RULES } from "@/domain/data";
 import { TOUR_WHY } from "@/domain/demo-guide";
 import { activeRuleCount } from "@/domain/engine";
 import { fmtDate, iso } from "@/domain/format";
-import { isDemoAdmin, signOut } from "@/lib/auth";
+import { seesDemo, signOut } from "@/lib/auth";
 import { useStore, VIEW_PATH, type ViewId } from "@/state/store";
 import { FeatureGuide } from "./FeatureGuide";
 import { HelpHint } from "./HelpHint";
@@ -195,7 +195,7 @@ export function Shell({ children }: { children: ReactNode }) {
 					</div>
 				</div>
 
-				{isDemoAdmin(user) && TIMELINE_PATHS.includes(pathname) && <AsOfBar />}
+				{seesDemo(user) && TIMELINE_PATHS.includes(pathname) && <AsOfBar />}
 			</header>
 
 			<TourBar key={state.tour ?? "off"} />

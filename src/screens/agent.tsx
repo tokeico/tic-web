@@ -1,3 +1,4 @@
+import { type ReactNode, useMemo } from "react";
 import { ToolArrow } from "@/components/icons";
 import { Card, Lab, RuleRef } from "@/components/ui";
 import { SUGGESTIONS } from "@/domain/agent";
@@ -260,9 +261,89 @@ const Avatar = () => (
 	</span>
 );
 
+const escapeRe = (t: string) => t.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+const SETTLED = ["paid", "booked"];
+
+/**
+ * Finds the payouts a reply mentions: invoice numbers (also masked ones such
+ * as EP-••••0412) and payee names. A name opens that payee's open payout, or
+ * its latest when everything is settled.
+ */
+function usePayoutLinks(vs: PayoutView[]) {
+	return useMemo(() => {
+		const byTerm = new Map<string, string>();
+		const masked = new Map<string, string>();
+		const pick = new Map<string, PayoutView>();
+		for (const v of vs) {
+			if (v.p.hidden) continue;
+			const num = v.p.inv.number;
+			byTerm.set(num, v.p.id);
+			const [prefix] = num.split("-");
+			masked.set(`${prefix}|${num.slice(-4)}`, v.p.id);
+			// a payee's open payout wins; among settled ones, the last listed
+			const held = pick.get(v.p.payee);
+			if (!held || SETTLED.includes(held.status)) pick.set(v.p.payee, v);
+		}
+		for (const [payee, v] of pick) byTerm.set(payee, v.p.id);
+		const terms = [...byTerm.keys()].sort((a, b) => b.length - a.length);
+		const re = terms.length
+			? new RegExp(
+					`(\\b[A-Z]{2,4}-[•*·]+\\d{4}\\b|${terms.map(escapeRe).join("|")})`,
+					"g",
+				)
+			: null;
+		const find = (hit: string) => {
+			const m = /^([A-Z]{2,4})-[•*·]+(\d{4})$/.exec(hit);
+			return m ? masked.get(`${m[1]}|${m[2]}`) : byTerm.get(hit);
+		};
+		return { re, find };
+	}, [vs]);
+}
+
+function Linked({
+	text,
+	links,
+}: {
+	text: string;
+	links: ReturnType<typeof usePayoutLinks>;
+}) {
+	const { open } = useStore();
+	if (!links.re) return <>{text}</>;
+	const out: ReactNode[] = [];
+	let last = 0;
+	for (const hit of text.matchAll(links.re)) {
+		const pid = links.find(hit[0]);
+		if (!pid || hit.index == null) continue;
+		if (hit.index > last) out.push(text.slice(last, hit.index));
+		out.push(
+			<button
+				key={`${hit.index}:${hit[0]}`}
+				type="button"
+				className="agent-ref"
+				title="Open this payout"
+				onClick={() => open(pid)}
+			>
+				{hit[0]}
+			</button>,
+		);
+		last = hit.index + hit[0].length;
+	}
+	if (last < text.length) out.push(text.slice(last));
+	return <>{out}</>;
+}
+
+/** Models often inline a list as "… * one. * two." — lift it into real rows. */
+function inlineList(t: string) {
+	const parts = t.split(/(?:^|\s)\*\s+/);
+	if (parts.length < 3) return { lead: t, items: [] as string[] };
+	return { lead: parts[0].trim(), items: parts.slice(1).map((x) => x.trim()) };
+}
+
 function AgentBubble({ m }: { m: AgentMessage }) {
-	const { open, go } = useStore();
+	const store = useStore();
+	const { open, go } = store;
 	const cites = uniq(m.cites).map(cite);
+	const links = usePayoutLinks(views(store.state));
 
 	return (
 		<div
@@ -289,19 +370,42 @@ function AgentBubble({ m }: { m: AgentMessage }) {
 					</div>
 				)}
 
-				{m.paras.map((t, i) => (
-					// biome-ignore lint/suspicious/noArrayIndexKey: model paragraphs can repeat
-					<p key={i} className="m-0" style={{ fontSize: 14.5 }}>
-						{t}
-					</p>
-				))}
+				{m.paras.map((t, i) => {
+					const { lead, items } = inlineList(t);
+					return (
+						// biome-ignore lint/suspicious/noArrayIndexKey: model paragraphs can repeat
+						<div key={i} className="flex flex-col gap-1.5">
+							{lead && (
+								<p className="m-0" style={{ fontSize: 14.5 }}>
+									<Linked text={lead} links={links} />
+								</p>
+							)}
+							{items.length > 0 && (
+								<ul
+									className="m-0 flex list-disc flex-col gap-1"
+									style={{ paddingLeft: 18 }}
+								>
+									{items.map((x, n) => (
+										// biome-ignore lint/suspicious/noArrayIndexKey: positional rows
+										<li key={n} style={{ fontSize: 14 }}>
+											<Linked text={x} links={links} />
+										</li>
+									))}
+								</ul>
+							)}
+						</div>
+					);
+				})}
 
 				{m.bullets.length > 0 && (
-					<ul className="m-0 flex flex-col gap-1" style={{ paddingLeft: 18 }}>
+					<ul
+						className="m-0 flex list-disc flex-col gap-1"
+						style={{ paddingLeft: 18 }}
+					>
 						{m.bullets.map((t, i) => (
 							// biome-ignore lint/suspicious/noArrayIndexKey: positional rows in an append-only list
 							<li key={i} style={{ fontSize: 14, whiteSpace: "pre-line" }}>
-								{t}
+								<Linked text={t} links={links} />
 							</li>
 						))}
 					</ul>

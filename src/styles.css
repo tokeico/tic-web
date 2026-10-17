@@ -1871,6 +1871,25 @@
   }
 }
 
+/* A payout named in an agent reply: an inline link that opens it. */
+.agent-ref {
+  display: inline;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: var(--color-bone);
+  font: inherit;
+  text-align: inherit;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--color-volt) 55%, transparent);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+}
+.agent-ref:hover {
+  color: var(--color-volt);
+  text-decoration-color: var(--color-volt);
+}
+
 /* Corridor map: map above its legend in the rail; side by side whenever the
    card itself is wide enough (tablet, or full-width on mid screens). */
 @layer components {

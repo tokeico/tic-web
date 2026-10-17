@@ -22,7 +22,7 @@ import {
 import { WIRE_FEE_PCT } from "@/domain/data";
 import { views } from "@/domain/engine";
 import { fmtDate, iso, usd0 } from "@/domain/format";
-import { isDemoAdmin } from "@/lib/auth";
+import { seesDemo } from "@/lib/auth";
 import { useStore, type ViewId } from "@/state/store";
 
 /**
@@ -801,7 +801,7 @@ function Section({
 
 export function DashboardPage() {
 	const store = useStore();
-	const demo = isDemoAdmin(store.user);
+	const demo = seesDemo(store.user);
 	const live = demo ? null : liveModel(store);
 	const model = useMemo(() => (demo ? demoModel() : null), [demo]) ?? live!;
 	const online = model.fleet.length;

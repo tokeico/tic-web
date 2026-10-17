@@ -45,9 +45,16 @@ export const DEMO_LOGIN = import.meta.env.PUBLIC_DEMO_LOGIN === "true";
 export const DEMO_ADMIN = { username: "admin", password: "admin" };
 /** The demo admin's account email; the API maps the username "admin" to it. */
 export const DEMO_ADMIN_EMAIL = "admin@corredor.demo";
-/** Demo-only controls (the timeline) show for the demo admin alone. */
 export const isDemoAdmin = (user: { email: string }) =>
 	user.email === DEMO_ADMIN_EMAIL;
+/**
+ * For now every member sees the demo admin's view: the dashboard's twelve
+ * months of fictional history and the as-of timeline. Set to false to give
+ * members their live workspace numbers again (the admin keeps the demo).
+ */
+export const SHOW_DEMO_TO_EVERYONE = true;
+export const seesDemo = (user: { email: string }) =>
+	SHOW_DEMO_TO_EVERYONE || isDemoAdmin(user);
 
 export const signIn = (input: {
 	email: string;
