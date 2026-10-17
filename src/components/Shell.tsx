@@ -212,7 +212,6 @@ function AsOfBar() {
 			<div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-5 py-3">
 				<div className="flex flex-wrap items-center justify-between gap-2">
 					<div className="flex min-w-[170px] items-center gap-2.5">
-						<span className="pill p-warn">DEMO</span>
 						<span className="lab">As-of date</span>
 						<span
 							className="mono"

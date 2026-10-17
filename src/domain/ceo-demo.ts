@@ -1,6 +1,6 @@
 // The CEO dashboard's story for the demo admin: twelve months of fictional
 // history, the agent fleet and the live activity it streams. Made up for the
-// pitch — shown only to the demo admin and always tagged DEMO in the UI.
+// pitch — shown only to the demo admin.
 // Every derived number (totals, savings, the briefing) is computed from these
 // rows so the screen never contradicts itself.
 

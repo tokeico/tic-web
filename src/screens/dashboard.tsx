@@ -820,7 +820,6 @@ export function DashboardPage() {
 							<span className="agent-dot" aria-hidden="true" />
 							{online} agents online
 						</span>
-						{model.demo && <span className="pill p-warn">DEMO</span>}
 						<span className="text-ash-dim mono" style={{ fontSize: 12 }}>
 							{fmtDate(iso(store.state.day))}
 						</span>
@@ -951,12 +950,6 @@ export function DashboardPage() {
 				<Stream items={model.stream} loop={model.demo} />
 			</Section>
 
-			{model.demo && (
-				<p className="m-0 text-ash-faint" style={{ fontSize: 12 }}>
-					DEMO: fictional companies, volumes and agent activity for the demo
-					account. Your own workspace shows live numbers.
-				</p>
-			)}
 		</main>
 	);
 }
