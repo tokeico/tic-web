@@ -21,7 +21,8 @@ The compliance brain for paying Latin America in stablecoins. It knows each coun
 
 ## Product requirements
 
-**Event:** eMerge AI Hackathon 2026 · Enterprise AI track · Oct 17, 2026 (code 9 AM–6 PM, submit by 6 PM) **Deliverables:** working demo · public repo · short deck
+**Event:** eMerge AI Hackathon 2026 · Enterprise AI track · Oct 17, 2026 (code 9 AM–6 PM, submit by 6 PM)  
+**Deliverables:** working demo · public repo · short deck
 
 ---
 ## 1. One-liner
