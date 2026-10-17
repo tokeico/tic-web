@@ -824,6 +824,16 @@ export function DashboardPage() {
 				</span>
 			</section>
 
+			<section
+				aria-label="Key numbers"
+				className="grid gap-3"
+				style={{ gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}
+			>
+				{model.kpis.map((k) => (
+					<KpiTile key={k.label} kpi={k} />
+				))}
+			</section>
+
 			<div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
 				<Briefing model={model} />
 				<Section
@@ -858,16 +868,6 @@ export function DashboardPage() {
 					</span>
 				</Section>
 			</div>
-
-			<section
-				aria-label="Key numbers"
-				className="grid gap-3"
-				style={{ gridTemplateColumns: "repeat(auto-fit,minmax(200px,1fr))" }}
-			>
-				{model.kpis.map((k) => (
-					<KpiTile key={k.label} kpi={k} />
-				))}
-			</section>
 
 			<div className="grid grid-cols-[minmax(0,1fr)] gap-4 lg:grid-cols-[minmax(0,1fr)_360px]">
 				<Section
@@ -935,7 +935,6 @@ export function DashboardPage() {
 			>
 				<Stream items={model.stream} loop={model.demo} />
 			</Section>
-
 		</main>
 	);
 }
