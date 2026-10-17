@@ -142,10 +142,7 @@ export function LandingPage() {
 							className="display-hero m-0"
 							style={{ fontSize: "clamp(38px, 4.5vw, 60px)", lineHeight: 1.04 }}
 						>
-							Pay Latin America
-							<br />
-							like it’s{" "}
-							<span style={{ color: "var(--color-volt)" }}>next door.</span>
+							The Compliance Brain for Latin America
 						</h1>
 						<p
 							className="m-0 text-ash"
