@@ -118,7 +118,10 @@ export const RULES: Rule[] = [
 			r.kind === "wire"
 				? NA
 				: r.off!.type === "vasp_unfiled"
-					? ["warn", `${r.off!.name} hasn’t filed; the filing deadline is Oct 30.`]
+					? [
+							"warn",
+							`${r.off!.name} hasn’t filed; the filing deadline is Oct 30.`,
+						]
 					: ["pass", `${r.off!.name} is not an unfiled provider.`],
 	},
 	{
@@ -133,7 +136,10 @@ export const RULES: Rule[] = [
 			r.kind === "wire"
 				? NA
 				: r.off!.type === "vasp_unfiled"
-					? ["block", `${r.off!.name} missed the filing deadline; Corredor policy blocks non-filers from Oct 31.`]
+					? [
+							"block",
+							`${r.off!.name} missed the filing deadline; Corredor policy blocks non-filers from Oct 31.`,
+						]
 					: ["pass", `${r.off!.name} is not an unfiled provider.`],
 	},
 	{

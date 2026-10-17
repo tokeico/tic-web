@@ -1,15 +1,41 @@
 # Corredor web (`tic-web`)
 
-The Corredor frontend, translated from the "Corredor · clickable MVP" design. TanStack Start (React 19), Router and Query, built with rsbuild. It talks to [`tic-api`](../tic-api) for everything: plans, approvals, payments, the ledger and the audit chain. Product and screen plan: `docs/FRONTEND.md`.
+The Corredor frontend. TanStack Start (React 19), Router and Query, built with rsbuild. It talks to [`tic-api`](../tic-api) for plans, approvals, payments, the ledger and the audit chain. Product and screen plan: `docs/FRONTEND.md`.
 
 ## Run it
 
+Requires Bun and Docker for PostgreSQL. Set up and start the API first in a separate terminal:
+
 ```sh
-cd ../tic-api && bun run db:up && bun run db:migrate && bun run db:seed && bun run dev   # API on :3000
-cd ../tic-web && bun install && cp .env.example .env && bun --bun run dev               # web on :8080
+cd ../tic-api
+bun install
+cp .env.example .env
+bun run keys
 ```
 
-Open http://localhost:8080 and click **Start the 3-minute guided demo**. **Reset demo** (Inbox) wipes back to the four draft invoices.
+Paste all three generated `AUDIT_*` lines into the API's `.env`, replacing the empty entries. Keep the keys private and retain them between restarts so existing audit events remain verifiable.
+
+```sh
+bun run db:up && bun run db:migrate && bun run db:seed
+bun run dev
+```
+
+Then start the web app in a second terminal:
+
+```sh
+cd ../tic-web
+bun install
+cp .env.example .env
+bun --bun run dev
+```
+
+Before presenting, check http://localhost:3000/api/health for `"db": true`. Open http://localhost:8080, click **Open the live demo**, then go to Overview (under **More views**) and click **Start the 3-minute guided demo**. **Reset demo** (Inbox) restores the four draft invoices.
+
+The tour compares Sep 30 → Oct 1 → **Oct 31**, then returns to Oct 17. Oct 30 is still a valid filing day; Corredor blocks providers that didn't file from Oct 31. Sol's authorization is hypothetical and all demo providers are fictional. After payment, the tour reconciles Brazil and opens its matched journal entry in **Books → Ledger**, before the staged fraud example.
+
+### Optional: live agent and invoice reading
+
+Install Ollama, run `ollama pull llama3.1:8b`, and start `ollama serve` unless it is already running as a service. The API defaults to that model on `http://localhost:11434`. Check http://localhost:3000/api/health for `"llm": true` before demonstrating live chat or uncached PDF extraction. The seeded invoices and deterministic workflow do not require Ollama. See [`tic-api` setup](../tic-api/README.md) and `docs/AGENT.md`.
 
 ## Screens
 
@@ -17,33 +43,36 @@ Open http://localhost:8080 and click **Start the 3-minute guided demo**. **Reset
 |---|---|---|
 | Overview | Pipeline (who is responsible for each step), key numbers, "Needs a person", latest audit events | `/api/payouts?detail=1`, `/api/audit` |
 | Inbox | Payouts table and the detail panel: approval, pay, reconcile, routes, rules checklist, memo, sanctions, invoice fields | payouts, approve, pay, reconcile, PATCH, replay |
-| Agent | Chat plus the "Waiting for you" queue | scripted replies over live data; dry runs use `/api/payouts/:id/preview` |
+| Agent | Local-model chat plus the "Waiting for you" queue | `/api/agent/chat`; dry runs use `/api/payouts/:id/preview` |
 | Trust & compliance | Regulatory radar (registry update with a real dry-run impact), agent permissions, guardrails | `/api/settings` (registry), preview |
-| Ledger | Booked journal entries, CSV export | `/api/ledger`, `/api/ledger.csv` |
-| Audit | Hash-chained events, verification, tamper simulation | `/api/audit`, `/api/audit/verify?tamper=` |
+| Books → Transactions | Search payment receipts by payee, invoice, hash or reference; filter networks; copy references and open invoice activity. Mock receipts are labeled simulated; wires are separate from blockchain networks | `/api/payouts?detail=1`, `/api/audit` |
+| Books → Ledger | Booked journal entries, CSV export | `/api/ledger`, `/api/ledger.csv` |
+| Books → Audit | Hash-chained events, verification, tamper simulation | `/api/audit`, `/api/audit/verify?tamper=` |
 | Customize | Autonomy, approval policy, routing preference, providers, rules pack | `/api/settings`, `/api/offramps`, `/api/rules?all=1` |
 
 The as-of date lives in the URL (`?asOf=2026-10-17`) on every page; moving it re-plans every open payout through `POST /api/plan-all`.
 
 ### Real vs. simulated
 
-- **Real (API):** rules engine, reroutes, approvals and daily cap, payment records, reconciliation, ledger, audit chain, settings, registry update.
-- **Simulated, and labeled as such:** the payment rail (mock adapter), the agent's replies (scripted over live data; the local model will write them), the vendor email "send", the regulatory radar's detection, agent autonomy and the warning-acknowledgment preference (browser session only).
-- **Invoices:** drop PDFs on the Inbox (or "Upload invoice"); fields are read by the local model with checksum checks, then planned.
-- **From the design, not built yet:** the "suspicious invoice" security hold, human route overrides and OFAC license sign-off.
+- **Real (API):** rules engine, reroutes, approvals and daily cap, payment records, reconciliation, ledger, audit chain, settings, registry update, uploaded-invoice security holds and compliance sanctions sign-off.
+- **Simulated, and labeled as such:** the payment rail (mock adapter), scripted demo narration, the tour's browser-staged fraud invoice, the vendor email "send", the regulatory radar's detection, agent autonomy and the warning-acknowledgment preference (browser session only).
+- **Invoices:** drop PDFs on the Inbox (or "Upload invoice"); fields are read by the local model with checksum checks, then planned. Uncached extraction requires Ollama.
+- **Browser-only:** human route-override drafts and the staged fraud example are not equivalent to persisted API reviews.
 
 ## Where things are
 
 | Path | What |
 |---|---|
-| `src/routes/` | One file per tab |
-| `src/components/Shell.tsx` | Header, tabs, as-of bar, toast; `TourBar.tsx` is the guided demo; `PayoutPanel.tsx` the inbox detail |
+| `src/screens/` | Screen implementations, including `books.tsx` composing the transaction explorer, Ledger and Audit |
+| `src/routes/` | Thin TanStack Router route definitions |
+| `src/components/Shell.tsx` | Header, navigation, as-of bar, toast and guided tour bar |
+| `src/components/DetailPane.tsx` | Inbox payout detail and reviews |
 | `src/lib/api.ts` | The only code that calls the API |
-| `src/lib/use-actions.ts` | Every button's behaviour (writes, refreshes, error toasts) |
-| `src/lib/agent.ts` · `radar.ts` | The agent's responder and the radar's dry run |
-| `src/lib/demo-store.ts` | Client-only state (chat, queue, tour, toast) |
+| `src/state/store.tsx` | Actions, API refreshes, chat, queue, guided tour steps and client state |
+| `src/domain/agent.ts` | Scripted responder, suggestions, demo narration and radar impact |
+| `src/domain/api-bridge.ts` | Maps API responses to the screen data model |
 | `src/lib/contracts.ts` | **Copy** of `tic-api/src/contracts.ts`. Don't edit it here |
-| `src/styles.css` | The design's CSS, verbatim; `src/lib/st.ts` keeps its inline styles verbatim too |
+| `src/styles.css` | Shared theme and styles |
 
 After `tic-api/src/contracts.ts` changes: `cp ../tic-api/src/contracts.ts src/lib/contracts.ts`.
 
@@ -51,6 +80,7 @@ After `tic-api/src/contracts.ts` changes: `cp ../tic-api/src/contracts.ts src/li
 
 ```sh
 bunx tsc --noEmit          # types
+bun test                   # demo steps, payment-state guards and explorer records
 bun --bun run check        # Biome (ARIA-role grids and non-null assertions are allowed on purpose, see biome.json)
 bun --bun run build
 ```

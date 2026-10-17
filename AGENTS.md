@@ -12,4 +12,8 @@ Before editing files for a substantial task:
 
 ## Agent tab
 
-Answered by a local model in Ollama through `POST /api/agent/chat`, with a scripted fallback in `src/lib/agent.ts`. See `docs/AGENT.md`.
+Answered by a local model in Ollama through `POST /api/agent/chat`. Demo suggestions and the scripted responder live in `src/domain/agent.ts`; actions and chat requests live in `src/state/store.tsx`. See `docs/AGENT.md`.
+
+## Verification
+
+Run `bun test src/domain/demo.test.ts` for demo date and tour-action regressions, `bunx tsc --noEmit` for types, `bun --bun run check` for Biome, and `bun --bun run build` for the production build.

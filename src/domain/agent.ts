@@ -199,7 +199,9 @@ export function respond(text: string, s: AppState): AgentReply {
 				if (hit) msg.cites.push(hit.rule.id);
 			}
 		});
-		msg.paras.push("Dry run as of Oct 31, 2026. The demo clock has not changed. Oct 30 is still a valid filing day; Corredor blocks providers that didn’t file from Oct 31.");
+		msg.paras.push(
+			"Dry run as of Oct 31, 2026. The demo clock has not changed. Oct 30 is still a valid filing day; Corredor blocks providers that didn’t file from Oct 31.",
+		);
 		if (!msg.bullets.length)
 			msg.bullets.push("No open payout changes route on Oct 31.");
 		const pending = vs.find(

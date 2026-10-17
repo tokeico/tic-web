@@ -3,6 +3,7 @@ import { Disclosure } from "@/components/ui";
 import { AuditSection } from "@/screens/audit";
 import { ExplorerSection } from "@/screens/explorer";
 import { LedgerSection } from "@/screens/ledger";
+import { useStore } from "@/state/store";
 
 /**
  * The books: what was paid (the ledger) and the proof it happened (the audit
@@ -10,10 +11,14 @@ import { LedgerSection } from "@/screens/ledger";
  */
 export function BooksPage() {
 	const { pathname } = useLocation();
+	const { state } = useStore();
 	return (
 		<main className="mx-auto flex max-w-[1200px] flex-col gap-8 px-5 py-8">
 			<ExplorerSection />
-			<Disclosure summary="Ledger · journal entries & CSV export">
+			<Disclosure
+				summary="Ledger · journal entries & CSV export"
+				open={pathname === "/ledger" && state.tour !== null}
+			>
 				<LedgerSection />
 			</Disclosure>
 			<Disclosure

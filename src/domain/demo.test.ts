@@ -41,7 +41,10 @@ function tour(api: Record<string, unknown>, go = (_view: string) => {}) {
 test("Brazil stays on Ponte through Oct 30 and reroutes on Oct 31", () => {
 	const state = initialState();
 	const brazil = payoutById("br");
-	assert.equal(plan(brazil, "2026-10-30", state).rec?.route.off?.id, "br-ponte");
+	assert.equal(
+		plan(brazil, "2026-10-30", state).rec?.route.off?.id,
+		"br-ponte",
+	);
 	assert.equal(plan(brazil, "2026-10-31", state).rec?.route.off?.id, "br-sol");
 });
 
@@ -61,7 +64,11 @@ test("scripted agent previews Oct 31 and proposes that clock date", () => {
 
 test("tour filing-deadline action moves to Oct 31", async () => {
 	let day = -1;
-	const steps = tour({ setDay: (value: number) => { day = value; } });
+	const steps = tour({
+		setDay: (value: number) => {
+			day = value;
+		},
+	});
 	const step = steps.find((s) => s.time === "1:10");
 	assert.match(step?.title ?? "", /Oct 31/);
 	await step?.act();
@@ -71,23 +78,31 @@ test("tour filing-deadline action moves to Oct 31", async () => {
 test("tour reconciles Brazil before showing its Ledger entry", async () => {
 	const calls: string[] = [];
 	const steps = tour(
-		{ reconcile: async (id: string) => { calls.push(id); return true; } },
-		(view) => { calls.push(view); },
+		{
+			reconcile: async (id: string) => {
+				calls.push(id);
+				return true;
+			},
+		},
+		(view) => {
+			calls.push(view);
+		},
 	);
 	const step = steps.find((s) => /journal|ledger/i.test(s.title));
 	assert.ok(step);
 	await step.act();
 	assert.deepEqual(calls, ["demo-br", "ledger"]);
 	assert.ok(steps.indexOf(step) > steps.findIndex((s) => s.time === "1:55"));
-	assert.ok(steps.indexOf(step) < steps.findIndex((s) => /fraud/.test(s.title)));
+	assert.ok(
+		steps.indexOf(step) < steps.findIndex((s) => /fraud/.test(s.title)),
+	);
 });
 
 test("tour does not open the Ledger when reconciliation fails", async () => {
 	const calls: string[] = [];
-	const steps = tour(
-		{ reconcile: async () => false },
-		(view) => { calls.push(view); },
-	);
+	const steps = tour({ reconcile: async () => false }, (view) => {
+		calls.push(view);
+	});
 	const step = steps.find((s) => /journal|ledger/i.test(s.title));
 	assert.ok(step);
 	assert.equal(await step.act(), false);
