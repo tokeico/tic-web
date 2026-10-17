@@ -813,28 +813,14 @@ export function DashboardPage() {
 
 	return (
 		<main className="mx-auto flex max-w-[1280px] flex-col gap-5 px-5 py-6">
-			<section className="flex flex-wrap items-end justify-between gap-4">
-				<div className="flex flex-col gap-2">
-					<div className="flex flex-wrap items-center gap-2">
-						<span className="pill p-ok">
-							<span className="agent-dot" aria-hidden="true" />
-							{online} agents online
-						</span>
-						<span className="text-ash-dim mono" style={{ fontSize: 12 }}>
-							{fmtDate(iso(store.state.day))}
-						</span>
-					</div>
-					<h1
-						className="display-hero m-0"
-						style={{ fontSize: 34, lineHeight: 1.08 }}
-					>
-						Your payments run themselves.
-						<span className="text-ash"> You set the rules.</span>
-					</h1>
-				</div>
-				<span className="text-ash-dim" style={{ fontSize: 13 }}>
-					Agents read, screen, route and reconcile. A person approves every
-					release.
+			<section className="flex flex-wrap items-center gap-2">
+				<h1 className="sr-only">Dashboard</h1>
+				<span className="pill p-ok">
+					<span className="agent-dot" aria-hidden="true" />
+					{online} agents online
+				</span>
+				<span className="text-ash-dim mono" style={{ fontSize: 12 }}>
+					{fmtDate(iso(store.state.day))}
 				</span>
 			</section>
 
