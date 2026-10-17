@@ -132,13 +132,14 @@ export async function respond(text: string, c: Ctx): Promise<Reply> {
 				pendingProvider = { p, name: off.name };
 		}
 		msg.paras!.push("Dry run as of Oct 31, 2026. Nothing has changed yet.");
-		if (!msg.bullets!.length)
-			msg.bullets!.push("No open payout changes route on Oct 31.");
+		const changes = msg.bullets!.length;
+		if (!changes) msg.bullets!.push("No open payout changes route on Oct 31.");
 		if (pendingProvider) {
 			msg.paras!.push(
 				`To keep the cheaper ${pendingProvider.name} route for ${pendingProvider.p.payeeName}, it has to be approved and paid before Oct 31, unless ${pendingProvider.name}’s registry status changes first (see the Regulatory radar).`,
 			);
 		}
+		if (!changes) return { msg };
 		if (c.autonomy === "auto") {
 			msg.note =
 				"This is low-risk, so I moved the demo clock to Oct 31 automatically. Use the date bar to go back.";
