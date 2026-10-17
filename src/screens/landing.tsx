@@ -132,10 +132,10 @@ export function LandingPage() {
 					</nav>
 
 					<Link
-						to="/signup"
+						to="/dashboard"
 						className="btn btn-primary lp-pill-cta no-underline"
 					>
-						Create account
+						Get Started →
 					</Link>
 				</header>
 
@@ -164,10 +164,10 @@ export function LandingPage() {
 						</p>
 						<div className="flex flex-wrap gap-3">
 							<Link
-								to="/app"
+								to="/dashboard"
 								className="btn btn-primary lp-pill-cta no-underline"
 							>
-								Open the live demo →
+								Get Started →
 							</Link>
 							<a href="#how-it-works" className="btn lp-pill-cta no-underline">
 								See how it works
@@ -424,10 +424,10 @@ export function LandingPage() {
 								money.
 							</span>
 							<Link
-								to="/app"
+								to="/dashboard"
 								className="btn btn-primary lp-pill-cta no-underline"
 							>
-								Open the live demo →
+								Get Started →
 							</Link>
 						</div>
 					</div>

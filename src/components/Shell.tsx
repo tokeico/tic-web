@@ -5,7 +5,7 @@ import { RULES } from "@/domain/data";
 import { TOUR_WHY } from "@/domain/demo-guide";
 import { activeRuleCount } from "@/domain/engine";
 import { fmtDate, iso } from "@/domain/format";
-import { signOut } from "@/lib/auth";
+import { isDemoAdmin, signOut } from "@/lib/auth";
 import { useStore, VIEW_PATH, type ViewId } from "@/state/store";
 import { FeatureGuide } from "./FeatureGuide";
 import { HelpHint } from "./HelpHint";
@@ -184,7 +184,7 @@ export function Shell({ children }: { children: ReactNode }) {
 					</div>
 				</div>
 
-				<AsOfBar />
+				{isDemoAdmin(user) && <AsOfBar />}
 			</header>
 
 			<TourBar key={state.tour ?? "off"} />
@@ -196,7 +196,7 @@ export function Shell({ children }: { children: ReactNode }) {
 
 /**
  * The as-of date bar. Moving it re-runs the rules engine for every open payout
- * — the demo's single most important control.
+ * — the demo's single most important control. Shown to the demo admin only.
  */
 function AsOfBar() {
 	const { state, setDay } = useStore();
@@ -208,6 +208,7 @@ function AsOfBar() {
 			<div className="mx-auto flex max-w-[1440px] flex-col gap-2 px-5 py-3">
 				<div className="flex flex-wrap items-center justify-between gap-2">
 					<div className="flex min-w-[170px] items-center gap-2.5">
+						<span className="pill p-warn">DEMO</span>
 						<span className="lab">As-of date</span>
 						<span
 							className="mono"

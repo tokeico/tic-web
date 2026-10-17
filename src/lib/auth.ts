@@ -30,6 +30,15 @@ export const ApiKey = z.object({
 	createdAt: z.string(),
 });
 
+/** Local demo login (tic-api `bun run db:demo-admin`). The hint shows only when PUBLIC_DEMO_LOGIN=true. */
+export const DEMO_LOGIN = import.meta.env.PUBLIC_DEMO_LOGIN === "true";
+export const DEMO_ADMIN = { username: "admin", password: "admin" };
+/** The demo admin's account email; the API maps the username "admin" to it. */
+export const DEMO_ADMIN_EMAIL = "admin@corredor.demo";
+/** Demo-only controls (the timeline) show for the demo admin alone. */
+export const isDemoAdmin = (user: { email: string }) =>
+	user.email === DEMO_ADMIN_EMAIL;
+
 export const signIn = (input: {
 	email: string;
 	password: string;
@@ -90,7 +99,7 @@ export const revokeApiKey = (id: string) =>
 export function safeReturnPath(value: unknown) {
 	return typeof value === "string" &&
 		![...value].some((character) => character.charCodeAt(0) < 32) &&
-		/^\/(?:agent|inbox|overview|app|trust|ledger|audit|customize|account|compliance)(?:\?[^\\]*)?$/.test(
+		/^\/(?:agent|inbox|overview|dashboard|app|trust|ledger|audit|customize|account|compliance)(?:\?[^\\]*)?$/.test(
 			value,
 		)
 		? value

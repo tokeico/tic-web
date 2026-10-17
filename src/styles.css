@@ -780,7 +780,27 @@
   filter: blur(10px);
 }
 
+.hero-wrap {
+  position: relative;
+  width: 100%;
+}
+
+.lp-glow-hero {
+  position: absolute;
+  inset: 2% 0 10%;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    62% 58% at 52% 44%,
+    color-mix(in oklab, var(--color-volt) 20%, transparent) 0%,
+    transparent 72%
+  );
+  filter: blur(12px);
+}
+
 .hero-stage {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   aspect-ratio: 888 / 580;
@@ -803,7 +823,28 @@
   line-height: 1;
 }
 
+.coverage-wrap {
+  position: relative;
+  width: 100%;
+}
+
+/* Same volt wash as `.lp-glow`, sized for the globe column. */
+.lp-glow-coverage {
+  position: absolute;
+  inset: 4% 2% 6%;
+  pointer-events: none;
+  z-index: 0;
+  background: radial-gradient(
+    58% 62% at 50% 46%,
+    color-mix(in oklab, var(--color-volt) 20%, transparent) 0%,
+    transparent 72%
+  );
+  filter: blur(12px);
+}
+
 .coverage-stage {
+  position: relative;
+  z-index: 1;
   display: block;
   width: 100%;
   aspect-ratio: 1 / 0.92;

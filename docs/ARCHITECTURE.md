@@ -459,6 +459,8 @@ BitQate runs Docker images or Git repos (rebuilt on each push), managed PostgreS
 | `tic-web` | Docker container from a Git repo                    | `bun --bun run build` → `bun run start` (srvx). Set `API_ORIGIN` to the API's URL at runtime; `PUBLIC_API_URL` is inlined at build time and is for local dev only. |
 | Ollama    | **KVM VPS** (or a container) running `ollama serve` | CPU-only is slow, so host `llama3.2:3b` there. **For the live demo, run Ollama on the presenting laptop** and point `OLLAMA_URL` at it.                            |
 
+**Demo data:** migrations auto-apply at start, but the demo set needs a one-off seed — `SEED_ALLOW_REMOTE=1 bun run src/db/seed.ts` against the hosted database (wipes and reseeds).
+
 **Demo setup we recommend:** the public link (judges can click it) runs on BitQate with cached extractions and template-memo fallback. The live pitch runs the API and Ollama on the laptop for speed. Check `GET /api/health` before going on stage.
 
 **Secrets:** `DATABASE_URL`, `AUDIT_HMAC_KEY`, `AUDIT_SIGNING_KEY`, `AUDIT_PUBLIC_KEY`, `OLLAMA_URL`, `LLM_MODEL`, `RAIL_MODE`, `WEB_ORIGIN`, `API_ORIGIN` (tic-web), plus `BRIDGE_API_KEY` if the sandbox is approved.
