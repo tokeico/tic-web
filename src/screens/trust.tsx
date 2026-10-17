@@ -1,6 +1,6 @@
 import { Check, Lock } from "@/components/icons";
 import { ScreeningSandbox } from "@/components/ScreeningSandbox";
-import { Card, Lab, RuleRef } from "@/components/ui";
+import { Card, Lab, PAGE_MAX_W, RuleRef } from "@/components/ui";
 import { radarImpact } from "@/domain/agent";
 import { verify } from "@/domain/audit";
 import { cite, RULES, SOURCES } from "@/domain/data";
@@ -113,7 +113,7 @@ export function TrustPage() {
 	];
 
 	return (
-		<main className="mx-auto flex max-w-[1200px] flex-col gap-4 p-5">
+		<main className={`mx-auto flex ${PAGE_MAX_W["/trust"]} flex-col gap-4 p-5`}>
 			<div className="flex flex-col gap-1">
 				<h1
 					className="display m-0"

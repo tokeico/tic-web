@@ -1,4 +1,5 @@
 import { PAGE_GUIDES } from "@/domain/demo-guide";
+import { PAGE_MAX_W } from "./ui";
 
 export function FeatureGuide({ pathname }: { pathname: string }) {
 	const guide = PAGE_GUIDES[pathname === "/audit" ? "/ledger" : pathname];
@@ -7,7 +8,7 @@ export function FeatureGuide({ pathname }: { pathname: string }) {
 	return (
 		<section
 			aria-labelledby="feature-guide-title"
-			className={`mx-auto flex ${["/trust", "/ledger", "/audit", "/customize"].includes(pathname) ? "max-w-[1200px]" : "max-w-[1440px]"} flex-col gap-2 px-5 pt-5`}
+			className={`mx-auto flex ${PAGE_MAX_W[pathname] ?? "max-w-[1440px]"} flex-col gap-2 px-5 pt-5`}
 		>
 			<h2 id="feature-guide-title" className="m-0 text-lg font-semibold">
 				{guide.title}

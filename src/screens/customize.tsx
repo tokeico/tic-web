@@ -1,5 +1,5 @@
 import { Lock } from "@/components/icons";
-import { Card, Lab, RuleRef } from "@/components/ui";
+import { Card, Lab, PAGE_MAX_W, RuleRef } from "@/components/ui";
 import { OFFRAMP_TYPE_TITLE, OFFRAMPS, RULES } from "@/domain/data";
 import { fmtDate, usd0 } from "@/domain/format";
 import type { Autonomy, Objective } from "@/domain/types";
@@ -58,7 +58,9 @@ export function CustomizePage() {
 	const jmp = (on: boolean) => `jump${on ? " jump-on" : ""}`;
 
 	return (
-		<main className="mx-auto flex max-w-[1000px] flex-col gap-4 p-5">
+		<main
+			className={`mx-auto flex ${PAGE_MAX_W["/customize"]} flex-col gap-4 p-5`}
+		>
 			<div className="flex flex-col gap-1">
 				<h1
 					className="display m-0"

@@ -1,5 +1,5 @@
 import { Play } from "@/components/icons";
-import { Card, Disclosure, Lab } from "@/components/ui";
+import { Card, Disclosure, Lab, PAGE_MAX_W } from "@/components/ui";
 import { actorOf } from "@/domain/audit";
 import { views } from "@/domain/engine";
 import { fmtDate, iso, usd0 } from "@/domain/format";
@@ -193,7 +193,9 @@ export function OverviewPage() {
 		.map((e) => ({ ...e, ...actorOf(e.type) }));
 
 	return (
-		<main className="mx-auto flex max-w-[1200px] flex-col gap-6 px-5 py-6">
+		<main
+			className={`mx-auto flex ${PAGE_MAX_W["/app"]} flex-col gap-6 px-5 py-6`}
+		>
 			<section className="flex flex-wrap items-end justify-between gap-4">
 				<div className="flex max-w-[760px] flex-col gap-2">
 					<h1

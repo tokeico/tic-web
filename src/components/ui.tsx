@@ -195,3 +195,19 @@ export const Muted = ({
 		{children}
 	</span>
 );
+
+/**
+ * Content column width per app path. Screens use this for their <main> and
+ * the FeatureGuide reads the same map so the demo guide aligns with the page
+ * content on every screen. Values must stay full class-string literals —
+ * Tailwind scans source text, so generated class names would be dropped.
+ */
+export const PAGE_MAX_W: Record<string, string> = {
+	"/app": "max-w-[1200px]",
+	"/inbox": "max-w-[1440px]",
+	"/agent": "max-w-[1440px]",
+	"/trust": "max-w-[1200px]",
+	"/ledger": "max-w-[1200px]",
+	"/audit": "max-w-[1200px]",
+	"/customize": "max-w-[1000px]",
+};

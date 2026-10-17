@@ -1,5 +1,5 @@
 import { ToolArrow } from "@/components/icons";
-import { Card, Lab, RuleRef } from "@/components/ui";
+import { Card, Lab, PAGE_MAX_W, RuleRef } from "@/components/ui";
 import { SUGGESTIONS } from "@/domain/agent";
 import { cite } from "@/domain/data";
 import { approvedUsd, need, views } from "@/domain/engine";
@@ -27,7 +27,9 @@ export function AgentPage() {
 	const vs = views(s);
 
 	return (
-		<main className="mx-auto flex max-w-[1440px] flex-wrap items-start gap-5 p-5">
+		<main
+			className={`mx-auto flex ${PAGE_MAX_W["/agent"]} flex-wrap items-start gap-5 p-5`}
+		>
 			<section
 				aria-labelledby="agent-h"
 				className="flex min-w-0 flex-[999_1_560px] flex-col gap-3"

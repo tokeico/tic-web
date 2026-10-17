@@ -1,6 +1,6 @@
 import { DetailPane } from "@/components/DetailPane";
 import { FileUp } from "@/components/icons";
-import { Cc, Chip, StatusPill } from "@/components/ui";
+import { Cc, Chip, PAGE_MAX_W, StatusPill } from "@/components/ui";
 import { PAYOUTS } from "@/domain/data";
 import { eff, views } from "@/domain/engine";
 import { local, objWord, usd } from "@/domain/format";
@@ -19,7 +19,9 @@ export function InboxPage() {
 	};
 
 	return (
-		<main className="mx-auto flex max-w-[1440px] flex-wrap items-start gap-5 p-5">
+		<main
+			className={`mx-auto flex ${PAGE_MAX_W["/inbox"]} flex-wrap items-start gap-5 p-5`}
+		>
 			<section
 				aria-labelledby="inbox-h"
 				className="flex min-w-0 flex-[3_1_560px] flex-col gap-3.5"
