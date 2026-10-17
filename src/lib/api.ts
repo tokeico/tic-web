@@ -73,6 +73,15 @@ export async function request<S extends z.ZodType>(
 	}
 	const json: unknown = await res.json().catch(() => null);
 	if (!res.ok) {
+		if (
+			res.status === 401 &&
+			!["/api/auth/signin", "/api/auth/signup"].includes(path) &&
+			typeof window !== "undefined"
+		) {
+			window.location.replace(
+				`/signin?redirect=${encodeURIComponent(window.location.pathname + window.location.search)}`,
+			);
+		}
 		const err = (json as { error?: { code?: string; message?: string } } | null)
 			?.error;
 		throw new ApiRequestError(

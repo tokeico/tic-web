@@ -41,18 +41,27 @@ The current API demo state is shared. Do not expose it as an independent multi-v
 
 Install Ollama, run `ollama pull llama3.1:8b`, and start `ollama serve` unless it is already running as a service. The API defaults to that model on `http://localhost:11434`. Check http://localhost:3000/api/health for `"llm": true` before demonstrating live chat or uncached PDF extraction. The seeded invoices and deterministic workflow do not require Ollama. See [`tic-api` setup](../tic-api/README.md) and `docs/AGENT.md`.
 
+## Docker
+
+```sh
+docker build -t tic-web .
+docker run -e API_ORIGIN=http://<api-host>:3000 -p 8080:3000 tic-web
+```
+
+The image runs `bun run start` (srvx serving `dist/`); `API_ORIGIN` tells the server where to proxy `/api/*` and is read at request time (`PUBLIC_API_URL` is baked in at build time, dev only). From the hackathon root, `docker compose up -d --build` (see `../docker-compose.yml`) runs db + api + web at http://localhost:8080.
+
 ## Screens
 
-| Tab | What | Data |
-|---|---|---|
-| Overview | Pipeline (who is responsible for each step), key numbers, "Needs a person", latest audit events | `/api/payouts?detail=1`, `/api/audit` |
-| Inbox | Payouts table and the detail panel: approval, pay, reconcile, routes, rules checklist, memo, sanctions, invoice fields | payouts, approve, pay, reconcile, PATCH, replay |
-| Agent | Local-model chat plus the "Waiting for you" queue | `/api/agent/chat`; dry runs use `/api/payouts/:id/preview` |
-| Trust & compliance | Regulatory radar (registry update with a real dry-run impact), agent permissions, guardrails | `/api/settings` (registry), preview |
-| Books → Transactions | Search payment receipts by payee, invoice, hash or reference; filter networks; copy references and open invoice activity. Mock receipts are labeled simulated; wires are separate from blockchain networks | `/api/payouts?detail=1`, `/api/audit` |
-| Books → Ledger | Booked journal entries, CSV export | `/api/ledger`, `/api/ledger.csv` |
-| Books → Audit | Hash-chained events, verification, tamper simulation | `/api/audit`, `/api/audit/verify?tamper=` |
-| Customize | Autonomy, approval policy, routing preference, providers, rules pack | `/api/settings`, `/api/offramps`, `/api/rules?all=1` |
+| Tab                  | What                                                                                                                                                                                                       | Data                                                       |
+| -------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| Overview             | Pipeline (who is responsible for each step), key numbers, "Needs a person", latest audit events                                                                                                            | `/api/payouts?detail=1`, `/api/audit`                      |
+| Inbox                | Payouts table and the detail panel: approval, pay, reconcile, routes, rules checklist, memo, sanctions, invoice fields                                                                                     | payouts, approve, pay, reconcile, PATCH, replay            |
+| Agent                | Local-model chat plus the "Waiting for you" queue                                                                                                                                                          | `/api/agent/chat`; dry runs use `/api/payouts/:id/preview` |
+| Trust & compliance   | Regulatory radar (registry update with a real dry-run impact), agent permissions, guardrails                                                                                                               | `/api/settings` (registry), preview                        |
+| Books → Transactions | Search payment receipts by payee, invoice, hash or reference; filter networks; copy references and open invoice activity. Mock receipts are labeled simulated; wires are separate from blockchain networks | `/api/payouts?detail=1`, `/api/audit`                      |
+| Books → Ledger       | Booked journal entries, CSV export                                                                                                                                                                         | `/api/ledger`, `/api/ledger.csv`                           |
+| Books → Audit        | Hash-chained events, verification, tamper simulation                                                                                                                                                       | `/api/audit`, `/api/audit/verify?tamper=`                  |
+| Customize            | Autonomy, approval policy, routing preference, providers, rules pack                                                                                                                                       | `/api/settings`, `/api/offramps`, `/api/rules?all=1`       |
 
 The as-of date lives in the URL (`?asOf=2026-10-17`) on every page; moving it re-plans every open payout through `POST /api/plan-all`.
 
@@ -65,18 +74,18 @@ The as-of date lives in the URL (`?asOf=2026-10-17`) on every page; moving it re
 
 ## Where things are
 
-| Path | What |
-|---|---|
-| `src/screens/` | Screen implementations, including `books.tsx` composing the transaction explorer, Ledger and Audit |
-| `src/routes/` | Thin TanStack Router route definitions |
-| `src/components/Shell.tsx` | Header, navigation, as-of bar, toast and guided tour bar |
-| `src/components/DetailPane.tsx` | Inbox payout detail and reviews |
-| `src/lib/api.ts` | The only code that calls the API |
-| `src/state/store.tsx` | Actions, API refreshes, chat, queue, guided tour steps and client state |
-| `src/domain/agent.ts` | Scripted responder, suggestions, demo narration and radar impact |
-| `src/domain/api-bridge.ts` | Maps API responses to the screen data model |
-| `src/lib/contracts.ts` | **Copy** of `tic-api/src/contracts.ts`. Don't edit it here |
-| `src/styles.css` | Shared theme and styles |
+| Path                            | What                                                                                               |
+| ------------------------------- | -------------------------------------------------------------------------------------------------- |
+| `src/screens/`                  | Screen implementations, including `books.tsx` composing the transaction explorer, Ledger and Audit |
+| `src/routes/`                   | Thin TanStack Router route definitions                                                             |
+| `src/components/Shell.tsx`      | Header, navigation, as-of bar, toast and guided tour bar                                           |
+| `src/components/DetailPane.tsx` | Inbox payout detail and reviews                                                                    |
+| `src/lib/api.ts`                | The only code that calls the API                                                                   |
+| `src/state/store.tsx`           | Actions, API refreshes, chat, queue, guided tour steps and client state                            |
+| `src/domain/agent.ts`           | Scripted responder, suggestions, demo narration and radar impact                                   |
+| `src/domain/api-bridge.ts`      | Maps API responses to the screen data model                                                        |
+| `src/lib/contracts.ts`          | **Copy** of `tic-api/src/contracts.ts`. Don't edit it here                                         |
+| `src/styles.css`                | Shared theme and styles                                                                            |
 
 After `tic-api/src/contracts.ts` changes: `cp ../tic-api/src/contracts.ts src/lib/contracts.ts`.
 

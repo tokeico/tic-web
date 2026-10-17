@@ -10,6 +10,8 @@ import {
 	ShieldCheck,
 	WarnTriangle,
 } from "@/components/icons";
+import { CoverageGlobe } from "@/components/landing/CoverageGlobe";
+import { HeroCoin } from "@/components/landing/HeroCoin";
 import { payoutById } from "@/domain/data";
 import { type EngineState, plan, rname } from "@/domain/engine";
 import { iso, mins, usd } from "@/domain/format";
@@ -59,14 +61,14 @@ const STEPS = [
 	{
 		n: "03",
 		icon: WarnTriangle,
-		title: "You review the plan",
-		body: "See the recommended route and the reasoning, with every rule cited and linked.",
+		title: "We build your payment plan",
+		body: "Corredor maps a customized route for your invoice—rails, local rules, and tradeoffs, as of today’s date.",
 	},
 	{
 		n: "04",
 		icon: CheckCircle,
-		title: "We make the payment",
-		body: "Once you approve, it settles in stablecoins through the right local rail.",
+		title: "You review and pay",
+		body: "See every rule cited and linked, approve when you’re ready, then execute the payment on the recommended stablecoin rail.",
 	},
 ];
 
@@ -111,11 +113,11 @@ export function LandingPage() {
 						className="hidden flex-wrap items-center gap-7 md:flex"
 					>
 						<Link
-							to="/app"
+							to="/signin"
 							className="text-ash no-underline hover:text-bone"
 							style={{ fontSize: 14.5 }}
 						>
-							Product
+							Sign in
 						</Link>
 						{["How it works", "Coverage", "Security"].map((l) => (
 							<a
@@ -129,8 +131,8 @@ export function LandingPage() {
 						))}
 					</nav>
 
-					<Link to="/app" className="btn btn-primary lp-pill-cta no-underline">
-						Open the live demo →
+					<Link to="/signup" className="btn btn-primary lp-pill-cta no-underline">
+						Create account
 					</Link>
 				</header>
 
@@ -329,13 +331,7 @@ export function LandingPage() {
 						</div>
 					</div>
 
-					<img
-						className="coverage-map"
-						src="/coverage-map.png"
-						width={356}
-						height={318}
-						alt="Dotted map of the Americas with payment corridors arcing from the United States to Mexico, Colombia, Brazil and Argentina."
-					/>
+					<CoverageGlobe />
 				</div>
 
 				<div className="mx-auto max-w-[1320px] px-6 pb-16">
@@ -464,17 +460,11 @@ export function LandingPage() {
 	);
 }
 
-/** The hero artwork: the Corredor token with the rails wired into it. */
+/** The hero artwork: the Corredor token, lit in the page. */
 function CoinStage() {
 	return (
 		<div className="relative origin-left lg:scale-[1.12]">
-			<img
-				className="hero-art"
-				src="/hero-coin.png"
-				width={888}
-				height={460}
-				alt="The Corredor token, a gold coin struck with a running horse, wired to USD, USDC and MXN on one side and BRL, COP and ARS on the other."
-			/>
+			<HeroCoin />
 		</div>
 	);
 }

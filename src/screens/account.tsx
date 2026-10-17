@@ -6,8 +6,11 @@ import {
 	inviteMember,
 	listApiKeys,
 	listMembers,
+	listWorkspaces,
 	type Member,
 	revokeApiKey,
+	switchWorkspace,
+	type Workspace,
 } from "@/lib/auth";
 import { useStore } from "@/state/store";
 
@@ -15,17 +18,21 @@ export function AccountPage() {
 	const { user } = useStore();
 	const [members, setMembers] = useState<z.infer<typeof Member>[]>([]);
 	const [keys, setKeys] = useState<z.infer<typeof ApiKey>[]>([]);
+	const [workspaces, setWorkspaces] = useState<z.infer<typeof Workspace>[]>([]);
+	const [workspaceId, setWorkspaceId] = useState(user.workspace.id);
+	const [notice, setNotice] = useState("");
 	const [error, setError] = useState("");
 	const [busy, setBusy] = useState(false);
 	const [secret, setSecret] = useState("");
 	const [invitation, setInvitation] = useState("");
 	useEffect(() => {
 		let cancelled = false;
-		Promise.all([listMembers(), listApiKeys()])
-			.then(([people, tokens]) => {
+		Promise.all([listMembers(), listApiKeys(), listWorkspaces()])
+			.then(([people, tokens, spaces]) => {
 				if (!cancelled) {
 					setMembers(people);
 					setKeys(tokens);
+					setWorkspaces(spaces);
 				}
 			})
 			.catch(() => {
@@ -75,6 +82,21 @@ export function AccountPage() {
 					{user.workspace.name} · {user.email}
 				</p>
 			</header>
+			{workspaces.length > 1 && (
+				<form className="flex flex-wrap items-end gap-3" onSubmit={(event) => {
+					event.preventDefault();
+					void run(async () => { await switchWorkspace(workspaceId); window.location.assign("/agent"); });
+				}}>
+					<label htmlFor="active-workspace" className="flex min-w-0 flex-1 flex-col gap-2 text-sm">
+						Active workspace
+						<select id="active-workspace" value={workspaceId} onChange={(event) => setWorkspaceId(event.currentTarget.value)} className={field}>
+							{workspaces.map((workspace) => <option key={workspace.id} value={workspace.id}>{workspace.name} · {workspace.role}</option>)}
+						</select>
+					</label>
+					<button type="submit" className="btn" disabled={busy || workspaceId === user.workspace.id}>Switch workspace</button>
+				</form>
+			)}
+			{notice && <p role="status" className="m-0 text-sm text-ash">{notice}</p>}
 			{error && (
 				<p role="alert" className="m-0 text-coral">
 					{error}
@@ -169,6 +191,11 @@ export function AccountPage() {
 					cannot approve payments, move money, or clear compliance holds. Keys
 					expire after 90 days.
 				</p>
+				<p className="text-sm text-ash">Connect an HTTP MCP client to <code className="mono">/mcp</code> on this site, using your key in the <code className="mono">Authorization: Bearer</code> header.</p>
+				<button type="button" className="btn btn-sm mb-5" onClick={async () => {
+					try { await navigator.clipboard.writeText(`${window.location.origin}/mcp`); setNotice("MCP endpoint copied."); }
+					catch { setError("Could not copy. Use this site’s address followed by /mcp."); }
+				}}>Copy MCP endpoint</button>
 				<form
 					className="flex flex-wrap items-end gap-3"
 					onSubmit={(event) => {

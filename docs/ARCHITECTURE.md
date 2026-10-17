@@ -40,21 +40,22 @@ Companion to [PRD.md](./PRD.md). Built for today: simple, deterministic and demo
 
 ## 3. Stack
 
-| Layer | Choice | Notes |
-|---|---|---|
-| Web | **TanStack Start** (React 19) + **TanStack Router / Query / Form / Table**, Tailwind v4, Biome | Already in `tic-web`. Its bundler is **rsbuild**, not Vite (see §16). |
-| API | **Hono** on **Bun** | Already in `tic-api`. Use `hono/cors` and `@hono/zod-validator`. |
-| Validation and contracts | **zod v4** | Shared schemas. `z.toJSONSchema()` feeds the LLM's structured output. |
-| DB | **Postgres 17 + Drizzle** (`drizzle-orm/bun-sql`) | Already in `tic-api`. Follow `DATABASE.md`: edit the schema, `db:generate`, `db:migrate`, commit `drizzle/`. |
-| LLM | **Ollama** serving **Llama 3.1 8B Instruct** (`llama3.1:8b`); fallback `llama3.2:3b` | Native `/api/chat` with a JSON-schema `format` for structured output. Temperature 0 with a fixed seed. |
-| PDF text | `unpdf` | Text layer from the PDF goes to the LLM, so no vision model is needed. Demo PDFs are generated with a text layer. |
-| Crypto | `node:crypto` (works in Bun) | HMAC-SHA-512 and Ed25519 (§12) |
-| Tests | `bun test` | Per `tic-api/CLAUDE.md`. Don't use vitest. |
-| Hosting | **BitQate**: Docker containers, managed Postgres, Git-push deploys | §15 |
+| Layer                    | Choice                                                                                         | Notes                                                                                                             |
+| ------------------------ | ---------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------- |
+| Web                      | **TanStack Start** (React 19) + **TanStack Router / Query / Form / Table**, Tailwind v4, Biome | Already in `tic-web`. Its bundler is **rsbuild**, not Vite (see §16).                                             |
+| API                      | **Hono** on **Bun**                                                                            | Already in `tic-api`. Use `hono/cors` and `@hono/zod-validator`.                                                  |
+| Validation and contracts | **zod v4**                                                                                     | Shared schemas. `z.toJSONSchema()` feeds the LLM's structured output.                                             |
+| DB                       | **Postgres 17 + Drizzle** (`drizzle-orm/bun-sql`)                                              | Already in `tic-api`. Follow `DATABASE.md`: edit the schema, `db:generate`, `db:migrate`, commit `drizzle/`.      |
+| LLM                      | **Ollama** serving **Llama 3.1 8B Instruct** (`llama3.1:8b`); fallback `llama3.2:3b`           | Native `/api/chat` with a JSON-schema `format` for structured output. Temperature 0 with a fixed seed.            |
+| PDF text                 | `unpdf`                                                                                        | Text layer from the PDF goes to the LLM, so no vision model is needed. Demo PDFs are generated with a text layer. |
+| Crypto                   | `node:crypto` (works in Bun)                                                                   | HMAC-SHA-512 and Ed25519 (§12)                                                                                    |
+| Tests                    | `bun test`                                                                                     | Per `tic-api/CLAUDE.md`. Don't use vitest.                                                                        |
+| Hosting                  | **BitQate**: Docker containers, managed Postgres, Git-push deploys                             | §15                                                                                                               |
 
 ## 4. Repo layout
 
 ### `tic-api`
+
 ```
 src/
 ├─ index.ts                 Hono app: cors, routes, error handler; export default { port: 3000, fetch: app.fetch }
@@ -83,6 +84,7 @@ Dockerfile
 ```
 
 ### `tic-web`
+
 ```
 src/
 ├─ routes/
@@ -111,57 +113,101 @@ export const Invoice = z.object({
   invoiceNumber: z.string(),
   payeeName: z.string(),
   payeeCountry: Country,
-  payeeTaxId: z.string().nullable(),          // CNPJ / RFC / CUIT / RIF
+  payeeTaxId: z.string().nullable(), // CNPJ / RFC / CUIT / RIF
   amount: z.number(),
-  currency: z.string(),                       // BRL, MXN, USD, ...
-  dueDate: z.string().nullable(),             // ISO date
+  currency: z.string(), // BRL, MXN, USD, ...
+  dueDate: z.string().nullable(), // ISO date
   bankId: z.object({ type: LocalRail, value: z.string() }).nullable(),
   description: z.string(),
   purposeCode: z.string().nullable(),
-  lowConfidence: z.array(z.string()),         // fields the model was unsure about
+  lowConfidence: z.array(z.string()), // fields the model was unsure about
 });
 export type Invoice = z.infer<typeof Invoice>;
 
 export type OfframpType =
-  | "vasp_authorized" | "vasp_pending" | "vasp_unfiled" | "efx" | "bank"
-  | "nonbank_licensed" | "psav_registered" | "p2p_unregistered";
+  | "vasp_authorized"
+  | "vasp_pending"
+  | "vasp_unfiled"
+  | "efx"
+  | "bank"
+  | "nonbank_licensed"
+  | "psav_registered"
+  | "p2p_unregistered";
 // vasp_unfiled: operating in Brazil but hasn't filed for BCB authorization (deadline 2026-10-30)
 // nonbank_licensed: legacy id; in MX it means a SAT-registered platform (Mexico has no crypto license)
 
 export interface Offramp {
-  id: string; name: string; country: z.infer<typeof Country>; type: OfframpType;
-  feePct: number; assets: ("USDC" | "USDT")[]; networks: ("base" | "arbitrum" | "tron")[];
-  rail: z.infer<typeof LocalRail>; minutes: number;
+  id: string;
+  name: string;
+  country: z.infer<typeof Country>;
+  type: OfframpType;
+  feePct: number;
+  assets: ("USDC" | "USDT")[];
+  networks: ("base" | "arbitrum" | "tron")[];
+  rail: z.infer<typeof LocalRail>;
+  minutes: number;
 }
 
 export interface Route {
-  id: string; kind: "wire" | "stablecoin";
-  asset: "USDC" | "USDT" | null; network: "base" | "arbitrum" | "tron" | null;
-  offramp: Offramp | null; rail: z.infer<typeof LocalRail>;
-  feePct: number; feeUsd: number; minutes: number; amountUsd: number;
+  id: string;
+  kind: "wire" | "stablecoin";
+  asset: "USDC" | "USDT" | null;
+  network: "base" | "arbitrum" | "tron" | null;
+  offramp: Offramp | null;
+  rail: z.infer<typeof LocalRail>;
+  feePct: number;
+  feeUsd: number;
+  minutes: number;
+  amountUsd: number;
 }
 
 export type Outcome = "pass" | "warn" | "block" | "require_fields";
 export interface RuleResult {
-  ruleId: string; title: string; outcome: Outcome; message: string;
-  source: { name: string; url: string }; effectiveFrom: string | null; missingFields?: string[];
+  ruleId: string;
+  title: string;
+  outcome: Outcome;
+  message: string;
+  source: { name: string; url: string };
+  effectiveFrom: string | null;
+  missingFields?: string[];
 }
-export interface RouteEvaluation { route: Route; results: RuleResult[]; compliant: boolean }
+export interface RouteEvaluation {
+  route: Route;
+  results: RuleResult[];
+  compliant: boolean;
+}
 
 export type PayoutStatus =
-  | "draft" | "needs_info" | "blocked" | "awaiting_second_approver" | "ready"
-  | "approved" | "paid" | "booked";
+  | "draft"
+  | "needs_info"
+  | "blocked"
+  | "awaiting_second_approver"
+  | "ready"
+  | "approved"
+  | "paid"
+  | "booked";
 
 export interface Plan {
-  payoutId: string; asOf: string;
-  screening: { status: "clear" | "possible_match" | "hit"; match?: string; score?: number };
-  evaluations: RouteEvaluation[]; recommended: Route | null;
-  status: PayoutStatus; reasons: string[];
+  payoutId: string;
+  asOf: string;
+  screening: {
+    status: "clear" | "possible_match" | "hit";
+    match?: string;
+    score?: number;
+  };
+  evaluations: RouteEvaluation[];
+  recommended: Route | null;
+  status: PayoutStatus;
+  reasons: string[];
 }
 
 export const Memo = z.object({
-  summary: z.string(), routeRationale: z.string(), citedRuleIds: z.array(z.string()),
-  warnings: z.array(z.string()), humanChecks: z.array(z.string()), vendorEmail: z.string().optional(),
+  summary: z.string(),
+  routeRationale: z.string(),
+  citedRuleIds: z.array(z.string()),
+  warnings: z.array(z.string()),
+  humanChecks: z.array(z.string()),
+  vendorEmail: z.string().optional(),
 });
 export type Memo = z.infer<typeof Memo>;
 
@@ -174,19 +220,19 @@ Each rule = **when** (corridor + effective window) + **check** (named function p
 
 11 rules, verified against primary sources on 2026-10-17 (researcher plus an independent adversarial check). Dates are inclusive; `→` means open-ended.
 
-| ID | Corridor | Effective | Check | Outcome | Source (primary) |
-|---|---|---|---|---|---|
-| BR-521-FX | BR | 2026-05-04 → | `requireFields(["purposeCode","payeeTaxId"])` | `require_fields` | Res. BCB 521 (Res. 277 arts. 76-A to 76-C; art. 6) |
-| BR-521-CAP | BR | 2026-02-02 → | `amountUsdAbove(100000, ["vasp_authorized","vasp_pending","vasp_unfiled"])` | `block` | Res. BCB 521 (Res. 277 art. 29, IV) |
-| BR-561-EFX | BR | 2026-10-01 → | `offrampTypeIn(["efx"])` | `block` | Res. BCB 561 (Res. 277 art. 50, I) |
-| BR-VASP-PENDING-WARN | BR | 2026-02-02 → | `offrampTypeIn(["vasp_pending"])` | `warn` | Res. BCB 520 art. 88 I, §6; IN 704 art. 9; Res. 548 |
-| BR-VASP-UNFILED-WARN | BR | 2026-02-02 → 2026-10-30 | `offrampTypeIn(["vasp_unfiled"])` | `warn` | Res. BCB 520 art. 88 I, §7; IN 704 art. 9 |
-| BR-VASP-AUTH | BR | 2026-10-31 → | `offrampTypeIn(["vasp_unfiled"])` | `block` (Corredor policy) | Res. BCB 520 art. 88 §7; art. 91 per Res. 589 |
-| BR-VASP-ART91 | BR | 2026-11-06 → | `offrampTypeIn(["vasp_pending"])` | `warn` | Res. BCB 589 (new art. 91 of Res. 520) |
-| MX-BANK-CRYPTO | MX | 2019-03-09 → | `offrampTypeIn(["bank"])` | `block` | Banxico Circular 4/2019, rule 3.a (DOF 08-03-2019) |
-| AR-PSAV | AR | 2024-03-25 → | `offrampTypeIn(["p2p_unregistered"])` | `block` | CNV RG 1172/2026 (Normas Tít. XIV Cap. III arts. 1, 3, 4) |
-| AR-FX-SPREAD | AR | always | `fxSpreadAbove(5, "ARS")` | `warn` (business risk) | BCRA Com. A 3500 wholesale (API) vs. USDT/ARS snapshot |
-| VE-OFAC | VE | always | `always()` | `block` (policy hold) | OFAC: 31 CFR 591; EO 13884; FAQ 680 |
+| ID                   | Corridor | Effective               | Check                                                                       | Outcome                   | Source (primary)                                          |
+| -------------------- | -------- | ----------------------- | --------------------------------------------------------------------------- | ------------------------- | --------------------------------------------------------- |
+| BR-521-FX            | BR       | 2026-05-04 →            | `requireFields(["purposeCode","payeeTaxId"])`                               | `require_fields`          | Res. BCB 521 (Res. 277 arts. 76-A to 76-C; art. 6)        |
+| BR-521-CAP           | BR       | 2026-02-02 →            | `amountUsdAbove(100000, ["vasp_authorized","vasp_pending","vasp_unfiled"])` | `block`                   | Res. BCB 521 (Res. 277 art. 29, IV)                       |
+| BR-561-EFX           | BR       | 2026-10-01 →            | `offrampTypeIn(["efx"])`                                                    | `block`                   | Res. BCB 561 (Res. 277 art. 50, I)                        |
+| BR-VASP-PENDING-WARN | BR       | 2026-02-02 →            | `offrampTypeIn(["vasp_pending"])`                                           | `warn`                    | Res. BCB 520 art. 88 I, §6; IN 704 art. 9; Res. 548       |
+| BR-VASP-UNFILED-WARN | BR       | 2026-02-02 → 2026-10-30 | `offrampTypeIn(["vasp_unfiled"])`                                           | `warn`                    | Res. BCB 520 art. 88 I, §7; IN 704 art. 9                 |
+| BR-VASP-AUTH         | BR       | 2026-10-31 →            | `offrampTypeIn(["vasp_unfiled"])`                                           | `block` (Corredor policy) | Res. BCB 520 art. 88 §7; art. 91 per Res. 589             |
+| BR-VASP-ART91        | BR       | 2026-11-06 →            | `offrampTypeIn(["vasp_pending"])`                                           | `warn`                    | Res. BCB 589 (new art. 91 of Res. 520)                    |
+| MX-BANK-CRYPTO       | MX       | 2019-03-09 →            | `offrampTypeIn(["bank"])`                                                   | `block`                   | Banxico Circular 4/2019, rule 3.a (DOF 08-03-2019)        |
+| AR-PSAV              | AR       | 2024-03-25 →            | `offrampTypeIn(["p2p_unregistered"])`                                       | `block`                   | CNV RG 1172/2026 (Normas Tít. XIV Cap. III arts. 1, 3, 4) |
+| AR-FX-SPREAD         | AR       | always                  | `fxSpreadAbove(5, "ARS")`                                                   | `warn` (business risk)    | BCRA Com. A 3500 wholesale (API) vs. USDT/ARS snapshot    |
+| VE-OFAC              | VE       | always                  | `always()`                                                                  | `block` (policy hold)     | OFAC: 31 CFR 591; EO 13884; FAQ 680                       |
 
 `appliesTo` is `stablecoin` for every rule except AR-FX-SPREAD and VE-OFAC, which are `any` (they also apply to the wire).
 
@@ -198,18 +244,19 @@ Show the badge "Rules pack v1 · sourced · pending compliance review" in the UI
 
 **`data/offramps.json`** (fictional providers, labeled demo):
 
-| id | name | country | type | fee | asset/network | rail |
-|---|---|---|---|---|---|---|
-| br-pagafx | PagaFX | BR | `efx` | 0.55% | USDC/base | pix |
-| br-ponte | Ponte Digital | BR | `vasp_unfiled` | 0.70% | USDC/base | pix |
-| br-sol | Sol VASP | BR | `vasp_authorized` | 0.85% | USDC/base, arbitrum | pix |
-| mx-puente | Puente MX | MX | `nonbank_licensed` | 0.60% | USDC/base | spei |
-| mx-bancoazul | Banco Azul | MX | `bank` | 0.40% | USDC/base | spei |
-| ar-pampa | Pampa PSAV | AR | `psav_registered` | 1.10% | USDT/tron | cvu |
-| ar-cueva | Cueva P2P | AR | `p2p_unregistered` | 0.50% | USDT/tron | cvu |
+| id           | name          | country | type               | fee   | asset/network       | rail |
+| ------------ | ------------- | ------- | ------------------ | ----- | ------------------- | ---- |
+| br-pagafx    | PagaFX        | BR      | `efx`              | 0.55% | USDC/base           | pix  |
+| br-ponte     | Ponte Digital | BR      | `vasp_unfiled`     | 0.70% | USDC/base           | pix  |
+| br-sol       | Sol VASP      | BR      | `vasp_authorized`  | 0.85% | USDC/base, arbitrum | pix  |
+| mx-puente    | Puente MX     | MX      | `nonbank_licensed` | 0.60% | USDC/base           | spei |
+| mx-bancoazul | Banco Azul    | MX      | `bank`             | 0.40% | USDC/base           | spei |
+| ar-pampa     | Pampa PSAV    | AR      | `psav_registered`  | 1.10% | USDT/tron           | cvu  |
+| ar-cueva     | Cueva P2P     | AR      | `p2p_unregistered` | 0.50% | USDT/tron           | cvu  |
 
 The design means the cheapest option is always non-compliant somewhere:
-- **BR:** before Oct 1, PagaFX (`efx`) wins. Oct 1–30, PagaFX is blocked by BR-561-EFX and Ponte wins with a BR-VASP-UNFILED-WARN warning: it's operating but hasn't filed for BCB authorization, and the filing deadline is Oct 30. From Oct 31, Ponte is blocked by BR-VASP-AUTH (missed the deadline) and only Sol passes. That gives **three distinct routes** on the slider. Oct 30 is deliberately *not* a reroute date, because it's still a valid filing day ([RULES-SOURCES.md](./RULES-SOURCES.md) §6). Sol being "authorized" is hypothetical: no SPSAV had been authorized as of mid-October 2026.
+
+- **BR:** before Oct 1, PagaFX (`efx`) wins. Oct 1–30, PagaFX is blocked by BR-561-EFX and Ponte wins with a BR-VASP-UNFILED-WARN warning: it's operating but hasn't filed for BCB authorization, and the filing deadline is Oct 30. From Oct 31, Ponte is blocked by BR-VASP-AUTH (missed the deadline) and only Sol passes. That gives **three distinct routes** on the slider. Oct 30 is deliberately _not_ a reroute date, because it's still a valid filing day ([RULES-SOURCES.md](./RULES-SOURCES.md) §6). Sol being "authorized" is hypothetical: no SPSAV had been authorized as of mid-October 2026.
 - **Presenter wording:** “Oct 31: providers that didn't file drop out.” This is Corredor's non-filer cutoff, not the end of permission for timely applicants to operate while authorization is pending.
 - **MX:** Banco Azul is always blocked, so Puente is chosen. Puente's type id is `nonbank_licensed`, but describe it as a **SAT-registered** virtual-asset platform: Mexico has no crypto license.
 - **AR:** Cueva is blocked, so Pampa is chosen.
@@ -220,13 +267,13 @@ No demo provider is `vasp_pending`, so BR-VASP-PENDING-WARN and BR-VASP-ART91 ne
 
 ## 8. Local LLM (Ollama + Llama)
 
-| Step | Code | LLM? | Output |
-|---|---|---|---|
-| PDF → text | `llm/pdf.ts` (unpdf) | No | plain text |
-| Extract | `llm/extract.ts` | **Llama**, JSON-schema constrained | `Invoice` |
-| Screen · Quote · Plan | `corredor/*` | **No (deterministic)** | `Plan` |
-| Memo | `llm/memo.ts` | **Llama**, JSON-schema constrained | `Memo` |
-| Vendor email (P1) | `llm/memo.ts` | Llama, when status = `needs_info` | text |
+| Step                  | Code                 | LLM?                               | Output     |
+| --------------------- | -------------------- | ---------------------------------- | ---------- |
+| PDF → text            | `llm/pdf.ts` (unpdf) | No                                 | plain text |
+| Extract               | `llm/extract.ts`     | **Llama**, JSON-schema constrained | `Invoice`  |
+| Screen · Quote · Plan | `corredor/*`         | **No (deterministic)**             | `Plan`     |
+| Memo                  | `llm/memo.ts`        | **Llama**, JSON-schema constrained | `Memo`     |
+| Vendor email (P1)     | `llm/memo.ts`        | Llama, when status = `needs_info`  | text       |
 
 **Client** (`llm/ollama.ts`):
 
@@ -236,27 +283,35 @@ import { z } from "zod";
 const OLLAMA_URL = process.env.OLLAMA_URL ?? "http://localhost:11434";
 const LLM_MODEL = process.env.LLM_MODEL ?? "llama3.1:8b";
 
-export async function chatJSON<T extends z.ZodType>(schema: T, system: string, user: string): Promise<z.infer<T>> {
+export async function chatJSON<T extends z.ZodType>(
+  schema: T,
+  system: string,
+  user: string,
+): Promise<z.infer<T>> {
   const res = await fetch(`${OLLAMA_URL}/api/chat`, {
     method: "POST",
     headers: { "content-type": "application/json" },
     body: JSON.stringify({
       model: LLM_MODEL,
       stream: false,
-      format: z.toJSONSchema(schema),          // structured output: model must emit this shape
-      options: { temperature: 0, seed: 7 },    // repeatable output
-      keep_alive: "30m",                       // keep the model warm for the demo
-      messages: [{ role: "system", content: system }, { role: "user", content: user }],
+      format: z.toJSONSchema(schema), // structured output: model must emit this shape
+      options: { temperature: 0, seed: 7 }, // repeatable output
+      keep_alive: "30m", // keep the model warm for the demo
+      messages: [
+        { role: "system", content: system },
+        { role: "user", content: user },
+      ],
     }),
     signal: AbortSignal.timeout(60_000),
   });
   if (!res.ok) throw new Error(`ollama ${res.status}`);
   const data = (await res.json()) as { message: { content: string } };
-  return schema.parse(JSON.parse(data.message.content));   // validate; throw → caller falls back
+  return schema.parse(JSON.parse(data.message.content)); // validate; throw → caller falls back
 }
 ```
 
 **Making an 8B model reliable:**
+
 - **Deterministic pre-pass:** regexes pull CLABE (18 digits), CNPJ (14 digits), CVU (22 digits) and Pix keys from the text before the LLM runs. Checksums validate them, and validated values override the model's output.
 - **Structured output:** Ollama's JSON-schema `format` plus `schema.parse` on the result. On a validation failure, retry once, then mark the fields `lowConfidence` for a human to fix.
 - **Cache:** extraction results keyed by the PDF's sha256 (table `extraction_cache`). The four demo invoices are pre-warmed.
@@ -268,30 +323,30 @@ export async function chatJSON<T extends z.ZodType>(schema: T, system: string, u
 
 `app.use("*", cors({ origin: process.env.WEB_ORIGIN ?? "http://localhost:8080" }))`. Request bodies are validated with zod (`safeParse`, no extra dependency). Errors come back as `{ error: { code, message } }`.
 
-| Method | Route | Does |
-|---|---|---|
-| GET | `/api/payouts` · `/api/payouts?detail=1` · `/api/payouts/:id` | `PayoutSummary[]` · `PayoutDetail[]` (one request for the whole UI) · `PayoutDetail` (with a template memo and a plan `fingerprint`) |
-| GET | `/api/payouts/:id/preview?asOf=&registry=id:type` | dry run: the plan on another date, optionally with a hypothetical registry update. Stores nothing |
-| GET | `/api/payouts/:id/replay?n=100` | recompute the plan n times → `{ identical, matchesStored, fingerprint, ms }` (determinism proof) |
-| POST | `/api/invoices` | multipart PDF (`file`) → text → injection scan → checksum pre-pass + local model → invoice + payout (+ security hold if flagged) → plan. `409` duplicate, `422` no text layer, `503` model down (cache hits still work). See docs/AGENT.md |
-| POST | `/api/payouts/:id/memo` | the local model writes the memo for the current plan; citation and decision guards, else the template stays |
-| POST/GET | `/api/agent/chat` · `/api/agent/status` | the Agent tab's local model (read-only tools + proposals) |
-| PATCH | `/api/payouts/:id` | edit invoice fields → re-plan. A failed checksum puts the field back in `lowConfidence`. Approved payouts are frozen (409 `plan_locked`) |
-| POST | `/api/payouts/:id/plan?asOf=` | screen + quote + rules → `Plan`, then memo |
-| POST | `/api/plan-all?asOf=` | re-plan all open payouts → `{ payouts, reroutes }` (the slider calls this) |
-| POST | `/api/payouts/:id/screening-review` | `{ reviewer, decision, note }`: a person clears or confirms a sanctions match (controller / approver only) |
-| POST | `/api/payouts/:id/sanctions-review` | `{ reviewer, decision, licenseRef?, note }`: a compliance person releases the VE-OFAC policy hold (or confirms it). A release turns the block into a warning naming the sign-off; it covers the payee and bank details as reviewed, so editing either re-arms the hold |
-| POST | `/api/payouts/:id/security-review` | `{ reviewer, decision, note }`: a person clears the security hold (instruction-like text) or keeps the payout held as suspicious. Approvals are refused while it is uncleared; rejections stay possible |
-| POST | `/api/payouts/:id/approve` | `{ approver, decision?, comment? }`; `approver` is a user id, name or email; second approval if over the cap |
-| POST | `/api/payouts/:id/pay` | `RailAdapter.send(recommended)`; optional `{ by }` names the person in the audit log |
-| POST | `/api/payouts/:id/reconcile` | match → journal entry; optional `{ by }` |
-| GET | `/api/ledger` · `/api/ledger.csv` | journal entries · CSV export |
-| GET | `/api/audit` · `/api/audit/verify?tamper=` | events · chain and signature check (`tamper=<seq>` edits that event in memory only, for the demo) |
-| GET | `/api/rules?asOf=` · `/api/rules?all=1` | active rules · the whole pack |
-| GET | `/api/offramps` | provider registry with approved registry updates and each provider's on/off switch |
-| GET/PUT | `/api/settings` | `{ asOf, railMode, policy, objective, disabledOfframps, registry }`. PUT takes any subset plus `by`, audits each change (`settings_changed`), re-plans open payouts and returns the reroutes |
-| POST | `/api/demo/reset` | wipe back to the four draft demo invoices (local DBs only; `ALLOW_DEMO_RESET=0` disables it) |
-| GET | `/api/health` | DB, Ollama and model status (for the demo checklist) |
+| Method   | Route                                                         | Does                                                                                                                                                                                                                                                                   |
+| -------- | ------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| GET      | `/api/payouts` · `/api/payouts?detail=1` · `/api/payouts/:id` | `PayoutSummary[]` · `PayoutDetail[]` (one request for the whole UI) · `PayoutDetail` (with a template memo and a plan `fingerprint`)                                                                                                                                   |
+| GET      | `/api/payouts/:id/preview?asOf=&registry=id:type`             | dry run: the plan on another date, optionally with a hypothetical registry update. Stores nothing                                                                                                                                                                      |
+| GET      | `/api/payouts/:id/replay?n=100`                               | recompute the plan n times → `{ identical, matchesStored, fingerprint, ms }` (determinism proof)                                                                                                                                                                       |
+| POST     | `/api/invoices`                                               | multipart PDF (`file`) → text → injection scan → checksum pre-pass + local model → invoice + payout (+ security hold if flagged) → plan. `409` duplicate, `422` no text layer, `503` model down (cache hits still work). See docs/AGENT.md                             |
+| POST     | `/api/payouts/:id/memo`                                       | the local model writes the memo for the current plan; citation and decision guards, else the template stays                                                                                                                                                            |
+| POST/GET | `/api/agent/chat` · `/api/agent/status`                       | the Agent tab's local model (read-only tools + proposals)                                                                                                                                                                                                              |
+| PATCH    | `/api/payouts/:id`                                            | edit invoice fields → re-plan. A failed checksum puts the field back in `lowConfidence`. Approved payouts are frozen (409 `plan_locked`)                                                                                                                               |
+| POST     | `/api/payouts/:id/plan?asOf=`                                 | screen + quote + rules → `Plan`, then memo                                                                                                                                                                                                                             |
+| POST     | `/api/plan-all?asOf=`                                         | re-plan all open payouts → `{ payouts, reroutes }` (the slider calls this)                                                                                                                                                                                             |
+| POST     | `/api/payouts/:id/screening-review`                           | `{ reviewer, decision, note }`: a person clears or confirms a sanctions match (controller / approver only)                                                                                                                                                             |
+| POST     | `/api/payouts/:id/sanctions-review`                           | `{ reviewer, decision, licenseRef?, note }`: a compliance person releases the VE-OFAC policy hold (or confirms it). A release turns the block into a warning naming the sign-off; it covers the payee and bank details as reviewed, so editing either re-arms the hold |
+| POST     | `/api/payouts/:id/security-review`                            | `{ reviewer, decision, note }`: a person clears the security hold (instruction-like text) or keeps the payout held as suspicious. Approvals are refused while it is uncleared; rejections stay possible                                                                |
+| POST     | `/api/payouts/:id/approve`                                    | `{ approver, decision?, comment? }`; `approver` is a user id, name or email; second approval if over the cap                                                                                                                                                           |
+| POST     | `/api/payouts/:id/pay`                                        | `RailAdapter.send(recommended)`; optional `{ by }` names the person in the audit log                                                                                                                                                                                   |
+| POST     | `/api/payouts/:id/reconcile`                                  | match → journal entry; optional `{ by }`                                                                                                                                                                                                                               |
+| GET      | `/api/ledger` · `/api/ledger.csv`                             | journal entries · CSV export                                                                                                                                                                                                                                           |
+| GET      | `/api/audit` · `/api/audit/verify?tamper=`                    | events · chain and signature check (`tamper=<seq>` edits that event in memory only, for the demo)                                                                                                                                                                      |
+| GET      | `/api/rules?asOf=` · `/api/rules?all=1`                       | active rules · the whole pack                                                                                                                                                                                                                                          |
+| GET      | `/api/offramps`                                               | provider registry with approved registry updates and each provider's on/off switch                                                                                                                                                                                     |
+| GET/PUT  | `/api/settings`                                               | `{ asOf, railMode, policy, objective, disabledOfframps, registry }`. PUT takes any subset plus `by`, audits each change (`settings_changed`), re-plans open payouts and returns the reroutes                                                                           |
+| POST     | `/api/demo/reset`                                             | wipe back to the four draft demo invoices (local DBs only; `ALLOW_DEMO_RESET=0` disables it)                                                                                                                                                                           |
+| GET      | `/api/health`                                                 | DB, Ollama and model status (for the demo checklist)                                                                                                                                                                                                                   |
 
 ## 10. Rules engine (`corredor/rules/engine.ts`)
 
@@ -310,6 +365,7 @@ plan(invoice, asOf):
          | amountUsd > policy.secondApproverAboveUsd → "awaiting_second_approver"
          | otherwise → "ready"
 ```
+
 Pure function with no I/O. Rules, off-ramps and FX are loaded once at startup.
 
 ## 11. Data model (Drizzle, `src/db/schema.ts`)
@@ -342,10 +398,13 @@ A plain SHA-256 chain isn't broken cryptographically. Its weakness is that **any
 5. **Key IDs** on each row allow rotation later.
 
 ```ts
-import { createHmac, sign, verify } from "node:crypto";   // supported in Bun
-const mac = createHmac("sha512", HMAC_KEY).update(prevMac).update(canonical(event)).digest("hex");
-const sig = sign(null, Buffer.from(headMac, "hex"), SIGNING_PRIVATE_KEY);      // Ed25519
-const ok  = verify(null, Buffer.from(headMac, "hex"), SIGNING_PUBLIC_KEY, sig);
+import { createHmac, sign, verify } from "node:crypto"; // supported in Bun
+const mac = createHmac("sha512", HMAC_KEY)
+  .update(prevMac)
+  .update(canonical(event))
+  .digest("hex");
+const sig = sign(null, Buffer.from(headMac, "hex"), SIGNING_PRIVATE_KEY); // Ed25519
+const ok = verify(null, Buffer.from(headMac, "hex"), SIGNING_PUBLIC_KEY, sig);
 ```
 
 `scripts/keys.ts` generates both keys once. Keys go into `.env` locally and into BitQate secrets in deployment. **Test:** tampering with any row, or with a checkpoint, makes `verify()` fail (`test/audit.test.ts`).
@@ -357,10 +416,21 @@ const ok  = verify(null, Buffer.from(headMac, "hex"), SIGNING_PUBLIC_KEY, sig);
 ```ts
 export interface RailAdapter {
   mode: "mock" | "bridge" | "blindpay";
-  send(p: { payoutId: string; route: Route; amountUsd: number; payee: Invoice }):
-    Promise<{ txHash: string; offrampRef: string; railRef: string; settledLocal: number; settleRate: number }>;
+  send(p: {
+    payoutId: string;
+    route: Route;
+    amountUsd: number;
+    payee: Invoice;
+  }): Promise<{
+    txHash: string;
+    offrampRef: string;
+    railRef: string;
+    settledLocal: number;
+    settleRate: number;
+  }>;
 }
 ```
+
 - `mock.ts` derives IDs deterministically from `payoutId`, applies a small simulated rate move so the FX line isn't zero, and the UI always shows the `rail_mode` badge.
 - **Reconciliation:** a payment is `matched` when invoice ↔ payment ↔ rail reference link 1:1 and amounts agree within the quoted fee. Otherwise it's an `exception` with a reason.
 - **Journal entry (example, BR):** debit AP – Estúdio Paulista 15,740.74 (R$85,000 at 5.40) · debit fees 133.80 · credit Cash – USDC (Base) 15,874.54 · FX gain/loss from the booking-vs-settle rate difference.
@@ -382,16 +452,16 @@ export interface RailAdapter {
 
 BitQate runs Docker images or Git repos (rebuilt on each push), managed PostgreSQL, and full-root KVM VPSs.
 
-| Service | BitQate resource | Notes |
-|---|---|---|
-| `tic-api` | Docker container from a Git repo | `Dockerfile` based on `oven/bun`: `bun install --frozen-lockfile` → `bun run db:migrate` (release step) → `bun run src/index.ts` |
-| Postgres | **Managed PostgreSQL** | Set `DATABASE_URL` (add `?sslmode=require` if needed). Never `db:push` against it. |
-| `tic-web` | Docker container from a Git repo | `bun --bun run build` → `bun run start` (srvx). Set `PUBLIC_API_URL` to the API's URL. |
-| Ollama | **KVM VPS** (or a container) running `ollama serve` | CPU-only is slow, so host `llama3.2:3b` there. **For the live demo, run Ollama on the presenting laptop** and point `OLLAMA_URL` at it. |
+| Service   | BitQate resource                                    | Notes                                                                                                                                                              |
+| --------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `tic-api` | Docker container from a Git repo                    | `Dockerfile` based on `oven/bun`. Entrypoint runs `bun run src/db/migrate.ts` then `bun run src/index.ts` — migrations auto-apply at start, no release step.       |
+| Postgres  | **Managed PostgreSQL**                              | Set `DATABASE_URL` (add `?sslmode=require` if needed). Never `db:push` against it.                                                                                 |
+| `tic-web` | Docker container from a Git repo                    | `bun --bun run build` → `bun run start` (srvx). Set `API_ORIGIN` to the API's URL at runtime; `PUBLIC_API_URL` is inlined at build time and is for local dev only. |
+| Ollama    | **KVM VPS** (or a container) running `ollama serve` | CPU-only is slow, so host `llama3.2:3b` there. **For the live demo, run Ollama on the presenting laptop** and point `OLLAMA_URL` at it.                            |
 
 **Demo setup we recommend:** the public link (judges can click it) runs on BitQate with cached extractions and template-memo fallback. The live pitch runs the API and Ollama on the laptop for speed. Check `GET /api/health` before going on stage.
 
-**Secrets:** `DATABASE_URL`, `AUDIT_HMAC_KEY`, `AUDIT_SIGNING_KEY`, `AUDIT_PUBLIC_KEY`, `OLLAMA_URL`, `LLM_MODEL`, `RAIL_MODE`, `WEB_ORIGIN`, plus `BRIDGE_API_KEY` if the sandbox is approved.
+**Secrets:** `DATABASE_URL`, `AUDIT_HMAC_KEY`, `AUDIT_SIGNING_KEY`, `AUDIT_PUBLIC_KEY`, `OLLAMA_URL`, `LLM_MODEL`, `RAIL_MODE`, `WEB_ORIGIN`, `API_ORIGIN` (tic-web), plus `BRIDGE_API_KEY` if the sandbox is approved.
 
 ## 16. Notes and decisions
 

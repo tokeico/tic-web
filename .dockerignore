@@ -1,0 +1,13 @@
+node_modules
+.git
+.env
+.env.*
+dist
+.tanstack
+.vscode
+.claude
+docs
+test
+coverage
+*.md
+Dockerfile
