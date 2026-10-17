@@ -9,6 +9,7 @@ import { Chat, CheckCircle, Close, ShieldCheck } from "./icons";
 import {
 	Card,
 	Cc,
+	Disclosure,
 	Lab,
 	OUTCOME_CLS,
 	OUTCOME_LABEL,

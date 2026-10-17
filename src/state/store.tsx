@@ -122,7 +122,7 @@ export interface TourStep {
 	title: string;
 	say: string;
 	time: string;
-	act: () => void | boolean | Promise<void | boolean>;
+	act: () => undefined | boolean | Promise<boolean | undefined>;
 }
 
 export interface Store {
@@ -1207,13 +1207,17 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 				title: "Oct 1: BR-561-EFX takes effect",
 				say: "The law changes, the route changes, and the app names the rule that did it.",
 				time: "1:00",
-				act: () => api.setDay(6),
+				act: () => {
+					api.setDay(6);
+				},
 			},
 			{
 				title: "Oct 31: providers that didn’t file drop out",
 				say: "Oct 30 was the filing deadline. Corredor blocks non-filers from Oct 31 and reroutes to Sol, a fictional provider whose authorization is hypothetical.",
 				time: "1:10",
-				act: () => api.setDay(36),
+				act: () => {
+					api.setDay(36);
+				},
 			},
 			{
 				title: "Back to today, ask the agent",
@@ -1292,19 +1296,25 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 				title: "Catch an invoice-fraud attempt",
 				say: "A resubmitted invoice hides instructions for the AI and swaps the bank details. We treat it as data and freeze it.",
 				time: "2:20",
-				act: () => addSuspicious(),
+				act: () => {
+					addSuspicious();
+				},
 			},
 			{
 				title: "Regulatory radar",
 				say: "An agent watches the sources, proposes changes with an impact analysis, and compliance approves.",
 				time: "2:25",
-				act: () => go("trust"),
+				act: () => {
+					go("trust");
+				},
 			},
 			{
 				title: "Prove it: the audit chain",
 				say: "AI reads and explains, code decides, a person approves, and every step is hash-chained.",
 				time: "2:40",
-				act: () => go("audit"),
+				act: () => {
+					go("audit");
+				},
 			},
 		];
 
