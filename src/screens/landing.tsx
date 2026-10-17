@@ -347,7 +347,7 @@ function LiveCorridors() {
 		>
 			<div className="flex flex-wrap items-center justify-between gap-2">
 				<span className="font-semibold" style={{ fontSize: 15.5 }}>
-					Today’s compliant route, by corridor
+					Today’s compliant route, by Corredor
 				</span>
 				<span className="pill p-muted">Live from rules pack v1</span>
 			</div>
