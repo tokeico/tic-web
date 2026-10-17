@@ -1,0 +1,1045 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Corredor design tokens — Brand book V3.
+
+   Black ground, Corredor Yellow #FFFF67 as the one accent.
+
+   One rule holds the system together: VOLT marks the engine's chosen path and
+   the action a person takes on it (recommended route, primary buttons, the
+   as-of control). Compliance outcomes never borrow it — pass is jade, warning
+   is amber, blocked is coral — so on any screen the yellow is the thing to act
+   on, and the semantics stay readable next to it.
+--------------------------------------------------------------------------- */
+@theme {
+  /* Brand book V3 — type: display Bricolage Grotesque 800, text Geist 400/600,
+     data Geist Mono. */
+  --font-sans: "Geist", -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "Geist Mono", ui-monospace, monospace;
+  --font-display: "Bricolage Grotesque", "Geist", sans-serif;
+
+  /* grounds — the brand's neutral blacks: ground #000000, cards #121212 */
+  --color-void: #000000;
+  --color-panel: #121212;
+  --color-raise: #171717;
+  --color-head: #121212;
+  --color-sunk: #0b0b0b;
+
+  /* hairlines — Line #2A2A2A is the brand border; lighter steps below it */
+  --color-edge-soft: #1a1a1a;
+  --color-edge: #202020;
+  --color-edge-strong: #2a2a2a;
+  --color-edge-input: #303030;
+  --color-edge-bright: #3a3a3a;
+
+  /* text — Paper #F5F5F0 primary, Mist #BDBDB5 body */
+  --color-bone: #f5f5f0;
+  --color-ash: #bdbdb5;
+  --color-ash-dim: #8f8f87;
+  --color-ash-faint: #6a6a62;
+
+  /* accent: Corredor Yellow #FFFF67 — the one accent ("don't use any yellow
+     other than #FFFF67"). Marks the engine's chosen path and the action a
+     person takes on it. */
+  --color-volt: #ffff67;
+  --color-volt-bright: #ffffa6;
+  --color-volt-deep: #d6d631;
+  --color-volt-ink: #0a0a06;
+
+  /* compliance semantics, kept clear of the accent: pass, warning, blocked.
+     Sampled from the app screens shown in the brand book's look and feel. */
+  --color-jade: #4ade80;
+  --color-amber: #ffb224;
+  --color-coral: #fc6054;
+  --color-coral-solid: #e04a3c;
+  --color-coral-deep: #b8352a;
+
+  /* the Code actor tag */
+  --color-slate: #78c0fc;
+}
+
+@layer base {
+  :root {
+    /* Dark-committed design: native controls, scrollbars and form widgets
+       follow, and the range slider inherits the accent. */
+    color-scheme: dark;
+    accent-color: var(--color-volt);
+  }
+
+  body {
+    margin: 0;
+    background:
+      radial-gradient(
+        120% 60% at 50% -10%,
+        color-mix(in oklab, var(--color-volt) 7%, transparent) 0%,
+        transparent 60%
+      ),
+      var(--color-void);
+    background-attachment: fixed;
+    color: var(--color-bone);
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  a {
+    color: var(--color-volt);
+    text-underline-offset: 2px;
+  }
+  a:hover {
+    color: var(--color-volt-bright);
+  }
+  button {
+    font: inherit;
+    cursor: pointer;
+  }
+  button:disabled {
+    cursor: not-allowed;
+    opacity: 0.4;
+  }
+  a:focus-visible,
+  button:focus-visible,
+  input:focus-visible,
+  textarea:focus-visible {
+    outline: 2px solid var(--color-volt);
+    outline-offset: 2px;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--color-volt) 30%, transparent);
+    color: var(--color-bone);
+  }
+}
+
+@layer components {
+  /* status pills — translucent tints, never flat pastel fills ----------- */
+  .pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font: 500 12.5px/1.2 var(--font-sans);
+    padding: 5px 9px;
+    border-radius: 999px;
+    white-space: nowrap;
+    border: 1px solid transparent;
+  }
+  .p-ok {
+    background: color-mix(in oklab, var(--color-jade) 14%, transparent);
+    color: var(--color-jade);
+    border-color: color-mix(in oklab, var(--color-jade) 24%, transparent);
+  }
+  .p-warn {
+    background: color-mix(in oklab, var(--color-amber) 14%, transparent);
+    color: var(--color-amber);
+    border-color: color-mix(in oklab, var(--color-amber) 24%, transparent);
+  }
+  .p-bad {
+    background: color-mix(in oklab, var(--color-coral) 14%, transparent);
+    color: var(--color-coral);
+    border-color: color-mix(in oklab, var(--color-coral) 26%, transparent);
+  }
+  .p-neutral {
+    background: var(--color-raise);
+    color: var(--color-ash);
+    border-color: var(--color-edge);
+  }
+  .p-muted {
+    background: transparent;
+    color: var(--color-ash-dim);
+    border-color: var(--color-edge);
+  }
+
+  /* mono tags ----------------------------------------------------------- */
+  .chip {
+    display: inline-block;
+    max-width: 100%;
+    font: 500 12px/1.2 var(--font-mono);
+    padding: 4px 7px;
+    border-radius: 4px;
+    background: var(--color-raise);
+    color: var(--color-ash);
+    border: 1px solid var(--color-edge-soft);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .tool {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font: 400 11.5px/1.2 var(--font-mono);
+    padding: 3px 7px;
+    border-radius: 4px;
+    background: var(--color-sunk);
+    color: var(--color-ash-dim);
+    border: 1px solid var(--color-edge-soft);
+  }
+  .cc {
+    display: inline-block;
+    font: 600 11.5px/1 var(--font-mono);
+    padding: 4px 5px;
+    border-radius: 3px;
+    border: 1px solid var(--color-edge-bright);
+    color: var(--color-ash);
+    letter-spacing: 0.04em;
+  }
+  .lab {
+    font: 500 11px/1.2 var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--color-ash-dim);
+  }
+  .mono {
+    font-family: var(--font-mono);
+  }
+
+  /* headings and the wordmark: the brand's display face, heavy and tight */
+  .display {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+  .display-hero {
+    font-family: var(--font-display);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  /* who-did-what actor tags — three distinct voices, none of them volt --- */
+  .act {
+    display: inline-block;
+    font: 600 10.5px/1 var(--font-mono);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 4px 6px;
+    border-radius: 3px;
+    white-space: nowrap;
+  }
+  .act-ai {
+    background: color-mix(in oklab, var(--color-jade) 14%, transparent);
+    color: var(--color-jade);
+  }
+  .act-code {
+    background: color-mix(in oklab, var(--color-slate) 14%, transparent);
+    color: var(--color-slate);
+  }
+  .act-human {
+    background: color-mix(in oklab, var(--color-amber) 14%, transparent);
+    color: var(--color-amber);
+  }
+
+  /* rule citation — a reference, not an action, so it stays quiet until hover */
+  .ruleref {
+    display: inline-block;
+    font: 500 12px/1.2 var(--font-mono);
+    padding: 3px 7px;
+    border-radius: 4px;
+    background: var(--color-raise);
+    color: var(--color-bone);
+    border: 1px solid var(--color-edge);
+    text-decoration: none;
+    white-space: nowrap;
+  }
+  .ruleref:hover {
+    border-color: var(--color-volt);
+    color: var(--color-volt);
+  }
+
+  /* buttons ------------------------------------------------------------- */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    min-height: 40px;
+    padding: 0 16px;
+    border-radius: 8px;
+    border: 1px solid var(--color-edge-strong);
+    background: var(--color-raise);
+    color: var(--color-bone);
+    font-weight: 500;
+    font-size: 14px;
+    text-decoration: none;
+    transition: border-color 0.12s ease, color 0.12s ease, background 0.12s ease;
+  }
+  .btn:hover:not(:disabled) {
+    border-color: var(--color-volt);
+    color: var(--color-volt);
+  }
+  .btn-primary {
+    background: var(--color-volt);
+    border-color: var(--color-volt);
+    color: var(--color-volt-ink);
+    font-weight: 600;
+  }
+  .btn-primary:hover:not(:disabled) {
+    background: var(--color-volt-bright);
+    border-color: var(--color-volt-bright);
+    color: var(--color-volt-ink);
+  }
+  .btn-danger {
+    color: var(--color-coral);
+    border-color: color-mix(in oklab, var(--color-coral) 40%, transparent);
+  }
+  .btn-danger:hover:not(:disabled) {
+    border-color: var(--color-coral);
+    color: var(--color-coral);
+  }
+  .btn-dangerfill {
+    background: var(--color-coral-solid);
+    border-color: var(--color-coral-solid);
+    color: #fff;
+  }
+  .btn-dangerfill:hover:not(:disabled) {
+    background: var(--color-coral-deep);
+    border-color: var(--color-coral-deep);
+    color: #fff;
+  }
+  .btn-sm {
+    min-height: 32px;
+    padding: 0 10px;
+    font-size: 13px;
+  }
+
+  /* date jumps — inputs to the engine, so the active one takes volt ------ */
+  .jump {
+    min-height: 36px;
+    padding: 0 12px;
+    border-radius: 8px;
+    border: 1px solid var(--color-edge-strong);
+    background: var(--color-raise);
+    color: var(--color-ash);
+    font: 500 12.5px/1 var(--font-mono);
+  }
+  .jump:hover {
+    border-color: var(--color-volt);
+    color: var(--color-volt);
+  }
+  .jump-on {
+    background: var(--color-volt);
+    border-color: var(--color-volt);
+    color: var(--color-volt-ink);
+  }
+  .jump-on:hover {
+    background: var(--color-volt-bright);
+    border-color: var(--color-volt-bright);
+    color: var(--color-volt-ink);
+  }
+
+  .seg {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 3px;
+    text-align: left;
+    padding: 10px 12px;
+    border-radius: 8px;
+    border: 1px solid var(--color-edge);
+    background: var(--color-raise);
+    color: var(--color-bone);
+    min-height: 44px;
+    flex: 1 1 180px;
+  }
+  .seg:hover {
+    border-color: var(--color-edge-bright);
+  }
+  .seg-on {
+    border: 1px solid var(--color-volt);
+    background: color-mix(in oklab, var(--color-volt) 8%, transparent);
+    box-shadow: inset 2px 0 0 var(--color-volt);
+  }
+
+  /* nav: selection is not an action, so it tints rather than fills ------- */
+  .tab {
+    min-height: 40px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-ash-dim);
+    font-weight: 500;
+    font-size: 14px;
+  }
+  .tab:hover {
+    background: var(--color-raise);
+    color: var(--color-bone);
+  }
+  .tab-on {
+    background: color-mix(in oklab, var(--color-volt) 12%, transparent);
+    color: var(--color-volt);
+  }
+  .tab-on:hover {
+    background: color-mix(in oklab, var(--color-volt) 16%, transparent);
+    color: var(--color-volt);
+  }
+
+  .sugg {
+    min-height: 36px;
+    padding: 6px 12px;
+    border-radius: 999px;
+    border: 1px solid var(--color-edge);
+    background: var(--color-panel);
+    color: var(--color-ash);
+    font-size: 13.5px;
+    text-align: left;
+  }
+  .sugg:hover:not(:disabled) {
+    border-color: var(--color-volt);
+    color: var(--color-volt);
+  }
+
+  /* containers ---------------------------------------------------------- */
+  .card {
+    background: var(--color-panel);
+    border: 1px solid var(--color-edge);
+    border-radius: 10px;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .stage {
+    background: var(--color-panel);
+    border: 1px solid var(--color-edge);
+    border-radius: 10px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    min-width: 0;
+  }
+  .kpi {
+    background: var(--color-panel);
+    border: 1px solid var(--color-edge);
+    border-radius: 10px;
+    padding: 14px 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    min-width: 0;
+  }
+
+  /* inbox table rows — four columns: who, how much, where it stands, why ---- */
+  .row {
+    display: grid;
+    grid-template-columns:
+      minmax(200px, 2fr) minmax(120px, 1.1fr) 150px minmax(220px, 2fr);
+    gap: 12px;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--color-edge-soft);
+  }
+  .row:hover {
+    background: var(--color-raise);
+  }
+  .row-sel,
+  .row-sel:hover {
+    background: color-mix(in oklab, var(--color-volt) 7%, transparent);
+    box-shadow: inset 2px 0 0 var(--color-volt);
+  }
+
+  /* progressive disclosure: a summary bar, not a card, so revealed cards
+     never nest. The answer rides in the summary so it can stay closed. */
+  .disc {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .disc > summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    padding: 0 16px;
+    border-radius: 10px;
+    border: 1px solid var(--color-edge);
+    background: var(--color-panel);
+    color: var(--color-bone);
+    font: 600 14px/1.3 var(--font-sans);
+  }
+  .disc > summary::-webkit-details-marker {
+    display: none;
+  }
+  .disc > summary::after {
+    content: "";
+    margin-left: auto;
+    width: 7px;
+    height: 7px;
+    flex: none;
+    border-right: 2px solid var(--color-ash-dim);
+    border-bottom: 2px solid var(--color-ash-dim);
+    transform: rotate(45deg);
+    transition: transform 0.12s ease;
+  }
+  .disc[open] > summary::after {
+    transform: rotate(225deg);
+  }
+  .disc > summary:hover {
+    border-color: var(--color-edge-bright);
+  }
+  .disc > summary:focus-visible {
+    outline: 2px solid var(--color-volt);
+    outline-offset: 2px;
+  }
+
+  /* the demoted views live behind one overflow (⋯), not five more tabs ---- */
+  .more-menu {
+    position: relative;
+  }
+  .more-menu > summary {
+    list-style: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0 12px;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--color-ash-dim);
+  }
+  .more-menu > summary::-webkit-details-marker {
+    display: none;
+  }
+  .more-menu > summary:hover,
+  .more-menu[open] > summary {
+    background: var(--color-raise);
+    color: var(--color-bone);
+  }
+  .more-pop {
+    position: absolute;
+    z-index: 30;
+    top: calc(100% + 6px);
+    left: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 220px;
+    padding: 6px;
+    background: var(--color-panel);
+    border: 1px solid var(--color-edge-strong);
+    border-radius: 10px;
+    box-shadow: 0 18px 30px -12px rgb(0 0 0 / 0.55);
+  }
+  .more-pop .tab {
+    text-align: left;
+    justify-content: flex-start;
+  }
+
+  /* route comparison: the engine's pick wears the accent ----------------- */
+  .route {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 84px 62px minmax(112px, auto);
+    gap: 10px;
+    align-items: center;
+    padding: 11px 12px;
+    border: 1px solid var(--color-edge);
+    border-radius: 8px;
+    background: var(--color-panel);
+  }
+  .route-rec {
+    border-color: var(--color-volt);
+    background: color-mix(in oklab, var(--color-volt) 8%, transparent);
+    box-shadow: inset 3px 0 0 var(--color-volt);
+  }
+  .route-bad {
+    background: var(--color-sunk);
+    border-color: var(--color-edge-soft);
+    color: var(--color-ash-faint);
+  }
+
+  /* extracted fields ---------------------------------------------------- */
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    padding: 8px 10px;
+    border: 1px solid var(--color-edge-soft);
+    border-radius: 8px;
+    background: var(--color-sunk);
+  }
+  .field-low {
+    border-color: color-mix(in oklab, var(--color-amber) 45%, transparent);
+    background: color-mix(in oklab, var(--color-amber) 7%, transparent);
+  }
+  .inp {
+    min-height: 38px;
+    padding: 6px 10px;
+    border: 1px solid var(--color-edge-input);
+    border-radius: 8px;
+    font: 400 14px/1.3 var(--font-sans);
+    color: var(--color-bone);
+    background: var(--color-void);
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .inp::placeholder {
+    color: var(--color-ash-faint);
+  }
+
+  /* rules checklist ----------------------------------------------------- */
+  .check {
+    display: grid;
+    grid-template-columns: 22px minmax(0, 1fr);
+    gap: 10px;
+    padding: 10px 0;
+    border-top: 1px solid var(--color-edge-soft);
+    scroll-margin-top: 16px;
+  }
+  .ic-ok { color: var(--color-jade); }
+  .ic-warn { color: var(--color-amber); }
+  .ic-bad { color: var(--color-coral); }
+  .ic-muted { color: var(--color-ash-faint); }
+
+  /* audit event rows ---------------------------------------------------- */
+  .ev {
+    /* Six columns: #, actor, event type, detail, hash, time. */
+    display: grid;
+    grid-template-columns: 44px 76px 170px minmax(0, 1fr) 120px 60px;
+    gap: 12px;
+    align-items: center;
+    padding: 10px 16px;
+    border-bottom: 1px solid var(--color-edge-soft);
+    font-size: 14px;
+  }
+  .ev:hover {
+    background: var(--color-raise);
+  }
+
+  /* acknowledgment block ------------------------------------------------ */
+  .ack {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: color-mix(in oklab, var(--color-amber) 8%, transparent);
+    border: 1px solid color-mix(in oklab, var(--color-amber) 30%, transparent);
+    font-size: 14px;
+  }
+  .ack input {
+    width: 18px;
+    height: 18px;
+    margin-top: 1px;
+    accent-color: var(--color-volt);
+    flex: none;
+  }
+
+  .secrow {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 10px;
+    font-size: 14px;
+    align-items: start;
+  }
+
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+/* brand mark — the brand book's construction: "A coin with a diamond passage.
+   The diamond is 80% of the coin's radius wide and 120% tall, centered."
+   Drawn as an inline SVG so it stays sharp at any size and the masked span
+   keeps taking a token colour (volt, and volt-bright on hover). Don't stretch
+   it, outline it, add shadows, or rotate the diamond. */
+.brand-link {
+  color: inherit;
+  border-radius: 8px;
+}
+.brand-link:hover {
+  color: inherit;
+}
+.brand-link:hover .corredor-mark {
+  background: var(--color-volt-bright);
+}
+
+.corredor-mark {
+  display: inline-block;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  background: var(--color-volt);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M24 2a22 22 0 1 0 0 44 22 22 0 1 0 0-44Zm0 8.8 8.8 13.2-8.8 13.2-8.8-13.2Z' fill='%23000' fill-rule='evenodd'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M24 2a22 22 0 1 0 0 44 22 22 0 1 0 0-44Zm0 8.8 8.8 13.2-8.8 13.2-8.8-13.2Z' fill='%23000' fill-rule='evenodd'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* the as-of control: the demo's signature input, so it gets the accent ---- */
+.asof-range {
+  width: 100%;
+  height: 28px;
+  appearance: none;
+  background: transparent;
+}
+.asof-range::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-edge-strong);
+}
+.asof-range::-moz-range-track {
+  height: 4px;
+  border-radius: 2px;
+  background: var(--color-edge-strong);
+}
+.asof-range::-webkit-slider-thumb {
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  margin-top: -6px;
+  border-radius: 50%;
+  background: var(--color-volt);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-volt) 20%, transparent);
+}
+.asof-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--color-volt);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--color-volt) 20%, transparent);
+}
+
+/* motion ----------------------------------------------------------------- */
+/* A reroute is the engine changing its mind: flash it in the accent. */
+.flash {
+  animation: flash 1.2s ease-out;
+}
+@keyframes flash {
+  0% {
+    background: color-mix(in oklab, var(--color-volt) 22%, transparent);
+  }
+  100% {
+    background: transparent;
+  }
+}
+
+.skel {
+  background: linear-gradient(
+    90deg,
+    var(--color-raise) 0%,
+    var(--color-edge) 50%,
+    var(--color-raise) 100%
+  );
+  background-size: 200% 100%;
+  animation: sh 1.2s linear infinite;
+  border-radius: 4px;
+  height: 12px;
+}
+@keyframes sh {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.dots span {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-volt);
+  margin-right: 4px;
+  animation: bl 1s infinite;
+}
+.dots span:nth-child(2) { animation-delay: 0.15s; }
+.dots span:nth-child(3) { animation-delay: 0.3s; }
+@keyframes bl {
+  0%, 100% { opacity: 0.25; }
+  50% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flash,
+  .skel,
+  .dots span {
+    animation: none;
+  }
+}
+
+/* ===========================================================================
+   Landing page
+   The hero coin and the coverage globe are live Three.js scenes. The canvases
+   are transparent so the page ground shows through.
+   ========================================================================= */
+.lp-glow {
+  position: absolute;
+  inset: -20% -10% auto -10%;
+  height: 720px;
+  pointer-events: none;
+  background: radial-gradient(
+    60% 55% at 62% 35%,
+    color-mix(in oklab, var(--color-volt) 18%, transparent) 0%,
+    transparent 70%
+  );
+  filter: blur(10px);
+}
+
+.hero-stage {
+  display: block;
+  width: 100%;
+  aspect-ratio: 888 / 580;
+}
+.hero-stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.lp-flag {
+  display: grid;
+  place-items: center;
+  width: 22px;
+  height: 22px;
+  flex: none;
+  border-radius: 50%;
+  overflow: hidden;
+  font-size: 17px;
+  line-height: 1;
+}
+
+.coverage-stage {
+  display: block;
+  width: 100%;
+  aspect-ratio: 1 / 0.92;
+  -webkit-mask: radial-gradient(100% 78% at 46% 50%, #000 48%, transparent 86%);
+  mask: radial-gradient(100% 78% at 46% 50%, #000 48%, transparent 86%);
+}
+.coverage-stage canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.lp-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--color-edge-strong);
+  background: color-mix(in oklab, var(--color-panel) 86%, transparent);
+  backdrop-filter: blur(6px);
+  font-size: 13.5px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+.lp-pill-cta {
+  border-radius: 999px;
+  padding: 0 22px;
+  min-height: 48px;
+  font-size: 15px;
+}
+
+.lp-section {
+  border-top: 1px solid var(--color-edge-soft);
+}
+
+.lp-step {
+  position: relative;
+  background: linear-gradient(180deg, var(--color-panel) 0%, var(--color-void) 100%);
+  border: 1px solid var(--color-edge);
+  border-radius: 14px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+
+.lp-stat {
+  border-left: 2px solid var(--color-volt);
+  padding-left: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Payment receipts keep the list quiet; evidence opens in place. */
+.explorer-notice {
+  margin: 0;
+  color: var(--color-ash);
+  font-size: 13px;
+  max-width: 75ch;
+}
+
+.explorer-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 16px;
+}
+
+.explorer-filters input,
+.explorer-filters select {
+  width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-edge-input);
+  border-radius: 6px;
+  background: var(--color-panel);
+  color: var(--color-bone);
+  font: inherit;
+}
+
+.explorer-filters input::placeholder {
+  color: var(--color-ash-dim);
+}
+
+.explorer-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 20px;
+  padding: 22px 16px;
+  overflow-wrap: anywhere;
+}
+
+.explorer-columns {
+  padding-block: 10px;
+  color: var(--color-ash);
+  font-size: 12px;
+}
+
+.explorer-transaction {
+  border-top: 1px solid var(--color-edge-strong);
+}
+
+.explorer-transaction:last-child {
+  border-bottom: 1px solid var(--color-edge-strong);
+}
+
+.explorer-transaction > summary {
+  position: relative;
+  padding-right: 36px;
+  cursor: pointer;
+  list-style: none;
+}
+
+.explorer-transaction > summary::-webkit-details-marker {
+  display: none;
+}
+
+.explorer-transaction > summary::after {
+  content: "";
+  position: absolute;
+  right: 16px;
+  width: 7px;
+  height: 7px;
+  border-right: 1px solid currentColor;
+  border-bottom: 1px solid currentColor;
+  transform: rotate(45deg);
+}
+
+.explorer-transaction[open] > summary::after {
+  transform: rotate(225deg);
+}
+
+.explorer-transaction > summary:hover,
+.explorer-transaction[open] > summary {
+  background: var(--color-panel);
+}
+
+.explorer-transaction > summary:focus-visible,
+.explorer-filters input:focus-visible,
+.explorer-filters select:focus-visible {
+  outline: 2px solid var(--color-volt);
+  outline-offset: 3px;
+}
+
+.explorer-booked {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--color-ash);
+  font-size: 12px;
+}
+
+.explorer-receipt,
+.explorer-empty {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 28px 16px;
+}
+
+.explorer-receipt {
+  border-top: 1px solid var(--color-edge-strong);
+}
+
+.explorer-references {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 0;
+}
+
+.explorer-references dd {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+  margin: 8px 0 0;
+}
+
+.explorer-references code {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  font-family: var(--font-mono);
+  font-size: 13px;
+  user-select: all;
+}
+
+.explorer-activity {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.explorer-activity li {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr);
+  gap: 12px;
+  padding-block: 12px;
+  border-top: 1px solid var(--color-edge-strong);
+  overflow-wrap: anywhere;
+  font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  .explorer-filters > label {
+    flex-basis: 100%;
+  }
+  .explorer-columns {
+    display: none;
+  }
+  .explorer-row {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 18px 12px;
+    padding-left: 0;
+  }
+  .explorer-receipt {
+    padding-inline: 0;
+  }
+  .explorer-activity li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 5px;
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .wire-dot {
+    animation: wire 3.2s linear infinite;
+  }
+  @keyframes wire {
+    to {
+      offset-distance: 100%;
+    }
+  }
+}

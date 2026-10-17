@@ -1,0 +1,52 @@
+{
+  "name": "corredor",
+  "private": true,
+  "type": "module",
+  "imports": {
+    "#/*": "./src/*"
+  },
+  "scripts": {
+    "dev": "rsbuild dev --port 8080",
+    "generate-routes": "rsbuild build",
+    "build": "rsbuild build",
+    "start": "srvx --prod -s ../client dist/server/index.js",
+    "preview": "rsbuild preview",
+    "format": "biome format",
+    "lint": "biome lint",
+    "check": "biome check",
+    "intent": "node node_modules/@tanstack/intent/dist/cli.mjs"
+  },
+  "dependencies": {
+    "@tanstack/react-devtools": "0.10.13",
+    "@tanstack/react-query": "^5.104.3",
+    "@tanstack/react-router": "1.170.45",
+    "@tanstack/react-router-devtools": "1.167.2",
+    "@tanstack/react-start": "1.169.3",
+    "@tanstack/react-table": "8",
+    "lenis": "^1.3.27",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "srvx": "^0.12.7",
+    "tailwindcss": "^4.1.18",
+    "three": "^0.186.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.4.5",
+    "@rsbuild/core": "^2.1.13",
+    "@rsbuild/plugin-react": "^2.1.0",
+    "@rsbuild/plugin-tailwindcss": "^2.0.3",
+    "@tailwindcss/typography": "^0.5.16",
+    "@tanstack/intent": "^0.5.5",
+    "@types/node": "^22.10.2",
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "typescript": "^6.0.2"
+  },
+  "pnpm": {},
+  "intent": {
+    "skills": [
+      "*"
+    ]
+  }
+}

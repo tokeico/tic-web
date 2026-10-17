@@ -1,7 +1,0 @@
-node_modules
-dist
-dist-preview
-.smoke
-.shots
-*.local
-.DS_Store
