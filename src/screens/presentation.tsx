@@ -212,7 +212,7 @@ function S1Title() {
 					))}
 				</h1>
 				<div className="s1-by a-fade" style={d(1.4)}>
-					BY TOKEISO
+					BY TOKEICO
 				</div>
 				<p className="s1-tag">
 					<Words
@@ -884,7 +884,7 @@ function S6Close() {
 			</h2>
 			<div className="s6-foot a-fade" style={d(2.4)}>
 				<Mark size={30} />
-				Corredor by TOKEISO · made in Miami
+				Corredor by TOKEICO · made in Miami
 			</div>
 		</div>
 	);
@@ -1297,7 +1297,7 @@ export function PresentationPage() {
 						<Mark />
 						<div>
 							<b>Corredor</b>
-							<span>BY TOKEISO</span>
+							<span>BY TOKEICO</span>
 						</div>
 					</div>
 					<div className="pz-hud-mid">
