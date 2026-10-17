@@ -481,5 +481,6 @@ export const OFFRAMP_TYPE_TITLE: Record<string, string> = {
 	p2p_unregistered: "Unregistered P2P desk",
 };
 
-/** The SWIFT baseline every saving in the UI is measured against. */
-export const WIRE_FEE_PCT = 4.5;
+/** Demo fallback for an unnegotiated bank wire, all-in (the API's wire quote
+ *  wins wherever a plan has one). */
+export const WIRE_FEE_PCT = 2.5;

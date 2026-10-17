@@ -186,6 +186,8 @@ export function CustomizePage() {
 							<span>
 								<strong>Require warning acknowledgment before approval.</strong>{" "}
 								The approver ticks a box confirming they read each rule warning.
+								Live payouts always ask: the API won’t approve a route with
+								unacknowledged warnings.
 							</span>
 						</label>
 					</Card>

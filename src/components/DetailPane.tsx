@@ -1,12 +1,21 @@
 import { useMemo, useState } from "react";
 import { OFFRAMP_TYPE_LABEL, RULES } from "@/domain/data";
-import { approvedUsd, eff, fingerprint, need, rname } from "@/domain/engine";
+import {
+	approvedUsd,
+	eff,
+	feeUsd,
+	fingerprint,
+	need,
+	rname,
+} from "@/domain/engine";
 import { fmtDate, local, mins, objWord, usd, usd0 } from "@/domain/format";
+import { blockReason, payLabel } from "@/domain/holds";
 import { memoFor } from "@/domain/memo";
 import type { Invoice, PayoutView, RouteEval } from "@/domain/types";
 import { hasMemberApproved } from "@/lib/auth";
 import { useStore } from "@/state/store";
 import { Chat, CheckCircle, Close, ShieldCheck } from "./icons";
+import { RemittanceAdvicePanel } from "./RemittanceAdvice";
 import {
 	Card,
 	Cc,
@@ -150,6 +159,7 @@ export function DetailPane({ v }: { v: PayoutView }) {
 			    machinery that earned the answer folds behind two bars that carry
 			    their answer in the summary, so nothing is more than one click away. */}
 			{hold && <SecurityCard v={v} hold={hold} />}
+			<BankCard v={v} />
 			{status === "blocked" && <SanctionsCard v={v} />}
 			<MemoCard v={v} />
 
@@ -293,6 +303,127 @@ const lockedByHuman = (m: PayoutView["m"]) =>
 
 /* ------------------------------------------------------------------ security */
 
+type CheckRow = { kind: "ok" | "warn" | "bad"; text: string };
+
+/**
+ * What the API says actually ran on this payout. A check is only called passed
+ * when the API reports it passed; anything it didn't run is said plainly.
+ */
+function ranChecks(p: PayoutView["p"], m: PayoutView["m"]): CheckRow[] {
+	const c = p.checks;
+	if (!c)
+		return [
+			{
+				kind: "warn",
+				text: "Check status wasn’t reported for this payout: the injection scan, bank details and duplicate checks are unconfirmed.",
+			},
+		];
+	const lowBank = p.low.includes("bank") && !m.reviewed;
+	const by = p.bankCheck?.verifiedBy;
+	const at = p.bankCheck?.verifiedAt;
+	const rows: CheckRow[] = [
+		c.injectionScan === "passed"
+			? {
+					kind: "ok",
+					text: "Injection scan: no instruction-like text in the uploaded PDF.",
+				}
+			: c.injectionScan === "flagged"
+				? {
+						kind: "bad",
+						text: "Injection scan: instruction-like text found in the PDF.",
+					}
+				: {
+						kind: "warn",
+						text: "Injection scan: not run. This invoice didn’t come from an uploaded PDF.",
+					},
+		c.bankDetails === "verified"
+			? {
+					kind: "ok",
+					text:
+						"Bank details match the verified vendor record" +
+						(by
+							? ` (call-back by ${by}${at ? `, ${fmtDate(at.slice(0, 10))}` : ""})`
+							: " (seeded vendor record)") +
+						(lowBank
+							? ". Extraction confidence was low; confirm before paying."
+							: "."),
+				}
+			: c.bankDetails === "changed"
+				? {
+						kind: "bad",
+						text: "Bank details differ from the verified vendor record. Call the vendor back on a number from your records before approving.",
+					}
+				: {
+						kind: "warn",
+						text: "Bank details not verified: there is no vendor record to compare against yet.",
+					},
+		c.duplicatePdf === "passed"
+			? {
+					kind: "ok",
+					text: "Duplicate check: this PDF file hasn’t been uploaded before.",
+				}
+			: {
+					kind: "warn",
+					text: "Duplicate check: not run on a PDF. No file to compare.",
+				},
+	];
+	return rows;
+}
+
+/**
+ * The vendor-master hold: bank details that differ from (or aren't yet in)
+ * the verified vendor record block approval until a person calls the vendor
+ * back on a number from the payer's own records and records it here.
+ */
+function BankCard({ v }: { v: PayoutView }) {
+	const { verifyBank } = useStore();
+	const { p, m } = v;
+	const [note, setNote] = useState("");
+	const st = p.bankCheck?.status;
+	if (!st || st === "verified" || m.final) return null;
+	return (
+		<Card>
+			<div className="flex flex-wrap items-center justify-between gap-2">
+				<h3 className="m-0" style={{ fontSize: 16 }}>
+					Bank details
+				</h3>
+				<span className={`pill ${st === "changed" ? "p-bad" : "p-warn"}`}>
+					{st === "changed" ? "Differs from vendor record" : "Not verified"}
+				</span>
+			</div>
+			<span className="text-ash" style={{ fontSize: 14 }}>
+				{st === "changed"
+					? "The bank details on this invoice don’t match the verified vendor record, a common sign of payment diversion. Approval is held until someone confirms them."
+					: "There are no verified bank details on file for this vendor. Approval is held until someone confirms them."}
+			</span>
+			<label htmlFor={`bankv-${p.id}`} className="lab">
+				Call-back note: who you called, on which number from your records, and
+				what they confirmed
+			</label>
+			<input
+				id={`bankv-${p.id}`}
+				className="inp"
+				value={note}
+				onChange={(e) => setNote(e.target.value)}
+				placeholder="Called Ana (finance) on the number in our vendor file; she confirmed the Pix key"
+			/>
+			<div>
+				<button
+					type="button"
+					className="btn btn-sm"
+					disabled={note.trim().length < 5}
+					onClick={() => {
+						verifyBank(p.id, note.trim());
+						setNote("");
+					}}
+				>
+					Record call-back verification
+				</button>
+			</div>
+		</Card>
+	);
+}
+
 function SecurityCard({ v, hold }: { v: PayoutView; hold: boolean }) {
 	const {
 		state: s,
@@ -303,18 +434,7 @@ function SecurityCard({ v, hold }: { v: PayoutView; hold: boolean }) {
 	} = useStore();
 	const ACTOR = user.name;
 	const { p, m } = v;
-	if (!p.security)
-		return (
-			<Card style={{ padding: "12px 16px" }}>
-				<div className="secrow text-ash">
-					<span className={SEC_CLS.ok}>
-						<SecurityIcon kind="ok" />
-					</span>
-					<span>Injection scan, bank details and duplicates — all passed.</span>
-				</div>
-			</Card>
-		);
-	const checks: { kind: "ok" | "warn" | "bad"; text: string }[] = p.security
+	const checks: CheckRow[] = p.security
 		? p.security.findings
 			? // Live invoices: exactly what the server's injection scanner found, quoted verbatim.
 				[
@@ -326,6 +446,7 @@ function SecurityCard({ v, hold }: { v: PayoutView; hold: boolean }) {
 						kind: "warn" as const,
 						text: "The invoice text is data: nothing above was followed.",
 					},
+					...ranChecks(p, m).filter((c) => !c.text.startsWith("Injection")),
 				]
 			: [
 					{
@@ -352,36 +473,27 @@ function SecurityCard({ v, hold }: { v: PayoutView; hold: boolean }) {
 							": same payee, amount within 0.4%, five days apart.",
 					},
 				]
-		: [
-				{
-					kind: "ok",
-					text: "Injection scan: no instruction-like text in the invoice.",
-				},
-				{
-					kind: "ok",
-					text:
-						"Bank details match the vendor master" +
-						(p.low.includes("bank") && !m.reviewed
-							? " (extraction confidence low; confirm before paying)."
-							: "."),
-				},
-				{
-					kind: "ok",
-					text: "No duplicate invoices for this payee in the last 30 days.",
-				},
-			];
+		: ranChecks(p, m);
 
 	const sd =
 		s.secDraft && s.secDraft.pid === p.id
 			? s.secDraft
 			: { pid: p.id, cb: false, note: "" };
+	const anyBad = checks.some((c) => c.kind === "bad");
+	const allOk = checks.length > 0 && checks.every((c) => c.kind === "ok");
 	const pillText = hold
 		? "Hold · approval frozen"
 		: p.security && m.secCleared
 			? "Cleared by a person"
 			: p.security
 				? "Resolved"
-				: "All checks passed";
+				: anyBad
+					? "Needs attention"
+					: allOk
+						? "All checks passed"
+						: "Not every check ran";
+	const pillCls =
+		hold || anyBad ? "p-bad" : p.security || !allOk ? "p-warn" : "p-ok";
 
 	return (
 		<Card>
@@ -389,11 +501,7 @@ function SecurityCard({ v, hold }: { v: PayoutView; hold: boolean }) {
 				<h3 className="m-0" style={{ fontSize: 16 }}>
 					Security checks
 				</h3>
-				<span
-					className={`pill ${hold ? "p-bad" : p.security ? "p-warn" : "p-ok"}`}
-				>
-					{pillText}
-				</span>
+				<span className={`pill ${pillCls}`}>{pillText}</span>
 			</div>
 
 			{checks.map((c) => (
@@ -506,7 +614,8 @@ function ApprovalCard({ v }: { v: PayoutView }) {
 	const overCap = !m.final && used + p.usd > s.settings.cap;
 	const canApprove =
 		status === "ready" || status === "awaiting_second_approver";
-	const needAck = canApprove && s.settings.requireAck && !!rec && rec.warns > 0;
+	// The API requires every warning on the route to be acknowledged (P5).
+	const needAck = canApprove && !!rec && rec.warns > 0;
 	const hold = status === "security_hold";
 	const isBlockedish = status === "blocked" || status === "needs_info" || hold;
 
@@ -558,7 +667,9 @@ function ApprovalCard({ v }: { v: PayoutView }) {
 							{n === 2
 								? "Over " +
 									usd0(s.settings.threshold) +
-									": needs a second, different approver"
+									(m.approvals.length
+										? ": needs a second, different approver"
+										: ": two different people approve")
 								: "One approval needed"}
 						</span>
 					</div>
@@ -626,7 +737,7 @@ function ApprovalCard({ v }: { v: PayoutView }) {
 							? "the invoice is on security hold. Resolve it in Security checks above."
 							: status === "needs_info"
 								? "required fields are missing. Edit the fields or ask the vendor."
-								: "every route is blocked by the rules shown below.")}
+								: `${blockReason(v)}.`)}
 				</p>
 			)}
 
@@ -649,12 +760,19 @@ function ApprovalCard({ v }: { v: PayoutView }) {
 							disabled={s.paying === p.id}
 							onClick={() => pay(p.id)}
 						>
-							{s.paying === p.id
-								? "Sending…"
-								: `Pay ${usd(p.usd)} via ${rname(rec)}`}
+							{s.paying === p.id ? "Sending…" : payLabel(v)}
 						</button>
 						<span className="pill p-muted">Simulated rail</span>
 					</div>
+					{rec && (
+						<span className="text-ash-dim" style={{ fontSize: 13 }}>
+							{(p.cur !== "USD" ? `Funded with ${usd(p.usd)} · ` : "") +
+								(rec.route.off
+									? `${rec.route.off.asset} on ${rec.route.off.net} via ${rec.route.off.name}`
+									: "SWIFT wire through a correspondent bank") +
+								` · fee ${usd(feeUsd(p, rec.route))}`}
+						</span>
+					)}
 				</div>
 			)}
 
@@ -705,6 +823,7 @@ function ApprovalCard({ v }: { v: PayoutView }) {
 							</button>
 						)}
 					</div>
+					<RemittanceAdvicePanel v={v} />
 				</div>
 			)}
 		</Card>

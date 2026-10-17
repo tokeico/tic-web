@@ -1,4 +1,4 @@
-import { OFFRAMPS, RULES, visiblePayouts } from "./data";
+import { OFFRAMPS, RULES, visiblePayouts, WIRE_FEE_PCT } from "./data";
 import { fmtDate, h64, iso } from "./format";
 import {
 	rememberFingerprint as _remember,
@@ -66,9 +66,9 @@ export function routesFor(p: Payout, s: EngineState): Route[] {
 		id: `${p.c}:wire`,
 		kind: "wire",
 		off: null,
-		fee: 4.5,
+		fee: WIRE_FEE_PCT,
 		min: 2880,
-		label: "SWIFT wire · 4.5% · 2 days",
+		label: `SWIFT wire · ${WIRE_FEE_PCT}% · 2 days`,
 	});
 	return out.sort((a, b) => a.fee - b.fee);
 }
@@ -211,6 +211,36 @@ export const approvedUsd = (s: EngineState) =>
 		const v = pv(q, s);
 		return t + (["approved", "paid", "booked"].includes(v.status) ? q.usd : 0);
 	}, 0);
+
+/** A route's fee in USD: the API's quote when it sent one. */
+export const feeUsd = (p: Payout, r: Route) =>
+	r.feeUsd ?? (p.usd * r.fee) / 100;
+
+/** The plan's own wire quote: the baseline a saving is measured against. */
+export const wireEval = (pl: Plan) =>
+	pl.evals.find((e) => e.route.kind === "wire") ?? null;
+
+/** USD the recommended route saves against this plan's wire quote (0 without both). */
+export function wireSaving(v: PayoutView) {
+	const wire = wireEval(v.plan);
+	const rec = v.plan.rec;
+	if (!wire || !rec || rec.route.kind === "wire") return 0;
+	return feeUsd(v.p, wire.route) - feeUsd(v.p, rec.route);
+}
+
+/** The wire fee the plans quote, averaged, for copy that names the baseline. */
+export function wireFeePct(vs: PayoutView[]) {
+	const fees = vs
+		.map((v) => wireEval(v.plan)?.route.fee)
+		.filter((f): f is number => typeof f === "number");
+	return fees.length
+		? Math.round((fees.reduce((t, f) => t + f, 0) / fees.length) * 10) / 10
+		: WIRE_FEE_PCT;
+}
+
+/** Rule ids that warn on a route: what an approver must acknowledge. */
+export const warnIds = (e: RouteEval | null) =>
+	e ? e.results.filter((x) => x.o === "warn").map((x) => x.rule.id) : [];
 
 export const rname = (rec: RouteEval | null) =>
 	rec

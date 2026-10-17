@@ -1,8 +1,10 @@
 import { Play } from "@/components/icons";
 import { Card, Disclosure, Lab } from "@/components/ui";
 import { actorOf } from "@/domain/audit";
-import { views } from "@/domain/engine";
+import { views, wireFeePct, wireSaving } from "@/domain/engine";
 import { fmtDate, iso, usd0 } from "@/domain/format";
+import { blockReason } from "@/domain/holds";
+import { hasMemberApproved } from "@/lib/auth";
 import { useStore } from "@/state/store";
 
 /**
@@ -11,7 +13,7 @@ import { useStore } from "@/state/store";
  * opens this screen to act, not to read about the machine.
  */
 export function OverviewPage() {
-	const { state, go, open, loadDemo, startTour } = useStore();
+	const { state, go, open, loadDemo, startTour, user } = useStore();
 	const s = state;
 	const asOf = iso(s.day);
 	const L = s.loaded;
@@ -26,10 +28,9 @@ export function OverviewPage() {
 				v.status,
 			),
 	);
-	const savings = routed.reduce(
-		(t, v) => t + (v.p.usd * (4.5 - v.plan.rec!.route.fee)) / 100,
-		0,
-	);
+	// Measured against each plan's own wire quote, never a constant.
+	const savings = routed.reduce((t, v) => t + wireSaving(v), 0);
+	const wirePct = wireFeePct(routed.length ? routed : vs);
 	const avgMin = routed.length
 		? Math.round(
 				routed.reduce((t, v) => t + v.plan.rec!.route.min, 0) / routed.length,
@@ -66,7 +67,9 @@ export function OverviewPage() {
 			"Sanctions screen",
 			"Code",
 			"OFAC SDN fuzzy match",
-			L ? `${vs.length} clear` : "—",
+			L
+				? `${vs.filter((v) => v.p.screening?.status === "clear").length} clear`
+				: "—",
 		],
 		[
 			"Rules engine",
@@ -123,11 +126,25 @@ export function OverviewPage() {
 				cta: "Review",
 				go: openIt,
 			});
+		else if (v.status === "blocked")
+			needs.push({
+				tag: "Blocked",
+				cls: "pill p-bad",
+				text: `${v.p.payee} ${num}: ${blockReason(v)}`,
+				cta: "Review",
+				go: openIt,
+			});
 		else if (v.status === "awaiting_second_approver")
 			needs.push({
 				tag: "Approve",
 				cls: "pill p-warn",
-				text: `${v.p.payee} needs a second approver`,
+				// Over the threshold two different people approve; say where it stands.
+				text:
+					v.m.approvals.length === 0
+						? `${v.p.payee} needs approval: over ${usd0(s.settings.threshold)}, so two different people approve`
+						: hasMemberApproved(v.m.approvals, user)
+							? `${v.p.payee} has your approval: waiting on a second, different approver`
+							: `${v.p.payee} has ${v.m.approvals.length} of 2 approvals: needs a second, different approver`,
 				cta: "Open",
 				go: openIt,
 			});
@@ -329,7 +346,7 @@ export function OverviewPage() {
 				className="flex flex-wrap items-start gap-x-8 gap-y-4 sm:gap-x-12"
 			>
 				<div className="flex min-w-[140px] flex-col gap-0.5">
-					<Lab>Fees saved vs. SWIFT</Lab>
+					<Lab>{`Fees saved vs. an unnegotiated bank wire (~${wirePct}%)`}</Lab>
 					<span
 						className="mono"
 						style={{
@@ -381,7 +398,7 @@ export function OverviewPage() {
 							{String(stops)}
 						</span>
 						<span className="text-ash-dim" style={{ fontSize: 12.5 }}>
-							security holds and sanctions blocks
+							security, sanctions and bank-detail holds
 						</span>
 					</div>
 				)}

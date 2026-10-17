@@ -8,6 +8,8 @@ import {
 	plan,
 	rname,
 	views,
+	wireFeePct,
+	wireSaving,
 } from "./engine";
 import { fmtDate, iso, last4, local, uniq, usd, usd0 } from "./format";
 import { memoFor } from "./memo";
@@ -382,11 +384,10 @@ export function respond(text: string, s: AppState): AgentReply {
 					v.status,
 				),
 		);
-		const total = rows.reduce(
-			(t2, v) => t2 + (v.p.usd * (4.5 - v.plan.rec!.route.fee)) / 100,
-			0,
+		const total = rows.reduce((t2, v) => t2 + wireSaving(v), 0);
+		msg.paras.push(
+			`Against each payout's own quote for an unnegotiated bank wire (~${wireFeePct(rows)}%, about two days):`,
 		);
-		msg.paras.push("Against a SWIFT wire at 4.5% and about two days:");
 		msg.bullets = rows.map(
 			(v) =>
 				v.p.payee +
@@ -395,7 +396,7 @@ export function respond(text: string, s: AppState): AgentReply {
 				"% via " +
 				rname(v.plan.rec) +
 				", saves " +
-				usd((v.p.usd * (4.5 - v.plan.rec!.route.fee)) / 100) +
+				usd(wireSaving(v)) +
 				" and settles in " +
 				v.plan.rec!.route.min +
 				" min",
@@ -792,7 +793,9 @@ export function respond(text: string, s: AppState): AgentReply {
 				eff(hold.p, hold.m).inv.number +
 				"."
 			: aw
-				? `Suggested next step: ${aw.p.payee} needs a second approver.`
+				? aw.m.approvals.length
+					? `Suggested next step: ${aw.p.payee} needs a second, different approver.`
+					: `Suggested next step: approve ${aw.p.payee}. It's over the threshold, so two different people approve.`
 				: rd
 					? `Suggested next step: review and approve ${rd.p.payee}.`
 					: apv
@@ -848,7 +851,7 @@ export function loadSummaryMessage(asOf: string): AgentMessage {
 		paras: ["I read 4 invoices. Here is where they stand:"],
 		bullets: [
 			"Estúdio Paulista: ready, with one warning (Ponte Digital hasn’t filed for BCB authorization).",
-			"Autopartes del Norte: needs a second approver. I read the CLABE (ending " +
+			"Autopartes del Norte: needs approval from two different people (over $50,000). I read the CLABE (ending " +
 				last4("002180700123456789") +
 				") with low confidence, so please check it.",
 			"Lucía Fernández: ready, with an exchange-rate gap warning.",

@@ -488,11 +488,8 @@ function QueueCard({ a, vs }: { a: AgentAction; vs: PayoutView[] }) {
 		["pay", "reconcile", "asof", "fraud"].includes(a.kind) && !invalid;
 
 	const n = v ? need(v.p, s) : 1;
-	const needAck = !!(
-		s.settings.requireAck &&
-		v?.plan.rec &&
-		v.plan.rec.warns > 0
-	);
+	// The API requires every warning on the route to be acknowledged (P5).
+	const needAck = !!(v?.plan.rec && v.plan.rec.warns > 0);
 	const overCapNow = !!(
 		v &&
 		!v.m.final &&

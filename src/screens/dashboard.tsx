@@ -20,7 +20,7 @@ import {
 	savedOf,
 } from "@/domain/ceo-demo";
 import { WIRE_FEE_PCT } from "@/domain/data";
-import { views } from "@/domain/engine";
+import { views, wireFeePct, wireSaving } from "@/domain/engine";
 import { fmtDate, iso, usd0 } from "@/domain/format";
 import { seesDemo } from "@/lib/auth";
 import { useStore, type ViewId } from "@/state/store";
@@ -83,7 +83,7 @@ function demoModel(): CeoModel {
 				tone: "volt",
 			},
 			{
-				label: "Saved vs SWIFT",
+				label: "Saved vs bank wire",
 				value: t.saved,
 				format: compact,
 				sub: `${pct(oct.stable)} of volume on stablecoin rails at ${DEMO_STABLE_FEE}%`,
@@ -118,11 +118,11 @@ function demoModel(): CeoModel {
 		fleet: DEMO_FLEET,
 		stream: DEMO_STREAM,
 		escalations: DEMO_ESCALATIONS,
-		briefing: `Here's where things stand. In the last 12 months your agents moved ${compact(t.volume)} across ${t.payouts.toLocaleString("en-US")} payouts in four corridors and saved ${compact(t.saved)} versus SWIFT. This month Sentinel stopped ${usd0(oct.stopped)}: a duplicate Estúdio Paulista invoice with swapped bank details, held before anyone approved it. Sanctions kept every Venezuela payout blocked under the OFAC program. Two decisions are waiting on people: a ${usd0(64_865)} Mexico payout needs a second approver, and Radar's BCB Res. 561 update needs compliance sign-off.`,
+		briefing: `Here's where things stand. In the last 12 months your agents moved ${compact(t.volume)} across ${t.payouts.toLocaleString("en-US")} payouts in four corridors and saved ${compact(t.saved)} versus an unnegotiated bank wire. This month Sentinel stopped ${usd0(oct.stopped)}: a duplicate Estúdio Paulista invoice with swapped bank details, held before anyone approved it. Sanctions kept every Venezuela payout blocked under the OFAC program. Two decisions are waiting on people: a ${usd0(64_865)} Mexico payout needs a second approver, and Radar's BCB Res. 561 update needs compliance sign-off.`,
 		qa: [
 			{
 				q: "How much did we save this year?",
-				a: `${usd0(t.saved)} versus sending the same volume by SWIFT wire. ${pct(oct.stable)} of volume now settles over stablecoin rails at an average ${DEMO_STABLE_FEE}% fee, against ${WIRE_FEE_PCT}% by wire, in a median ${DEMO_SETTLE_MIN} minutes instead of about 2 days. September was the best month: ${usd0(savedOf(sep))}.`,
+				a: `${usd0(t.saved)} versus sending the same volume by an unnegotiated bank wire. ${pct(oct.stable)} of volume now settles over stablecoin rails at an average ${DEMO_STABLE_FEE}% fee, against ~${WIRE_FEE_PCT}% by wire, in a median ${DEMO_SETTLE_MIN} minutes instead of about 2 days. September was the best month: ${usd0(savedOf(sep))}.`,
 			},
 			{
 				q: "Where is the money going?",
@@ -164,10 +164,9 @@ function liveModel(store: ReturnType<typeof useStore>): CeoModel {
 		["ready", "awaiting_second_approver", "approved"].includes(v.status),
 	);
 	const total = (list: typeof vs) => list.reduce((t, v) => t + v.p.usd, 0);
-	const saved = routed.reduce(
-		(t, v) => t + (v.p.usd * (WIRE_FEE_PCT - v.plan.rec!.route.fee)) / 100,
-		0,
-	);
+	// Against each plan's own wire quote, never a constant.
+	const saved = routed.reduce((t, v) => t + wireSaving(v), 0);
+	const wirePct = wireFeePct(routed.length ? routed : vs);
 	const clear = vs.length ? (vs.length - stopped.length) / vs.length : 1;
 	const byC = new Map<string, { c: string; name: string; usd: number }>();
 	for (const v of vs) {
@@ -190,7 +189,7 @@ function liveModel(store: ReturnType<typeof useStore>): CeoModel {
 				tone: "volt",
 			},
 			{
-				label: "Saved vs SWIFT",
+				label: "Saved vs bank wire",
 				value: saved,
 				format: compact,
 				sub: `projected on ${routed.length} stablecoin routes`,
@@ -240,12 +239,12 @@ function liveModel(store: ReturnType<typeof useStore>): CeoModel {
 				]
 			: [],
 		briefing: vs.length
-			? `Your agents have read ${vs.length} invoices worth ${compact(total(vs))}. ${paid.length} are paid; ${stopped.length} ${stopped.length === 1 ? "was" : "were"} stopped before release, and routing is set to save ${compact(saved)} versus SWIFT. ${waiting.length ? `${waiting.length} ${waiting.length === 1 ? "decision is" : "decisions are"} waiting on a person.` : "Nothing is waiting on a person."}`
+			? `Your agents have read ${vs.length} invoices worth ${compact(total(vs))}. ${paid.length} are paid; ${stopped.length} ${stopped.length === 1 ? "was" : "were"} stopped before release, and routing is set to save ${compact(saved)} versus an unnegotiated bank wire. ${waiting.length ? `${waiting.length} ${waiting.length === 1 ? "decision is" : "decisions are"} waiting on a person.` : "Nothing is waiting on a person."}`
 			: "Your agents are standing by. Load the demo invoices or upload one, and they'll read, screen, route and explain it here.",
 		qa: [
 			{
 				q: "How much will routing save?",
-				a: `${usd0(saved)} versus SWIFT on ${routed.length} stablecoin routes, at fees between the off-ramps' quotes and ${WIRE_FEE_PCT}% by wire.`,
+				a: `${usd0(saved)} versus an unnegotiated bank wire (~${wirePct}%) on ${routed.length} stablecoin routes, measured against each payout's own wire quote.`,
 			},
 			{
 				q: "What did the agents stop?",
