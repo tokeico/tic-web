@@ -2,9 +2,7 @@ import { Link, useLocation } from "@tanstack/react-router";
 import { type ReactNode, useState } from "react";
 
 import { DEMO_FLEET } from "@/domain/ceo-demo";
-import { RULES } from "@/domain/data";
 import { TOUR_WHY } from "@/domain/demo-guide";
-import { activeRuleCount } from "@/domain/engine";
 import { fmtDate, iso } from "@/domain/format";
 import { seesDemo, signOut } from "@/lib/auth";
 import { useStore, VIEW_PATH, type ViewId } from "@/state/store";
@@ -183,18 +181,6 @@ export function Shell({ children }: { children: ReactNode }) {
 								{signOutError}
 							</span>
 						)}
-						<span
-							className="pill p-muted hidden sm:inline-flex"
-							title={
-								"Rules pack v1 · " +
-								activeRuleCount(iso(state.day)) +
-								" of " +
-								RULES.length +
-								" active · pending compliance review · rail: simulated"
-							}
-						>
-							Simulated demo
-						</span>
 					</div>
 				</div>
 
