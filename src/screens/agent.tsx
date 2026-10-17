@@ -5,7 +5,7 @@ import { cite } from "@/domain/data";
 import { approvedUsd, need, views } from "@/domain/engine";
 import { uniq } from "@/domain/format";
 import type { AgentAction, AgentMessage, PayoutView } from "@/domain/types";
-import { ACTOR, APPROVERS, COMPLIANCE, useStore } from "@/state/store";
+import { useStore } from "@/state/store";
 
 const AUTONOMY_LABEL = {
 	suggest: "Suggest only",
@@ -18,7 +18,7 @@ const AUTONOMY_LABEL = {
  * right, where a person confirms it — the agent has no tool that moves money.
  */
 export function AgentPage() {
-	const { state: s, go, setInput, ask } = useStore();
+	const { state: s, go, setInput, ask, startTour, loadDemo } = useStore();
 	const pending = s.actions.filter((a) => a.status === "pending");
 	const history = s.actions
 		.filter((a) => a.status !== "pending")
@@ -51,6 +51,19 @@ export function AgentPage() {
 						</span>
 					</div>
 					<div className="flex flex-wrap items-center gap-2">
+						{!s.loaded && (
+							<button
+								type="button"
+								className="btn btn-primary btn-sm"
+								disabled={s.loading}
+								onClick={loadDemo}
+							>
+								{s.loading ? "Loading invoices..." : "Load demo invoices"}
+							</button>
+						)}
+						<button type="button" className="btn btn-sm" onClick={startTour}>
+							Start guided demo
+						</button>
 						<span className="pill p-neutral">
 							{`Autonomy: ${AUTONOMY_LABEL[s.settings.autonomy]}`}
 						</span>
@@ -330,6 +343,7 @@ function AgentBubble({ m }: { m: AgentMessage }) {
 /** One prepared action. Nothing here happens without a person clicking. */
 function QueueCard({ a, vs }: { a: AgentAction; vs: PayoutView[] }) {
 	const {
+		user,
 		state: s,
 		execAction,
 		dismissAction,
@@ -337,6 +351,11 @@ function QueueCard({ a, vs }: { a: AgentAction; vs: PayoutView[] }) {
 		setAck,
 		open,
 	} = useStore();
+	const ACTOR = user.name;
+	const COMPLIANCE = user.name;
+	const APPROVERS = ["controller", "approver"].includes(user.role)
+		? [user.name]
+		: [];
 	const v = a.pid ? vs.find((x) => x.p.id === a.pid) : undefined;
 
 	let invalid = false;

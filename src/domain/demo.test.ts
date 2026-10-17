@@ -187,6 +187,7 @@ test("every tour step and main screen explains why it matters", () => {
 	}
 	for (const path of [
 		"/app",
+		"/overview",
 		"/inbox",
 		"/agent",
 		"/trust",

@@ -1,4 +1,4 @@
-import { useNavigate } from "@tanstack/react-router";
+import { useNavigate, useRouteContext } from "@tanstack/react-router";
 import {
 	createContext,
 	type ReactNode,
@@ -47,6 +47,7 @@ import type {
 	ToastLine,
 } from "@/domain/types";
 import { ApiRequestError } from "@/lib/api";
+import type { AuthUser } from "@/lib/auth";
 
 /**
  * The single client-side store. Mirrors the approved prototype's state shape
@@ -69,7 +70,7 @@ export type ViewId =
 	| "customize";
 
 export const VIEW_PATH: Record<ViewId, string> = {
-	overview: "/app",
+	overview: "/overview",
 	inbox: "/inbox",
 	agent: "/agent",
 	trust: "/trust",
@@ -188,9 +189,9 @@ export interface Store {
 	tourExit: () => void;
 }
 
-const StoreContext = createContext<Store | null>(null);
+const StoreContext = createContext<(Store & { user: AuthUser }) | null>(null);
 
-export function useStore(): Store {
+export function useStore(): Store & { user: AuthUser } {
 	const s = useContext(StoreContext);
 	if (!s) throw new Error("useStore must be used inside <StoreProvider>");
 	return s;
@@ -200,6 +201,9 @@ export function useStore(): Store {
 export const useAppState = () => useStore().state;
 
 export function StoreProvider({ children }: { children: ReactNode }) {
+	const { user } = useRouteContext({ from: "/_app" });
+	const ACTOR = user.name;
+	const COMPLIANCE = user.name;
 	const [state, setState] = useState<AppState>(initialState);
 	const ref = useRef(state);
 	const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -1424,10 +1428,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
 		return api;
 		// eslint-disable-next-line react-hooks/exhaustive-deps
-	}, [navigate, state]);
+	}, [navigate, state, ACTOR, COMPLIANCE]);
 
 	// `store` is rebuilt only on navigate; hand components the live state.
-	const value = useMemo<Store>(() => ({ ...store, state }), [store, state]);
+	const value = useMemo(
+		() => ({ ...store, state, user }),
+		[store, state, user],
+	);
 
 	return (
 		<StoreContext.Provider value={value}>{children}</StoreContext.Provider>

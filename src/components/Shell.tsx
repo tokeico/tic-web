@@ -5,13 +5,15 @@ import { RULES } from "@/domain/data";
 import { TOUR_WHY } from "@/domain/demo-guide";
 import { activeRuleCount } from "@/domain/engine";
 import { fmtDate, iso } from "@/domain/format";
-import { ACTOR, useStore, VIEW_PATH, type ViewId } from "@/state/store";
+import { signOut } from "@/lib/auth";
+import { useStore, VIEW_PATH, type ViewId } from "@/state/store";
 import { FeatureGuide } from "./FeatureGuide";
+import { HelpHint } from "./HelpHint";
 import { Close, More, Swap } from "./icons";
 
 const TABS: [ViewId, string][] = [
-	["inbox", "Inbox"],
 	["agent", "Agent"],
+	["inbox", "Inbox"],
 	["ledger", "Books"],
 ];
 
@@ -31,7 +33,9 @@ const JUMPS: [number, string][] = [
 ];
 
 export function Shell({ children }: { children: ReactNode }) {
-	const { state, go } = useStore();
+	const { state, go, user } = useStore();
+	const [signingOut, setSigningOut] = useState(false);
+	const [signOutError, setSignOutError] = useState("");
 	const { pathname } = useLocation();
 	const pending = state.actions.filter((a) => a.status === "pending");
 
@@ -122,12 +126,42 @@ export function Shell({ children }: { children: ReactNode }) {
 									))}
 								</div>
 							</details>
+							<FeatureGuide key={pathname} pathname={pathname} />
 						</nav>
 					</div>
 					<div className="flex flex-wrap items-center gap-2">
 						<span className="text-ash" style={{ fontSize: 13 }}>
-							Acting as <strong className="font-semibold">{ACTOR}</strong>
+							<Link
+								to="/account"
+								className="font-semibold text-bone underline-offset-4 hover:underline"
+							>
+								{user.name}
+							</Link>
+							<span className="ml-2 text-ash-dim">{user.role}</span>
 						</span>
+						<button
+							type="button"
+							className="btn btn-sm"
+							disabled={signingOut}
+							onClick={async () => {
+								setSigningOut(true);
+								setSignOutError("");
+								try {
+									await signOut();
+									window.location.replace("/signin");
+								} catch {
+									setSignOutError("Could not sign out. Please try again.");
+									setSigningOut(false);
+								}
+							}}
+						>
+							{signingOut ? "Signing out..." : "Sign out"}
+						</button>
+						{signOutError && (
+							<span role="alert" className="text-sm text-coral">
+								{signOutError}
+							</span>
+						)}
 						<span
 							className="pill p-muted"
 							title={
@@ -147,7 +181,6 @@ export function Shell({ children }: { children: ReactNode }) {
 			</header>
 
 			<TourBar key={state.tour ?? "off"} />
-			<FeatureGuide key={pathname} pathname={pathname} />
 			{children}
 			<Toast />
 		</div>
@@ -288,14 +321,12 @@ function TourBar() {
 					</span>
 					<span className="font-semibold" style={{ fontSize: 16 }}>
 						{step.title}
+						<HelpHint label="About this demo step">
+							<span className="mb-3 block">{step.task}</span>
+							<strong className="block font-semibold">Why it matters</strong>
+							<span className="text-ash">{TOUR_WHY[step.title]}</span>
+						</HelpHint>
 					</span>
-					<p className="m-0 max-w-[75ch] text-sm text-ash">{step.task}</p>
-					<details className="max-w-[75ch] text-sm">
-						<summary className="cursor-pointer text-volt">
-							Why this matters
-						</summary>
-						<p className="mb-0 mt-2 text-ash">{TOUR_WHY[step.title]}</p>
-					</details>
 					<div
 						className="mt-2 flex flex-wrap items-center gap-2"
 						role="status"
