@@ -5,6 +5,7 @@ import { cite } from "@/domain/data";
 import { approvedUsd, need, views } from "@/domain/engine";
 import { uniq } from "@/domain/format";
 import type { AgentAction, AgentMessage, PayoutView } from "@/domain/types";
+import { hasMemberApproved } from "@/lib/auth";
 import { useStore } from "@/state/store";
 
 const AUTONOMY_LABEL = {
@@ -353,9 +354,7 @@ function QueueCard({ a, vs }: { a: AgentAction; vs: PayoutView[] }) {
 	} = useStore();
 	const ACTOR = user.name;
 	const COMPLIANCE = user.name;
-	const APPROVERS = ["controller", "approver"].includes(user.role)
-		? [user.name]
-		: [];
+	const isApprover = ["controller", "approver"].includes(user.role);
 	const v = a.pid ? vs.find((x) => x.p.id === a.pid) : undefined;
 
 	let invalid = false;
@@ -463,16 +462,10 @@ function QueueCard({ a, vs }: { a: AgentAction; vs: PayoutView[] }) {
 							disabled={
 								overCapNow ||
 								(needAck && !v.m.ack) ||
-								APPROVERS.every((who) =>
-									v.m.approvals.some((x) => x.who === who),
-								)
+								!isApprover ||
+								hasMemberApproved(v.m.approvals, user)
 							}
-							onClick={() => {
-								const who = APPROVERS.find(
-									(person) => !v.m.approvals.some((x) => x.who === person),
-								);
-								if (who) execAction(a.id, who);
-							}}
+							onClick={() => execAction(a.id, user.name)}
 						>
 							Approve
 						</button>

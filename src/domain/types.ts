@@ -157,6 +157,7 @@ export interface Plan {
 
 export interface Approval {
 	who: string;
+	actorId?: string;
 	at: string;
 }
 

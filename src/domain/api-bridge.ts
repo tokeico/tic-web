@@ -296,6 +296,7 @@ function toMut(detail: PayoutDetail, plan: Plan): Mut {
 	return {
 		approvals: detail.approvals.map((a) => ({
 			who: a.approver,
+			actorId: a.approverId,
 			at: clock(a.at),
 		})),
 		...(terminal ? { final: detail.status as Status } : {}),

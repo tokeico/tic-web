@@ -14,6 +14,16 @@ export const AuthUser = z.object({
 	}),
 });
 export type AuthUser = z.infer<typeof AuthUser>;
+export function hasMemberApproved(
+	approvals: readonly { actorId?: string; who: string }[],
+	user: Pick<AuthUser, "memberId" | "name">,
+) {
+	return approvals.some((approval) =>
+		approval.actorId
+			? approval.actorId === user.memberId
+			: approval.who === user.name,
+	);
+}
 export const Session = z.object({ user: AuthUser });
 export const Member = AuthUser.pick({
 	id: true,

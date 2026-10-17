@@ -4,6 +4,7 @@ import { approvedUsd, eff, fingerprint, need, rname } from "@/domain/engine";
 import { fmtDate, local, mins, objWord, usd, usd0 } from "@/domain/format";
 import { memoFor } from "@/domain/memo";
 import type { Invoice, PayoutView, RouteEval } from "@/domain/types";
+import { hasMemberApproved } from "@/lib/auth";
 import { useStore } from "@/state/store";
 import { Chat, CheckCircle, Close, ShieldCheck } from "./icons";
 import {
@@ -483,9 +484,7 @@ function ApprovalCard({ v }: { v: PayoutView }) {
 		copy,
 		go,
 	} = useStore();
-	const APPROVERS = ["controller", "approver"].includes(user.role)
-		? [user.name]
-		: [];
+	const isApprover = ["controller", "approver"].includes(user.role);
 	const { p, m, plan, status } = v;
 	const rec = plan.rec;
 	const n = need(p, s);
@@ -576,14 +575,10 @@ function ApprovalCard({ v }: { v: PayoutView }) {
 							disabled={
 								overCap ||
 								(needAck && !m.ack) ||
-								APPROVERS.every((who) => m.approvals.some((a) => a.who === who))
+								!isApprover ||
+								hasMemberApproved(m.approvals, user)
 							}
-							onClick={() => {
-								const who = APPROVERS.find(
-									(person) => !m.approvals.some((a) => a.who === person),
-								);
-								if (who) approve(p.id, who);
-							}}
+							onClick={() => approve(p.id, user.name)}
 						>
 							Approve
 						</button>
