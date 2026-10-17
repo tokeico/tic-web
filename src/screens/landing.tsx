@@ -131,7 +131,10 @@ export function LandingPage() {
 						))}
 					</nav>
 
-					<Link to="/signup" className="btn btn-primary lp-pill-cta no-underline">
+					<Link
+						to="/signup"
+						className="btn btn-primary lp-pill-cta no-underline"
+					>
 						Create account
 					</Link>
 				</header>

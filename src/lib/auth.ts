@@ -48,11 +48,18 @@ export const signOut = () =>
 	});
 export const listMembers = () => request(z.array(Member), "/api/auth/members");
 export const Workspace = z.object({
-	id: z.string().uuid(), name: z.string(), role: AuthUser.shape.role, owner: z.boolean(),
+	id: z.string().uuid(),
+	name: z.string(),
+	role: AuthUser.shape.role,
+	owner: z.boolean(),
 });
-export const listWorkspaces = () => request(z.array(Workspace), "/api/auth/workspaces");
+export const listWorkspaces = () =>
+	request(z.array(Workspace), "/api/auth/workspaces");
 export const switchWorkspace = (workspaceId: string) =>
-	request(Session, "/api/auth/workspace", { method: "POST", body: { workspaceId } });
+	request(Session, "/api/auth/workspace", {
+		method: "POST",
+		body: { workspaceId },
+	});
 export const inviteMember = (
 	email: string,
 	role: "approver" | "ap_clerk" | "auditor",
