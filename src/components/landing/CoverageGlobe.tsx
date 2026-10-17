@@ -103,8 +103,8 @@ async function mountGlobe(
 	scene.add(globe);
 
 	// At rotation.y = 0, lon -90 faces +Z. Swing around the Americas centroid.
-	// West of the Mississippi so South America isn’t shoved to the right edge.
-	const americasLon = -100;
+	// Pendulum rest point west of the Mississippi.
+	const americasLon = -110;
 	const americasBaseY = (americasLon + 90) * DEG;
 	const swingAmp = 0.22;
 	const swingSpeed = 0.4;
