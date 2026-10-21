@@ -12,7 +12,6 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=3000
 ENV HOST=0.0.0.0
-ENV API_ORIGIN=https://geotropic-preseminal-syble.ngrok-free.dev
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile --production
 COPY --from=build /app/dist ./dist
